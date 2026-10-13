@@ -1,0 +1,237 @@
+---
+pagetitle: "NFL & MLB DFS Projections and Lineup Optimizer"
+description: "Proprietary NFL and MLB DFS projections with projected stat lines, plus an optimizer for every DraftKings and FanDuel contest. Free NFL projections; NFL Premium builds up to 150 lineups with upload-ready exports for $10/month, with a 7-day free trial."
+---
+
+```{=html}
+<div id="t7">
+<section class="hero">
+  <div class="hero-copy">
+    <h1>Our projections. Your build.</h1>
+    <p class="hero-lede">
+      Three7 runs on proprietary NFL and MLB projections, with a projected stat line
+      for every player. Then you take control: stack by team and position, set
+      exposure limits, boost the players you like and build lineups the rest of the
+      field won't have.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-solid" href="https://nfl.three7dfs.com">Open the NFL tool</a>
+      <a class="btn btn-line" href="https://mlb.three7dfs.com">Open the MLB tool</a>
+    </div>
+    <p class="hero-note">NFL projections are free, no sign-up needed. NFL Premium is $10/month with a 7-day free trial. <a href="#pricing">See pricing</a></p>
+  </div>
+
+  <figure class="demo" aria-labelledby="demo-cap">
+    <div class="demo-bar">
+      <span class="demo-title">Projections</span>
+      <span class="demo-tag">Sample slate</span>
+    </div>
+    <table class="demo-table">
+      <thead>
+        <tr>
+          <th scope="col" class="l">Player</th>
+          <th scope="col">Salary</th>
+          <th scope="col">Proj.</th>
+          <th scope="col">Value</th>
+        </tr>
+      </thead>
+      <tbody id="demo-body"></tbody>
+    </table>
+    <figcaption id="demo-cap">Boost or fade anyone: click a projection and type your own number.</figcaption>
+  </figure>
+</section>
+
+<section class="method" id="method" aria-labelledby="method-h">
+  <div class="method-intro">
+    <p class="eyebrow">How our projections work</p>
+    <h2 id="method-h">Built from the stat line up, not the betting line down</h2>
+    <p>Many projections start from Vegas lines and implied team totals, then work backward to fantasy points. Ours don't. We predict what each player will actually do on the field, then score it.</p>
+  </div>
+
+  <ol class="method-flow" aria-label="How a projection is made">
+    <li>
+      <span class="flow-n">1</span>
+      <h3>Learn from the data</h3>
+      <p>Machine learning models trained on historical game data, with injuries and who's actually playing factored in.</p>
+    </li>
+    <li>
+      <span class="flow-n">2</span>
+      <h3>Predict the stats</h3>
+      <p>Passing and rushing yards, receptions, touchdowns: a full stat line for every player.</p>
+      <p class="flow-eg">7.4 rec · 96 yds · 0.6 TD</p>
+    </li>
+    <li>
+      <span class="flow-n">3</span>
+      <h3>Score it for your site</h3>
+      <p>Those stats are turned into fantasy points using DraftKings or FanDuel scoring.</p>
+      <p class="flow-eg">= 19.6 pts</p>
+    </li>
+  </ol>
+
+  <dl class="method-points">
+    <div>
+      <dt>No Vegas anchor</dt>
+      <dd>We don't use betting lines as a guide. When our numbers disagree with the market, that's a different angle the rest of the field may not have.</dd>
+    </div>
+    <div>
+      <dt>Stats first, points second</dt>
+      <dd>Every projection comes with the stat line behind it, so you can see exactly why a player projects where he does, and disagree if you want.</dd>
+    </div>
+    <div>
+      <dt>Machine learning, not generative AI</dt>
+      <dd>No chatbot writes these numbers. They come from machine learning models trained on real game data and tested against how players actually performed.</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="control" aria-labelledby="control-h">
+  <div class="control-intro">
+    <h2 id="control-h">Built to differentiate</h2>
+    <p>Our projections are the foundation. Every setting on top of them is yours, so two people using Three7 on the same slate can end up with very different lineups.</p>
+  </div>
+  <dl class="control-list">
+    <div><dt>Up to 150 lineups per build</dt><dd>Generate a full set of unique lineups in one run with NFL Premium, enough for max-entry tournaments.</dd></div>
+    <div><dt>Custom stacking</dt><dd>Stack by team and by position, exactly how you want to correlate.</dd></div>
+    <div><dt>Exposure limits</dt><dd>Cap or floor any individual player across your build.</dd></div>
+    <div><dt>Filters and player boosts</dt><dd>Trim the pool and push up the players you're highest on.</dd></div>
+    <div><dt>Projected stat lines</dt><dd>See the yards, touchdowns and stats behind every projection, not just a point total.</dd></div>
+    <div><dt>Every DraftKings and FanDuel contest</dt><dd>Classic, Showdown and MVP, Tiers, Total Touchdowns and Total Yards.</dd></div>
+  </dl>
+</section>
+
+<section class="sports" aria-label="Sports">
+  <article class="sport">
+    <h2>NFL</h2>
+    <ul>
+      <li>Classic, Showdown and MVP, Tiers</li>
+      <li>Total Touchdowns and Total Yards</li>
+      <li>Projected stat lines for every player</li>
+      <li>Premium: up to 150 lineups and upload-ready exports</li>
+    </ul>
+    <a class="btn btn-solid" href="https://nfl.three7dfs.com">Open the NFL tool</a>
+  </article>
+  <article class="sport">
+    <h2>MLB</h2>
+    <ul>
+      <li>DraftKings and FanDuel contests</li>
+      <li>Team and position stacking</li>
+      <li>Projected stat lines for every player</li>
+      <li>Up to 20 lineups per build</li>
+    </ul>
+    <a class="btn btn-solid" href="https://mlb.three7dfs.com">Open the MLB tool</a>
+  </article>
+  <article class="sport sport-soon">
+    <h2>NBA</h2>
+    <p class="soon">Coming soon</p>
+    <ul>
+      <li>The same projections and build controls, for basketball.</li>
+    </ul>
+  </article>
+</section>
+
+<section class="pricing" id="pricing" aria-labelledby="pricing-h">
+  <div class="pricing-intro">
+    <h2 id="pricing-h">NFL pricing</h2>
+    <p>Use the projections free, no sign-up. Go Premium when you're ready to mass-build and upload.</p>
+  </div>
+  <div class="plans">
+    <article class="plan">
+      <h3>Free</h3>
+      <p class="price">$0</p>
+      <p class="plan-sub">No sign-up needed</p>
+      <ul>
+        <li>Full NFL projections and stat lines</li>
+        <li>Every DraftKings and FanDuel contest</li>
+        <li>Build 1 lineup at a time</li>
+      </ul>
+      <a class="btn btn-line" href="https://nfl.three7dfs.com">Open the NFL tool</a>
+    </article>
+    <article class="plan plan-pro">
+      <p class="plan-flag">7-day free trial</p>
+      <h3>Premium</h3>
+      <p class="price">$10<span>/month</span></p>
+      <p class="plan-sub">Cancel anytime</p>
+      <ul>
+        <li>Everything in Free</li>
+        <li>Up to 150 lineups per build</li>
+        <li>Export lineups ready to upload to DraftKings and FanDuel</li>
+        <li>Download the full projections table</li>
+      </ul>
+      <a class="btn btn-solid" href="https://nfl.three7dfs.com">Start your free trial</a>
+      <p class="plan-how">In the NFL tool, tap <strong>Sign in</strong> (top right) with your email, then <strong>Go Premium</strong>. You won't be charged until the trial ends, and you can cancel anytime from <strong>Manage subscription</strong>.</p>
+    </article>
+  </div>
+</section>
+
+<section class="steps" aria-labelledby="steps-h">
+  <h2 id="steps-h">How a build works</h2>
+  <ol>
+    <li>
+      <h3>Pick your contest</h3>
+      <p>Choose DraftKings or FanDuel and any contest type. The player pool loads with our projections and stat lines.</p>
+    </li>
+    <li>
+      <h3>Shape the build</h3>
+      <p>Set your stacks, exposure limits, filters and boosts. Change any projection you see differently.</p>
+    </li>
+    <li>
+      <h3>Build lineups</h3>
+      <p>Generate lineups that reflect your read. NFL Premium builds up to 150 and exports them ready to upload.</p>
+    </li>
+  </ol>
+</section>
+</div>
+
+<script>
+(function () {
+  var players = [
+    { name: "Josh Allen",          pos: "QB", team: "BUF", sal: 8200, proj: 24.8, line: "251 pass yds, 1.9 TD, 36 rush yds" },
+    { name: "Christian McCaffrey", pos: "RB", team: "SF",  sal: 8600, proj: 22.1, line: "88 rush yds, 41 rec yds, 1.1 TD" },
+    { name: "Puka Nacua",          pos: "WR", team: "LAR", sal: 7400, proj: 19.6, line: "7.4 rec, 96 yds, 0.6 TD" },
+    { name: "Brock Bowers",        pos: "TE", team: "LV",  sal: 5900, proj: 14.3, line: "6.1 rec, 64 yds, 0.4 TD" },
+    { name: "Jaylen Warren",       pos: "RB", team: "PIT", sal: 4800, proj: 11.2, line: "52 rush yds, 3.2 rec, 0.4 TD" },
+    { name: "Jalen McMillan",      pos: "WR", team: "TB",  sal: 3700, proj: 8.4,  line: "3.6 rec, 44 yds, 0.3 TD" }
+  ];
+  var body = document.getElementById("demo-body");
+  if (!body) return;
+
+  // Same color scale as the app: sky (low) -> white -> mint (high)
+  var lo = [176, 218, 250], mid = [255, 255, 255], hi = [140, 240, 185];
+  function mix(a, b, t) { return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
+  function color(v, min, max) {
+    var t = max === min ? 0.5 : (v - min) / (max - min);
+    var c = t < 0.5 ? mix(lo, mid, t * 2) : mix(mid, hi, (t - 0.5) * 2);
+    return "rgb(" + c.join(",") + ")";
+  }
+
+  function paint() {
+    var projs = players.map(function (p) { return p.proj; });
+    var min = Math.min.apply(null, projs), max = Math.max.apply(null, projs);
+    players.forEach(function (p, i) {
+      var row = body.children[i];
+      var cell = row.querySelector(".proj");
+      cell.style.background = color(p.proj, min, max);
+      row.querySelector(".val").textContent = (p.proj / (p.sal / 1000)).toFixed(2) + "x";
+    });
+  }
+
+  players.forEach(function (p, i) {
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td class="l"><span class="pn">' + p.name + '</span><span class="pm">' + p.team + " " + p.pos + '</span><span class="ps">' + p.line + "</span></td>" +
+      "<td>$" + p.sal.toLocaleString() + "</td>" +
+      '<td class="proj"><input type="number" step="0.1" min="0" inputmode="decimal" aria-label="Projection for ' + p.name + '" value="' + p.proj.toFixed(1) + '"></td>' +
+      '<td class="val"></td>';
+    body.appendChild(tr);
+    var input = tr.querySelector("input");
+    input.addEventListener("input", function () {
+      var v = parseFloat(input.value);
+      players[i].proj = isNaN(v) ? 0 : v;
+      tr.classList.add("edited");
+      paint();
+    });
+  });
+  paint();
+})();
+</script>
+```

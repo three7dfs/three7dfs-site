@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Proprietary NFL and MLB DFS projections with projected stat lines, plus an optimizer for every DraftKings and FanDuel contest. Free NFL projections; NFL Premium builds up to 150 lineups with upload-ready exports for $10/month, with a 7-day free trial.">
+
+<title>NFL &amp; MLB DFS Projections and Lineup Optimizer – Three7 DFS</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<link href="./images/favicon.png" rel="icon" type="image/png">
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-7f2de0d39255dcf263734151f9c43e42.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<meta property="og:title" content="NFL &amp; MLB DFS Projections and Lineup Optimizer">
+<meta property="og:description" content="Proprietary NFL and MLB DFS projections with projected stat lines, plus an optimizer for every DraftKings and FanDuel contest. Free NFL projections; NFL Premium builds up to 150 lineups with upload-ready exports for $10/month, with a 7-day free trial.">
+<meta property="og:site_name" content="Three7 DFS">
+<meta name="twitter:title" content="NFL &amp; MLB DFS Projections and Lineup Optimizer">
+<meta name="twitter:description" content="Proprietary NFL and MLB DFS projections with projected stat lines, plus an optimizer for every DraftKings and FanDuel contest. Free NFL projections; NFL Premium builds up to 150 lineups with upload-ready exports for $10/month, with a 7-day free trial.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    <img src="./images/logo-small.png" alt="Three7 DFS home" class="navbar-logo light-content">
+    <img src="./images/logo-small.png" alt="Three7 DFS home" class="navbar-logo dark-content">
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html#method"> 
+<span class="menu-text">How it works</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html#pricing"> 
+<span class="menu-text">Pricing</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://nfl.three7dfs.com"> 
+<span class="menu-text">NFL tool</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://mlb.three7dfs.com"> 
+<span class="menu-text">MLB tool</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://nfl.three7dfs.com"> 
+<span class="menu-text">Sign in</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-layout-custom page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+<!-- main -->
+
+
+
+
+<div id="t7">
+<section class="hero">
+  <div class="hero-copy">
+    <h1>Our projections. Your build.</h1>
+    <p class="hero-lede">
+      Three7 runs on proprietary NFL and MLB projections, with a projected stat line
+      for every player. Then you take control: stack by team and position, set
+      exposure limits, boost the players you like and build lineups the rest of the
+      field won't have.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-solid" href="https://nfl.three7dfs.com">Open the NFL tool</a>
+      <a class="btn btn-line" href="https://mlb.three7dfs.com">Open the MLB tool</a>
+    </div>
+    <p class="hero-note">NFL projections are free, no sign-up needed. NFL Premium is $10/month with a 7-day free trial. <a href="#pricing">See pricing</a></p>
+  </div>
+
+  <figure class="demo figure" aria-labelledby="demo-cap">
+    <div class="demo-bar">
+      <span class="demo-title">Projections</span>
+      <span class="demo-tag">Sample slate</span>
+    </div>
+    
+<table class="demo-table caption-top">
+<thead>
+<tr class="header">
+<th class="l" data-quarto-table-cell-role="th" scope="col">Player</th>
+<th data-quarto-table-cell-role="th" scope="col">Salary</th>
+<th data-quarto-table-cell-role="th" scope="col">Proj.</th>
+<th data-quarto-table-cell-role="th" scope="col">Value</th>
+</tr>
+</thead>
+<tbody id="demo-body">
+</tbody>
+</table>
+
+    <figcaption id="demo-cap">Boost or fade anyone: click a projection and type your own number.</figcaption>
+  </figure>
+</section>
+
+<section class="method" id="method" aria-labelledby="method-h">
+  <div class="method-intro">
+    <p class="eyebrow">How our projections work</p>
+    <h2 id="method-h">Built from the stat line up, not the betting line down</h2>
+    <p>Many projections start from Vegas lines and implied team totals, then work backward to fantasy points. Ours don't. We predict what each player will actually do on the field, then score it.</p>
+  </div>
+
+  <ol class="method-flow" aria-label="How a projection is made">
+    <li>
+      <span class="flow-n">1</span>
+      <h3>Learn from the data</h3>
+      <p>Machine learning models trained on historical game data, with injuries and who's actually playing factored in.</p>
+    </li>
+    <li>
+      <span class="flow-n">2</span>
+      <h3>Predict the stats</h3>
+      <p>Passing and rushing yards, receptions, touchdowns: a full stat line for every player.</p>
+      <p class="flow-eg">7.4 rec · 96 yds · 0.6 TD</p>
+    </li>
+    <li>
+      <span class="flow-n">3</span>
+      <h3>Score it for your site</h3>
+      <p>Those stats are turned into fantasy points using DraftKings or FanDuel scoring.</p>
+      <p class="flow-eg">= 19.6 pts</p>
+    </li>
+  </ol>
+
+  <dl class="method-points">
+    <div>
+      <dt>No Vegas anchor</dt>
+      <dd>We don't use betting lines as a guide. When our numbers disagree with the market, that's a different angle the rest of the field may not have.</dd>
+    </div>
+    <div>
+      <dt>Stats first, points second</dt>
+      <dd>Every projection comes with the stat line behind it, so you can see exactly why a player projects where he does, and disagree if you want.</dd>
+    </div>
+    <div>
+      <dt>Machine learning, not generative AI</dt>
+      <dd>No chatbot writes these numbers. They come from machine learning models trained on real game data and tested against how players actually performed.</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="control" aria-labelledby="control-h">
+  <div class="control-intro">
+    <h2 id="control-h">Built to differentiate</h2>
+    <p>Our projections are the foundation. Every setting on top of them is yours, so two people using Three7 on the same slate can end up with very different lineups.</p>
+  </div>
+  <dl class="control-list">
+    <div><dt>Up to 150 lineups per build</dt><dd>Generate a full set of unique lineups in one run with NFL Premium, enough for max-entry tournaments.</dd></div>
+    <div><dt>Custom stacking</dt><dd>Stack by team and by position, exactly how you want to correlate.</dd></div>
+    <div><dt>Exposure limits</dt><dd>Cap or floor any individual player across your build.</dd></div>
+    <div><dt>Filters and player boosts</dt><dd>Trim the pool and push up the players you're highest on.</dd></div>
+    <div><dt>Projected stat lines</dt><dd>See the yards, touchdowns and stats behind every projection, not just a point total.</dd></div>
+    <div><dt>Every DraftKings and FanDuel contest</dt><dd>Classic, Showdown and MVP, Tiers, Total Touchdowns and Total Yards.</dd></div>
+  </dl>
+</section>
+
+<section class="sports" aria-label="Sports">
+  <article class="sport">
+    <h2>NFL</h2>
+    <ul>
+      <li>Classic, Showdown and MVP, Tiers</li>
+      <li>Total Touchdowns and Total Yards</li>
+      <li>Projected stat lines for every player</li>
+      <li>Premium: up to 150 lineups and upload-ready exports</li>
+    </ul>
+    <a class="btn btn-solid" href="https://nfl.three7dfs.com">Open the NFL tool</a>
+  </article>
+  <article class="sport">
+    <h2>MLB</h2>
+    <ul>
+      <li>DraftKings and FanDuel contests</li>
+      <li>Team and position stacking</li>
+      <li>Projected stat lines for every player</li>
+      <li>Up to 20 lineups per build</li>
+    </ul>
+    <a class="btn btn-solid" href="https://mlb.three7dfs.com">Open the MLB tool</a>
+  </article>
+  <article class="sport sport-soon">
+    <h2>NBA</h2>
+    <p class="soon">Coming soon</p>
+    <ul>
+      <li>The same projections and build controls, for basketball.</li>
+    </ul>
+  </article>
+</section>
+
+<section class="pricing" id="pricing" aria-labelledby="pricing-h">
+  <div class="pricing-intro">
+    <h2 id="pricing-h">NFL pricing</h2>
+    <p>Use the projections free, no sign-up. Go Premium when you're ready to mass-build and upload.</p>
+  </div>
+  <div class="plans">
+    <article class="plan">
+      <h3>Free</h3>
+      <p class="price">$0</p>
+      <p class="plan-sub">No sign-up needed</p>
+      <ul>
+        <li>Full NFL projections and stat lines</li>
+        <li>Every DraftKings and FanDuel contest</li>
+        <li>Build 1 lineup at a time</li>
+      </ul>
+      <a class="btn btn-line" href="https://nfl.three7dfs.com">Open the NFL tool</a>
+    </article>
+    <article class="plan plan-pro">
+      <p class="plan-flag">7-day free trial</p>
+      <h3>Premium</h3>
+      <p class="price">$10<span>/month</span></p>
+      <p class="plan-sub">Cancel anytime</p>
+      <ul>
+        <li>Everything in Free</li>
+        <li>Up to 150 lineups per build</li>
+        <li>Export lineups ready to upload to DraftKings and FanDuel</li>
+        <li>Download the full projections table</li>
+      </ul>
+      <a class="btn btn-solid" href="https://nfl.three7dfs.com">Start your free trial</a>
+      <p class="plan-how">In the NFL tool, tap <strong>Sign in</strong> (top right) with your email, then <strong>Go Premium</strong>. You won't be charged until the trial ends, and you can cancel anytime from <strong>Manage subscription</strong>.</p>
+    </article>
+  </div>
+</section>
+
+<section class="steps" aria-labelledby="steps-h">
+  <h2 id="steps-h">How a build works</h2>
+  <ol>
+    <li>
+      <h3>Pick your contest</h3>
+      <p>Choose DraftKings or FanDuel and any contest type. The player pool loads with our projections and stat lines.</p>
+    </li>
+    <li>
+      <h3>Shape the build</h3>
+      <p>Set your stacks, exposure limits, filters and boosts. Change any projection you see differently.</p>
+    </li>
+    <li>
+      <h3>Build lineups</h3>
+      <p>Generate lineups that reflect your read. NFL Premium builds up to 150 and exports them ready to upload.</p>
+    </li>
+  </ol>
+</section>
+</div>
+
+<script>
+(function () {
+  var players = [
+    { name: "Josh Allen",          pos: "QB", team: "BUF", sal: 8200, proj: 24.8, line: "251 pass yds, 1.9 TD, 36 rush yds" },
+    { name: "Christian McCaffrey", pos: "RB", team: "SF",  sal: 8600, proj: 22.1, line: "88 rush yds, 41 rec yds, 1.1 TD" },
+    { name: "Puka Nacua",          pos: "WR", team: "LAR", sal: 7400, proj: 19.6, line: "7.4 rec, 96 yds, 0.6 TD" },
+    { name: "Brock Bowers",        pos: "TE", team: "LV",  sal: 5900, proj: 14.3, line: "6.1 rec, 64 yds, 0.4 TD" },
+    { name: "Jaylen Warren",       pos: "RB", team: "PIT", sal: 4800, proj: 11.2, line: "52 rush yds, 3.2 rec, 0.4 TD" },
+    { name: "Jalen McMillan",      pos: "WR", team: "TB",  sal: 3700, proj: 8.4,  line: "3.6 rec, 44 yds, 0.3 TD" }
+  ];
+  var body = document.getElementById("demo-body");
+  if (!body) return;
+
+  // Same color scale as the app: sky (low) -> white -> mint (high)
+  var lo = [176, 218, 250], mid = [255, 255, 255], hi = [140, 240, 185];
+  function mix(a, b, t) { return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
+  function color(v, min, max) {
+    var t = max === min ? 0.5 : (v - min) / (max - min);
+    var c = t < 0.5 ? mix(lo, mid, t * 2) : mix(mid, hi, (t - 0.5) * 2);
+    return "rgb(" + c.join(",") + ")";
+  }
+
+  function paint() {
+    var projs = players.map(function (p) { return p.proj; });
+    var min = Math.min.apply(null, projs), max = Math.max.apply(null, projs);
+    players.forEach(function (p, i) {
+      var row = body.children[i];
+      var cell = row.querySelector(".proj");
+      cell.style.background = color(p.proj, min, max);
+      row.querySelector(".val").textContent = (p.proj / (p.sal / 1000)).toFixed(2) + "x";
+    });
+  }
+
+  players.forEach(function (p, i) {
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td class="l"><span class="pn">' + p.name + '</span><span class="pm">' + p.team + " " + p.pos + '</span><span class="ps">' + p.line + "</span></td>" +
+      "<td>$" + p.sal.toLocaleString() + "</td>" +
+      '<td class="proj"><input type="number" step="0.1" min="0" inputmode="decimal" aria-label="Projection for ' + p.name + '" value="' + p.proj.toFixed(1) + '"></td>' +
+      '<td class="val"></td>';
+    body.appendChild(tr);
+    var input = tr.querySelector("input");
+    input.addEventListener("input", function () {
+      var v = parseFloat(input.value);
+      players[i].proj = isNaN(v) ? 0 : v;
+      tr.classList.add("edited");
+      paint();
+    });
+  });
+  paint();
+})();
+</script>
+
+
+
+
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/three7dfs\.com");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 Three7 DFS · <a href="./privacy.html">Privacy</a> · <a href="mailto:support@three7dfs.com">support@three7dfs.com</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>Not affiliated with DraftKings or FanDuel. 18+ only.</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

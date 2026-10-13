@@ -1,0 +1,58 @@
+[
+  {
+    "objectID": "privacy.html#what-we-collect",
+    "href": "privacy.html#what-we-collect",
+    "title": "Three7 DFS",
+    "section": "What we collect",
+    "text": "What we collect\nYour email address. If you sign in or subscribe, we collect your email address. You sign in with a link or code sent to that email; there’s no password.\nSubscription and payment details. If you subscribe to Premium, payments are handled by Stripe. Stripe collects your card details and billing information (such as your ZIP or postal code). We never see or store your full card number. From Stripe we see your email, your subscription status (for example, trialing, active or cancelled) and your payment history.\nBasic technical information. Like most websites, our hosting providers automatically record standard technical information when you visit, such as your IP address, browser type and the pages you open. We use it to keep the tools running and secure.\nInformation stored in your browser. When you sign in, our NFL tool saves a sign-in token in your browser so you stay signed in on that device. We don’t use advertising cookies.\nWe don’t collect your DraftKings or FanDuel account details, and we don’t need them."
+  },
+  {
+    "objectID": "privacy.html#how-we-use-it",
+    "href": "privacy.html#how-we-use-it",
+    "title": "Three7 DFS",
+    "section": "How we use it",
+    "text": "How we use it\n\nTo sign you in and keep you signed in\nTo check whether you have an active Premium subscription and unlock Premium features\nTo send you sign-in emails and messages about your account or subscription\nTo answer your questions when you contact us\nTo keep our tools working, secure and free of abuse\nOccasionally, to tell you about new Three7 DFS features. You can opt out at any time by replying “unsubscribe” or emailing us."
+  },
+  {
+    "objectID": "privacy.html#who-we-share-it-with",
+    "href": "privacy.html#who-we-share-it-with",
+    "title": "Three7 DFS",
+    "section": "Who we share it with",
+    "text": "Who we share it with\nWe don’t sell your information. We share it only with the companies that help us run Three7 DFS, and only for that purpose:\n\n\n\nService\nWhat it does for us\n\n\n\n\nStripe\nProcesses payments and manages subscriptions\n\n\nSupabase\nHandles sign-in (stores your email and sign-in history)\n\n\nResend\nDelivers our sign-in emails\n\n\nPosit (shinyapps.io)\nHosts our NFL and MLB tools\n\n\nGitHub Pages\nHosts this website\n\n\n\nWe may also share information if the law requires it, or to protect our rights or the safety of others."
+  },
+  {
+    "objectID": "privacy.html#how-long-we-keep-it",
+    "href": "privacy.html#how-long-we-keep-it",
+    "title": "Three7 DFS",
+    "section": "How long we keep it",
+    "text": "How long we keep it\nWe keep your email and account information while you use Three7 DFS. If you ask us to delete your account, we’ll delete it from our sign-in system. Stripe keeps payment records for as long as the law requires."
+  },
+  {
+    "objectID": "privacy.html#your-choices",
+    "href": "privacy.html#your-choices",
+    "title": "Three7 DFS",
+    "section": "Your choices",
+    "text": "Your choices\n\nSee or delete your information: email support@three7dfs.com and we’ll respond within 30 days.\nCancel your subscription: use Manage subscription in the NFL tool at any time. You keep Premium until the end of the period you’ve paid for.\nSign out: use Sign out in the tool, or clear your browser’s site data."
+  },
+  {
+    "objectID": "privacy.html#age-requirement",
+    "href": "privacy.html#age-requirement",
+    "title": "Three7 DFS",
+    "section": "Age requirement",
+    "text": "Age requirement\nThree7 DFS is for people 18 and older, or the minimum age to play daily fantasy sports where you live if that’s higher. We don’t knowingly collect information from anyone younger."
+  },
+  {
+    "objectID": "privacy.html#changes-to-this-policy",
+    "href": "privacy.html#changes-to-this-policy",
+    "title": "Three7 DFS",
+    "section": "Changes to this policy",
+    "text": "Changes to this policy\nIf we make important changes, we’ll update the date at the top of this page."
+  },
+  {
+    "objectID": "privacy.html#contact",
+    "href": "privacy.html#contact",
+    "title": "Three7 DFS",
+    "section": "Contact",
+    "text": "Contact\nQuestions about this policy or your information: support@three7dfs.com"
+  }
+]

@@ -1,0 +1,43 @@
+project:
+  type: website
+  output-dir: docs          # GitHub Pages publishes from this folder
+  resources:
+    - CNAME                 # keeps your custom domain (three7dfs.com) on every publish
+    - fonts/
+
+website:
+  title: "Three7 DFS"
+  description: "NFL and MLB DFS player projections and lineup optimizer for DraftKings and FanDuel. Free NFL projections; Premium $10/month with a 7-day free trial."
+  site-url: "https://three7dfs.com"
+  favicon: images/favicon.png
+  open-graph: true
+  twitter-card: true
+  page-navigation: false
+  search: false
+  navbar:
+    logo: images/logo-small.png
+    logo-alt: "Three7 DFS home"
+    title: false
+    right:
+      - text: "How it works"
+        href: index.qmd#method
+      - text: "Pricing"
+        href: index.qmd#pricing
+      - text: "NFL tool"
+        href: https://nfl.three7dfs.com
+      - text: "MLB tool"
+        href: https://mlb.three7dfs.com
+      - text: "Sign in"
+        href: https://nfl.three7dfs.com
+  page-footer:
+    left: "© 2026 Three7 DFS · [Privacy](privacy.qmd) · [support@three7dfs.com](mailto:support@three7dfs.com)"
+    right: "Not affiliated with DraftKings or FanDuel. 18+ only."
+
+format:
+  html:
+    theme:
+      - darkly
+      - styles.scss
+    toc: false
+    page-layout: custom
+    link-external-newwindow: false

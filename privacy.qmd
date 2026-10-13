@@ -1,0 +1,71 @@
+---
+pagetitle: "Privacy Policy"
+description: "How Three7 DFS collects, uses and protects your information."
+---
+
+::: {.legal}
+
+# Privacy Policy
+
+*Last updated: October 13, 2026*
+
+Three7 DFS ("we", "us") runs three7dfs.com and our NFL and MLB DFS tools. This page explains what information we collect, why, and the choices you have. If you have a question, email us at [support@three7dfs.com](mailto:support@three7dfs.com).
+
+## What we collect
+
+**Your email address.** If you sign in or subscribe, we collect your email address. You sign in with a link or code sent to that email; there's no password.
+
+**Subscription and payment details.** If you subscribe to Premium, payments are handled by Stripe. Stripe collects your card details and billing information (such as your ZIP or postal code). We never see or store your full card number. From Stripe we see your email, your subscription status (for example, trialing, active or cancelled) and your payment history.
+
+**Basic technical information.** Like most websites, our hosting providers automatically record standard technical information when you visit, such as your IP address, browser type and the pages you open. We use it to keep the tools running and secure.
+
+**Information stored in your browser.** When you sign in, our NFL tool saves a sign-in token in your browser so you stay signed in on that device. We don't use advertising cookies.
+
+We don't collect your DraftKings or FanDuel account details, and we don't need them.
+
+## How we use it
+
+- To sign you in and keep you signed in
+- To check whether you have an active Premium subscription and unlock Premium features
+- To send you sign-in emails and messages about your account or subscription
+- To answer your questions when you contact us
+- To keep our tools working, secure and free of abuse
+- Occasionally, to tell you about new Three7 DFS features. You can opt out at any time by replying "unsubscribe" or emailing us.
+
+## Who we share it with
+
+We don't sell your information. We share it only with the companies that help us run Three7 DFS, and only for that purpose:
+
+| Service | What it does for us |
+|---|---|
+| Stripe | Processes payments and manages subscriptions |
+| Supabase | Handles sign-in (stores your email and sign-in history) |
+| Resend | Delivers our sign-in emails |
+| Posit (shinyapps.io) | Hosts our NFL and MLB tools |
+| GitHub Pages | Hosts this website |
+
+We may also share information if the law requires it, or to protect our rights or the safety of others.
+
+## How long we keep it
+
+We keep your email and account information while you use Three7 DFS. If you ask us to delete your account, we'll delete it from our sign-in system. Stripe keeps payment records for as long as the law requires.
+
+## Your choices
+
+- **See or delete your information:** email [support@three7dfs.com](mailto:support@three7dfs.com) and we'll respond within 30 days.
+- **Cancel your subscription:** use **Manage subscription** in the NFL tool at any time. You keep Premium until the end of the period you've paid for.
+- **Sign out:** use **Sign out** in the tool, or clear your browser's site data.
+
+## Age requirement
+
+Three7 DFS is for people 18 and older, or the minimum age to play daily fantasy sports where you live if that's higher. We don't knowingly collect information from anyone younger.
+
+## Changes to this policy
+
+If we make important changes, we'll update the date at the top of this page.
+
+## Contact
+
+Questions about this policy or your information: [support@three7dfs.com](mailto:support@three7dfs.com)
+
+:::
