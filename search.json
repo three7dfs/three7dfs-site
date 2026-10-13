@@ -4,7 +4,7 @@
     "href": "privacy.html#what-we-collect",
     "title": "Three7 DFS",
     "section": "What we collect",
-    "text": "What we collect\nYour email address. If you sign in or subscribe, we collect your email address. You sign in with a link or code sent to that email; there’s no password.\nSubscription and payment details. If you subscribe to Premium, payments are handled by Stripe. Stripe collects your card details and billing information (such as your ZIP or postal code). We never see or store your full card number. From Stripe we see your email, your subscription status (for example, trialing, active or cancelled) and your payment history.\nBasic technical information. Like most websites, our hosting providers automatically record standard technical information when you visit, such as your IP address, browser type and the pages you open. We use it to keep the tools running and secure.\nInformation stored in your browser. When you sign in, our NFL tool saves a sign-in token in your browser so you stay signed in on that device. We don’t use advertising cookies.\nWe don’t collect your DraftKings or FanDuel account details, and we don’t need them."
+    "text": "What we collect\nYour email address. If you sign in or subscribe, we collect your email address. You sign in with a link or code sent to that email; there’s no password.\nSubscription and payment details. If you subscribe to Premium, payments are handled by Stripe. Stripe collects your card details and billing information (such as your ZIP or postal code). We never see or store your full card number. From Stripe we see your email, your subscription status (for example, trialing, active or cancelled) and your payment history.\nYour saved settings and lineups. If you’re a Premium member, the NFL tool saves your optimizer settings (such as lineup counts, exposures, removed or locked players and projections you’ve edited) and any lineups you choose to save, so they’re there when you come back. They’re linked to your account, and other members can’t see them.\nYour saved settings and lineups are encrypted. Our app encrypts them (AES-256) before they’re stored, including the names you give your saved lineups, so they’re unreadable in our database, even to someone browsing it. Lineups are created on our servers when you build them, but we don’t keep a record of them unless you choose to save them.\nOur promise: we play DFS ourselves, so we built it this way on purpose. We never view your saved settings or lineups unless you ask us to for support, we never use member data for our own contest entries, and we never share or sell it.\nBasic technical information. Like most websites, our hosting providers automatically record standard technical information when you visit, such as your IP address, browser type and the pages you open. We use it to keep the tools running and secure.\nInformation stored in your browser. When you sign in, our NFL tool saves a sign-in token in your browser so you stay signed in on that device. We don’t use advertising cookies.\nWe don’t collect your DraftKings or FanDuel account details, and we don’t need them."
   },
   {
     "objectID": "privacy.html#how-we-use-it",
@@ -18,14 +18,14 @@
     "href": "privacy.html#who-we-share-it-with",
     "title": "Three7 DFS",
     "section": "Who we share it with",
-    "text": "Who we share it with\nWe don’t sell your information. We share it only with the companies that help us run Three7 DFS, and only for that purpose:\n\n\n\nService\nWhat it does for us\n\n\n\n\nStripe\nProcesses payments and manages subscriptions\n\n\nSupabase\nHandles sign-in (stores your email and sign-in history)\n\n\nResend\nDelivers our sign-in emails\n\n\nPosit (shinyapps.io)\nHosts our NFL and MLB tools\n\n\nGitHub Pages\nHosts this website\n\n\n\nWe may also share information if the law requires it, or to protect our rights or the safety of others."
+    "text": "Who we share it with\nWe don’t sell your information. We share it only with the companies that help us run Three7 DFS, and only for that purpose:\n\n\n\n\n\n\n\nService\nWhat it does for us\n\n\n\n\nStripe\nProcesses payments and manages subscriptions\n\n\nSupabase\nHandles sign-in (stores your email and sign-in history) and stores your saved settings and lineups\n\n\nResend\nDelivers our sign-in emails\n\n\nPosit (shinyapps.io)\nHosts our NFL and MLB tools\n\n\nGitHub Pages\nHosts this website\n\n\n\nWe may also share information if the law requires it, or to protect our rights or the safety of others."
   },
   {
     "objectID": "privacy.html#how-long-we-keep-it",
     "href": "privacy.html#how-long-we-keep-it",
     "title": "Three7 DFS",
     "section": "How long we keep it",
-    "text": "How long we keep it\nWe keep your email and account information while you use Three7 DFS. If you ask us to delete your account, we’ll delete it from our sign-in system. Stripe keeps payment records for as long as the law requires."
+    "text": "How long we keep it\nWe keep your email and account information while you use Three7 DFS. Saved lineups stay until you delete them in the tool. If you ask us to delete your account, we’ll delete it from our sign-in system along with your saved settings and lineups. Stripe keeps payment records for as long as the law requires."
   },
   {
     "objectID": "privacy.html#your-choices",
@@ -54,5 +54,117 @@
     "title": "Three7 DFS",
     "section": "Contact",
     "text": "Contact\nQuestions about this policy or your information: support@three7dfs.com"
+  },
+  {
+    "objectID": "terms.html#who-can-use-three7-dfs",
+    "href": "terms.html#who-can-use-three7-dfs",
+    "title": "Three7 DFS",
+    "section": "Who can use Three7 DFS",
+    "text": "Who can use Three7 DFS\nYou must be at least 18 years old, or the minimum age to play daily fantasy sports where you live if that’s higher. It’s your responsibility to make sure daily fantasy sports, and tools like ours, are allowed where you are, and to follow the rules of any contest site you play on, such as DraftKings or FanDuel.\nThree7 DFS is an independent tool. We’re not affiliated with, endorsed by or sponsored by DraftKings, FanDuel, the NFL, MLB or any team. We don’t run contests, take entry fees or pay out prizes."
+  },
+  {
+    "objectID": "terms.html#projections-are-estimates-not-guarantees",
+    "href": "terms.html#projections-are-estimates-not-guarantees",
+    "title": "Three7 DFS",
+    "section": "Projections are estimates, not guarantees",
+    "text": "Projections are estimates, not guarantees\nOur projections and lineups come from statistical and machine learning models. They’re estimates of what might happen, and real games often turn out differently. Data can be late or wrong, and injury and lineup news can change after projections are made.\nWe don’t promise that you’ll win any contest or make any money. You decide which lineups to enter and how much to play, and you’re responsible for those decisions and any losses. Nothing on Three7 DFS is financial, betting or professional advice."
+  },
+  {
+    "objectID": "terms.html#your-account",
+    "href": "terms.html#your-account",
+    "title": "Three7 DFS",
+    "section": "Your account",
+    "text": "Your account\nYou sign in with your email address; there’s no password. Keep access to your email secure, because anyone who can read it can sign in as you. Your account is for you alone, so please don’t share it or your Premium access with others."
+  },
+  {
+    "objectID": "terms.html#free-and-premium",
+    "href": "terms.html#free-and-premium",
+    "title": "Three7 DFS",
+    "section": "Free and Premium",
+    "text": "Free and Premium\nYou can use the free version of the NFL tool without signing in. NFL Premium adds more lineups per build, exports, downloads, and saved settings and lineups. We may add, change or remove features over time. If a change takes away something important from Premium, we’ll tell you first."
+  },
+  {
+    "objectID": "terms.html#billing-trials-and-cancellation",
+    "href": "terms.html#billing-trials-and-cancellation",
+    "title": "Three7 DFS",
+    "section": "Billing, trials and cancellation",
+    "text": "Billing, trials and cancellation\n\nPrice. Premium costs $10 per month, plus any applicable taxes. Payments are processed by Stripe; we never see your full card number.\nFree trial. New subscribers get a 7-day free trial. You won’t be charged during the trial. Unless you cancel before the trial ends, your subscription starts and your card is charged automatically. Free trials are one per person.\nAutomatic renewal. Premium renews automatically every month and your card is charged at the start of each billing period until you cancel.\nCancelling. You can cancel anytime in the NFL tool under Manage subscription, or by emailing us. When you cancel, you keep Premium until the end of the period you’ve already paid for, and you won’t be charged again.\nRefunds. Payments are non-refundable, and we don’t give refunds or credits for partial months, except where the law requires it. If you think you were charged by mistake, email us and we’ll look into it.\nFailed payments. If a payment fails, Stripe will try again over the following days. If it still can’t be collected, your subscription ends and your account returns to the free version.\nPrice changes. We may change the price of Premium. We’ll email you before a new price applies to you, and it will only apply from your next billing period. You can cancel before then if you don’t want to continue."
+  },
+  {
+    "objectID": "terms.html#saved-settings-and-lineups",
+    "href": "terms.html#saved-settings-and-lineups",
+    "title": "Three7 DFS",
+    "section": "Saved settings and lineups",
+    "text": "Saved settings and lineups\nPremium members can save settings and lineups. They belong to you, and we use them only to provide the service. We do our best to keep them safe, but please keep your own copy of anything important (such as by exporting your lineups), because we can’t guarantee that saved data will never be lost."
+  },
+  {
+    "objectID": "terms.html#acceptable-use",
+    "href": "terms.html#acceptable-use",
+    "title": "Three7 DFS",
+    "section": "Acceptable use",
+    "text": "Acceptable use\nWhen using Three7 DFS, please don’t:\n\nshare, sell, republish or redistribute our projections or downloads, or use them to build a competing product\nscrape, copy or extract our data with bots or other automated tools\ntry to get around Premium limits or the sign-in, or access other people’s accounts or data\ninterfere with or overload the service, or try to break its security\nuse Three7 DFS for anything illegal"
+  },
+  {
+    "objectID": "terms.html#our-content",
+    "href": "terms.html#our-content",
+    "title": "Three7 DFS",
+    "section": "Our content",
+    "text": "Our content\nThree7 DFS, including our projections, models, software, design and branding, belongs to us. While you follow these terms, you may use Three7 DFS and its downloads for your own personal daily fantasy play."
+  },
+  {
+    "objectID": "terms.html#availability-and-changes",
+    "href": "terms.html#availability-and-changes",
+    "title": "Three7 DFS",
+    "section": "Availability and changes",
+    "text": "Availability and changes\nWe work to keep Three7 DFS running, especially around game time, but we can’t promise it will always be available, error-free or on time. We may change, pause or stop any part of Three7 DFS. If we permanently shut down Premium, we’ll stop charging you."
+  },
+  {
+    "objectID": "terms.html#ending-your-access",
+    "href": "terms.html#ending-your-access",
+    "title": "Three7 DFS",
+    "section": "Ending your access",
+    "text": "Ending your access\nYou can stop using Three7 DFS at any time, and you can ask us to delete your account by emailing us. We may suspend or end your access if you break these terms or misuse the service. If we do that without a good reason, we’ll refund the unused part of your current billing period."
+  },
+  {
+    "objectID": "terms.html#disclaimers",
+    "href": "terms.html#disclaimers",
+    "title": "Three7 DFS",
+    "section": "Disclaimers",
+    "text": "Disclaimers\nThree7 DFS is provided “as is” and “as available”. To the fullest extent the law allows, we disclaim all warranties, express or implied, including warranties of merchantability, fitness for a particular purpose, accuracy and non-infringement."
+  },
+  {
+    "objectID": "terms.html#limit-of-liability",
+    "href": "terms.html#limit-of-liability",
+    "title": "Three7 DFS",
+    "section": "Limit of liability",
+    "text": "Limit of liability\nTo the fullest extent the law allows, we aren’t liable for any indirect, incidental, special or consequential damages, or for any lost winnings, entry fees, profits or data, arising from your use of Three7 DFS. Our total liability for any claim relating to Three7 DFS is limited to the amount you paid us in the 12 months before the claim. Some places don’t allow these limits, so they may not fully apply to you."
+  },
+  {
+    "objectID": "terms.html#changes-to-these-terms",
+    "href": "terms.html#changes-to-these-terms",
+    "title": "Three7 DFS",
+    "section": "Changes to these terms",
+    "text": "Changes to these terms\nWe may update these terms from time to time. When we do, we’ll change the date at the top of this page. If a change is significant, we’ll let Premium members know by email before it takes effect. Continuing to use Three7 DFS after a change means you accept the updated terms."
+  },
+  {
+    "objectID": "terms.html#governing-law",
+    "href": "terms.html#governing-law",
+    "title": "Three7 DFS",
+    "section": "Governing law",
+    "text": "Governing law\nThese terms are governed by the laws of the United States and of the state in which Three7 DFS is based, without regard to conflict-of-law rules."
+  },
+  {
+    "objectID": "terms.html#play-responsibly",
+    "href": "terms.html#play-responsibly",
+    "title": "Three7 DFS",
+    "section": "Play responsibly",
+    "text": "Play responsibly\nDaily fantasy sports should be fun. Set limits and only play with money you can afford to lose. If you or someone you know has a gambling problem, call 1-800-GAMBLER for confidential help."
+  },
+  {
+    "objectID": "terms.html#contact",
+    "href": "terms.html#contact",
+    "title": "Three7 DFS",
+    "section": "Contact",
+    "text": "Contact\nsupport@three7dfs.com"
   }
 ]
