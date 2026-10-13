@@ -1,4 +1,4 @@
-import * as tabsets from "./tabsets/tabsets.js";
+import * as tabsets from "./tabsets.js";
 
 const sectionChanged = new CustomEvent("quarto-sectionChanged", {
   detail: {},
