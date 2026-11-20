@@ -1,0 +1,27 @@
+In your LOCAL _quarto.yml (the one on your PC), find "navbar:" -> "right:".
+Replace everything under "right:" (all the "- text:" / "href:" entries) with the block below.
+Keep the spacing exactly as shown: spaces only, no tabs.
+
+    right:
+      - text: "How it works"
+        href: index.qmd#method
+      - text: "Pricing"
+        href: index.qmd#pricing
+      - text: "NFL"
+        menu:
+          - text: "NFL Projections"
+            href: https://three7dfs.com/nfl/
+          - text: "NFL Optimizer"
+            href: https://nfl.three7dfs.com
+      - text: "NBA"
+        menu:
+          - text: "NBA Projections"
+            href: https://three7dfs.com/nba/
+          - text: "NBA Optimizer"
+            href: https://thirtyseven.shinyapps.io/NBA_Preds/
+      - text: "MLB"
+        menu:
+          - text: "MLB Optimizer"
+            href: https://mlb.three7dfs.com
+      - text: "Sign in"
+        href: https://nfl.three7dfs.com
