@@ -68,6 +68,18 @@ ul.task-list li input[type="checkbox"] {
 <meta name="twitter:description" content="Proprietary NFL, NBA and MLB DFS projections with projected stat lines, plus an optimizer for DraftKings and FanDuel. Free NFL and NBA projections; one $10/month Premium plan covers both NFL and NBA, with up to 150 lineups, upload-ready exports and saved settings and lineups, and a 7-day free trial.">
 <meta name="twitter:card" content="summary">
 <style>#t7 .sport-new .soon{display:inline-block;font-size:.9rem;font-weight:600;color:#121925;background:#8cf0b9;padding:.2rem .6rem;border-radius:4px;margin:0 0 1.25rem}</style>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3T435K36YH"></script>
+<script>
+window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);}
+gtag("js", new Date()); gtag("config", "G-3T435K36YH");
+// count clicks into the optimizers (same "open_optimizer" event as the projection pages)
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest("a[href]"); if (!a) return;
+  var h = a.getAttribute("href") || "";
+  var sport = /nfl\.three7dfs\.com/.test(h) ? "nfl" : /NBA_Preds/.test(h) ? "nba" : /mlb\.three7dfs\.com/.test(h) ? "mlb" : "";
+  if (sport) gtag("event", "open_optimizer", { sport: sport, from_page: location.pathname, link_text: (a.textContent || "").trim().slice(0, 60) });
+});
+</script>
 </head>
 
 <body class="nav-fixed fullcontent quarto-light">

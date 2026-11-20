@@ -67,6 +67,18 @@ ul.task-list li input[type="checkbox"] {
 <meta name="twitter:title" content="Terms of Service">
 <meta name="twitter:description" content="The terms for using Three7 DFS, including Premium billing, cancellation and refunds.">
 <meta name="twitter:card" content="summary">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3T435K36YH"></script>
+<script>
+window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);}
+gtag("js", new Date()); gtag("config", "G-3T435K36YH");
+// count clicks into the optimizers (same "open_optimizer" event as the projection pages)
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest("a[href]"); if (!a) return;
+  var h = a.getAttribute("href") || "";
+  var sport = /nfl\.three7dfs\.com/.test(h) ? "nfl" : /NBA_Preds/.test(h) ? "nba" : /mlb\.three7dfs\.com/.test(h) ? "mlb" : "";
+  if (sport) gtag("event", "open_optimizer", { sport: sport, from_page: location.pathname, link_text: (a.textContent || "").trim().slice(0, 60) });
+});
+</script>
 </head>
 
 <body class="nav-fixed fullcontent quarto-light">
