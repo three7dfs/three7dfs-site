@@ -1,0 +1,2090 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFL Lineup Optimizer (Beta) | Three7 DFS</title>
+<meta name="description" content="Build NFL DFS lineups for DraftKings and FanDuel from Three7 projections: QB stacks, bring-backs, locks, exposures, Showdown game scripts and custom projections, right in your browser.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.png">
+<style>
+
+@font-face { font-family: "Barlow"; font-weight: 400; font-display: swap; src: url("/barlow-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 500; font-display: swap; src: url("/barlow-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 600; font-display: swap; src: url("/barlow-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("/barlow-condensed-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 800; font-display: swap; src: url("/barlow-condensed-latin-800-normal.woff2") format("woff2"); }
+
+/* Same palette as the site (styles.scss) */
+:root {
+  --field: #121925; --navy: #1A2332; --steel: #3E5C84; --line: #2A3649;
+  --chalk: #F3F5F9; --soft: #C9D2DF; --muted: #9AA8BD; --sky: #B0DAFA; --mint: #8CF0B9;
+  --warn: #F5C46B; --out: #F28B82;
+  --wrap: 1180px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--field); color: var(--chalk);
+  font-family: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 17px; line-height: 1.55;
+}
+a { color: var(--sky); }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, th button:focus-visible {
+  outline: 2px solid var(--mint); outline-offset: 2px;
+}
+h1, h2, h3 { font-family: "Barlow Condensed", "Barlow", sans-serif; font-weight: 800; line-height: 1; margin: 0; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Navbar ---------- */
+.nav { border-bottom: 1px solid var(--line); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 16px; }
+.nav-logo img { display: block; max-height: 54px; border-radius: 6px; }
+.nav-links { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.nav-links a { display: block; padding: 8px 14px; color: var(--chalk); text-decoration: none; font-weight: 500; }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--mint); }
+.nav-menu { display: none; }
+/* by-sport dropdowns */
+.dd { position: relative; }
+.dd summary { list-style: none; cursor: pointer; padding: 8px 14px; font-weight: 500; color: var(--chalk); }
+.dd summary::-webkit-details-marker { display: none; }
+.dd summary::after { content: ""; display: inline-block; margin-left: 7px; border: 4px solid transparent; border-top-color: currentColor; transform: translateY(2px); }
+.dd summary:hover, .dd summary.on, .dd[open] summary { color: var(--mint); }
+.dd ul { position: absolute; right: 0; top: 100%; list-style: none; margin: 6px 0 0; padding: 6px; min-width: 190px; background: var(--navy); border: 1px solid var(--line); border-radius: 8px; z-index: 6; }
+.dd ul a { display: block; padding: 8px 12px; border-radius: 6px; }
+.dd ul a:hover { background: var(--field); }
+.nav-menu .grp { color: var(--muted); font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 10px 14px 2px; }
+.nav-menu summary { list-style: none; cursor: pointer; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; font-weight: 500; }
+.nav-menu summary::-webkit-details-marker { display: none; }
+
+/* ---------- Page head ---------- */
+.head { padding: 44px 0 28px; }
+.eyebrow { color: var(--mint); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: .82rem; margin: 0 0 10px; }
+.head h1 { font-size: clamp(2.6rem, 6vw, 4.4rem); letter-spacing: -.01em; }
+.head-meta { color: var(--muted); margin: 14px 0 0; font-size: .98rem; }
+.head-meta strong { color: var(--chalk); font-weight: 600; }
+.head-lede { color: var(--soft); max-width: 46rem; margin: 14px 0 22px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { display: inline-block; font: 600 1rem "Barlow", sans-serif; padding: 12px 20px; border-radius: 6px; text-decoration: none; cursor: pointer; }
+.btn-solid { background: var(--chalk); color: var(--field); border: 1px solid var(--chalk); }
+.btn-solid:hover { background: var(--mint); border-color: var(--mint); }
+.btn-line { background: transparent; color: var(--chalk); border: 1px solid var(--steel); }
+.btn-line:hover { border-color: var(--chalk); }
+
+/* ---------- Toolbar ---------- */
+.tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { font: 600 .95rem "Barlow", sans-serif; color: var(--muted); background: transparent; border: 0; padding: 9px 16px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--navy); color: var(--chalk); box-shadow: inset 0 -2px 0 var(--mint); }
+.ctl { font: 500 .95rem "Barlow", sans-serif; color: var(--chalk); background: var(--navy); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; min-height: 42px; }
+select.ctl { padding-right: 30px; max-width: 100%; }
+.search { flex: 1 1 200px; min-width: 160px; }
+.search::placeholder { color: var(--muted); }
+.pos { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.pos button { font: 600 .9rem "Barlow", sans-serif; color: var(--soft); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; cursor: pointer; min-height: 38px; }
+.pos button[aria-pressed="true"] { color: var(--field); background: var(--chalk); border-color: var(--chalk); }
+
+/* ---------- Table ---------- */
+.card { background: var(--navy); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.card-bar { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.card-title { font: 700 1.25rem "Barlow Condensed", sans-serif; }
+.card-note { color: var(--muted); font-size: .88rem; }
+.scroll { overflow-x: auto; }
+table.proj { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.proj th { font-weight: 500; font-size: .84rem; color: var(--muted); padding: 0; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; position: sticky; top: 0; background: var(--navy); z-index: 1; }
+table.proj th button { all: unset; display: block; padding: 10px 10px; cursor: pointer; }
+table.proj th button:hover { color: var(--chalk); }
+table.proj th[aria-sort] button { color: var(--chalk); }
+table.proj th[aria-sort="descending"] button::after { content: " \2193"; }
+table.proj th[aria-sort="ascending"] button::after { content: " \2191"; }
+table.proj td { text-align: center; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+table.proj tbody tr:last-child td { border-bottom: 0; }
+table.proj .l { text-align: left; }
+table.proj th.l button { text-align: left; }
+.pn { display: block; font-weight: 600; line-height: 1.2; }
+.pm { display: block; font-size: .8rem; color: var(--muted); }
+.badge { display: inline-block; font-size: .72rem; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: 1px; }
+.b-out { color: var(--field); background: var(--out); }
+.b-q { color: var(--field); background: var(--warn); }
+.b-st { color: var(--soft); border: 1px solid var(--line); }
+td.pj { font-weight: 600; color: var(--field); border-left: 1px solid var(--line); border-right: 1px solid var(--line); min-width: 4.6rem; }
+td.rg { color: var(--soft); }
+td.vl { color: var(--soft); }
+td.st { color: var(--soft); }
+.pline { display: none; }
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+.count { color: var(--muted); font-size: .88rem; padding: 10px 2px 0; }
+
+/* ---------- Optimizer ---------- */
+.beta { display: inline-block; font: 700 .72rem "Barlow", sans-serif; letter-spacing: .06em; color: var(--field); background: var(--mint); border-radius: 4px; padding: 2px 7px; margin-left: 8px; vertical-align: 4px; }
+.sec { padding: 8px 0 28px; }
+.sec h2 { font-size: 1.7rem; margin: 0 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 14px; }
+.fld { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.fld label, .lbl { color: var(--muted); font-size: .84rem; font-weight: 500; }
+.fld .ctl { width: 100%; }
+input.ctl[type="number"] { -moz-appearance: textfield; }
+.panel { background: var(--navy); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.panel + .panel { margin-top: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 600 .88rem "Barlow", sans-serif; color: var(--soft); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; min-height: 36px; }
+.chip[aria-pressed="true"], .chip.keep { color: var(--field); background: var(--mint); border-color: var(--mint); }
+.chip.remove { color: var(--field); background: var(--out); border-color: var(--out); text-decoration: line-through; }
+.hint { color: var(--muted); font-size: .84rem; margin: 8px 0 0; }
+.row2 { display: flex; flex-wrap: wrap; gap: 12px 14px; align-items: flex-end; margin-top: 12px; }
+.row2 .fld { width: 150px; }
+[hidden] { display: none !important; }
+
+/* player pool */
+table.pool td { padding: 6px 8px; }
+table.pool td.l { min-width: 11rem; }
+table.pool input.ctl { width: 5.2rem; min-height: 36px; padding: 6px 8px; text-align: center; }
+table.pool input.ctl::placeholder { color: var(--muted); }
+table.pool input.ctl.set { border-color: var(--mint); }
+.tg { font: 600 .9rem "Barlow", sans-serif; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; padding: 0; }
+.tg[aria-pressed="true"].lk { background: var(--mint); border-color: var(--mint); color: var(--field); }
+.tg[aria-pressed="true"].ex { background: var(--out); border-color: var(--out); color: var(--field); }
+.tg.bs { width: 44px; }
+.tg.bs.up { background: var(--mint); border-color: var(--mint); color: var(--field); }
+.tg.bs.dn { background: var(--warn); border-color: var(--warn); color: var(--field); }
+.msal { display: none; }
+tr.is-out td { opacity: .45; }
+tr.is-out td:first-child, tr.is-out td:nth-child(2) { opacity: 1; }
+
+/* build */
+.build { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 6px 0 4px; }
+.btn[disabled] { opacity: .6; cursor: default; }
+.bar { flex: 1 1 220px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--mint); transition: width .2s; }
+.msg { color: var(--soft); font-size: .95rem; margin: 8px 0 0; }
+.msg.err { color: var(--out); }
+
+/* results */
+.res-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.lus { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.pool-scroll { max-height: min(70vh, 640px); overflow: auto; }
+.pool-scroll table.proj th { top: 0; }
+.lu .card-bar { padding: 10px 14px; }
+.lu table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .92rem; table-layout: fixed; }
+.lu td { padding: 5px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.lu td:first-child { padding-left: 14px; }
+.lu td:last-child { padding-right: 14px; }
+.lu tr:last-child td { border-bottom: 0; }
+.lu td.sl { color: var(--muted); width: 3.4rem; font-size: .82rem; }
+.lu td.nm { overflow: hidden; text-overflow: ellipsis; }
+.lu td.tm { color: var(--muted); font-size: .82rem; width: 2.9rem; }
+.lu td.sa { width: 4.3rem; }
+.lu td.pp { width: 3.9rem; }
+.lu td.r { text-align: right; }
+table.exp { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.exp th { color: var(--muted); font-weight: 500; font-size: .84rem; text-align: right; padding: 9px 14px; border-bottom: 1px solid var(--line); }
+table.exp td { text-align: right; padding: 8px 14px; border-bottom: 1px solid var(--line); }
+table.exp .l { text-align: left; }
+table.exp td.barc { width: 40%; }
+.xb { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.xb i { display: block; height: 100%; background: var(--sky); }
+.more { margin-top: 14px; }
+
+/* collapsible sections */
+.fold > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; padding: 4px 0 12px; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary h2 { margin: 0; display: inline-flex; align-items: center; gap: 10px; }
+.fold > summary h2::before { content: ""; width: 0; height: 0; border: 6px solid transparent; border-left: 8px solid var(--muted); transform: translateX(3px); transition: transform .15s; }
+.fold[open] > summary h2::before { transform: translate(0, 3px) rotate(90deg); }
+.fold > summary:hover h2::before { border-left-color: var(--mint); }
+.fold-sum { color: var(--muted); font-size: .92rem; }
+.fold[open] .fold-sum.hide-open { display: none; }
+.slim { padding: 9px 14px; }
+.btn-line[aria-pressed="true"] { border-color: var(--mint); color: var(--mint); }
+
+/* stats */
+table.pool .stat { display: none; }
+body.stats-on table.pool .stat { display: table-cell; }
+table.pool td.stat { color: var(--soft); }
+table.pool tr.srow { display: none; }
+
+/* boost menu */
+select.bsel { min-height: 36px; padding: 6px 22px 6px 8px; font-size: .88rem; width: 5.4rem; }
+select.bsel.up { border-color: var(--mint); color: var(--mint); }
+select.bsel.dn { border-color: var(--warn); color: var(--warn); }
+
+/* pinned build bar */
+body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+.buildbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: rgba(18, 25, 37, .96); border-top: 1px solid var(--line);
+  padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); backdrop-filter: blur(6px); }
+.buildbar .wrap { display: flex; align-items: center; gap: 16px; }
+.buildbar .btn { flex: 0 0 auto; min-width: 170px; }
+.bb-mid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.buildbar .msg { margin: 0; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.buildbar .bar { flex: none; width: 100%; }
+
+/* lineup filters + removals */
+.filt { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; color: var(--soft); font-size: .92rem; }
+.filt .chip { display: inline-flex; align-items: center; gap: 6px; color: var(--field); background: var(--sky); border-color: var(--sky); }
+.filt .clear { background: none; border: 0; color: var(--sky); text-decoration: underline; cursor: pointer; font: inherit; padding: 4px; }
+.note { color: var(--warn); font-size: .92rem; margin: 0 0 12px; }
+.note button { margin-left: 8px; }
+.lu td.x { width: 30px; padding-left: 0; padding-right: 8px; text-align: right; }
+.lu .rm { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; font-size: .8rem; line-height: 1; padding: 0; }
+.lu .rm:hover { color: var(--out); border-color: var(--out); }
+.lu tr.gone td.nm { text-decoration: line-through; color: var(--muted); }
+.lu tr.gone .rm { color: var(--field); background: var(--out); border-color: var(--out); }
+table.exp th { padding: 0; }
+table.exp th button { all: unset; display: block; padding: 9px 14px; cursor: pointer; }
+table.exp th button:hover { color: var(--chalk); }
+table.exp th[aria-sort] button { color: var(--chalk); }
+table.exp th[aria-sort="descending"] button::after { content: " \2193"; }
+table.exp th[aria-sort="ascending"] button::after { content: " \2191"; }
+table.exp th.l button { text-align: left; }
+table.exp tbody tr { cursor: pointer; }
+table.exp tbody tr:hover td { background: rgba(176, 218, 250, .06); }
+table.exp tbody tr.sel td { background: rgba(176, 218, 250, .14); }
+table.exp tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--sky); }
+.dl-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* team colors */
+.tt { display: inline-block; min-width: 2.5rem; text-align: center; font: 700 .72rem "Barlow", sans-serif; letter-spacing: .03em; padding: 2px 5px; border-radius: 5px; line-height: 1.35; }
+.td { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+.lu td.tm { width: 3.3rem; }
+.lu .card-bar { flex-wrap: wrap; row-gap: 2px; }
+.lu .tots { flex: 1 1 100%; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.lu .tots b { color: var(--soft); font-weight: 600; }
+.lu .actv { color: var(--mint); font-weight: 600; }
+.lu.best { border-color: var(--mint); }
+.lu.best .card-title { color: var(--mint); }
+/* rewind */
+table.pool .act { display: none; }
+body.rewind table.pool .act { display: table-cell; }
+table.pool td.act { font-weight: 600; color: var(--mint); }
+.mact { display: none; color: var(--mint); font-weight: 600; }
+.rewind-note { margin: 4px 0 0; color: var(--warn); font-size: .95rem; }
+select.lsort { min-width: 0; }
+#lsort option[data-rw] { display: none; }
+body.rewind #lsort option[data-rw] { display: block; }
+
+/* contests */
+.flex-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 12px; }
+.flex-grid .fp { display: flex; flex-direction: column; gap: 4px; }
+.flex-grid .fp b { font-size: .84rem; color: var(--muted); font-weight: 600; }
+.flex-grid .fp div { display: flex; gap: 6px; }
+.flex-grid input.ctl { width: 100%; min-width: 0; padding: 6px 8px; min-height: 36px; text-align: center; }
+.row2 .fld.wide2 { width: 320px; max-width: 100%; }
+.lu.nosal td.sa { display: none; }
+
+.b-st.cf { color: var(--field); background: var(--mint); border-color: var(--mint); }
+.upd { color: var(--mint); }
+/* optimal %, uploads, late swap */
+.chk { display: flex; align-items: center; gap: 8px; min-height: 42px; color: var(--chalk); font-size: .95rem; cursor: pointer; }
+.chk input { width: 18px; height: 18px; accent-color: var(--mint); }
+table.pool .optc { display: none; }
+body.has-opt table.pool .optc { display: table-cell; }
+table.pool td.optc { color: var(--soft); }
+.mopt { display: none; }
+.tool-more { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.upbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 0 0 12px; padding: 10px 14px; border: 1px dashed var(--sky); border-radius: 8px; color: var(--soft); font-size: .92rem; }
+.upbar .upw { display: inline-flex; align-items: center; gap: 8px; }
+.upbar input[type=range] { accent-color: var(--sky); width: 140px; }
+.upbar .clear { background: none; border: 0; color: var(--sky); text-decoration: underline; cursor: pointer; font: inherit; padding: 4px; }
+table.pool input.ctl.up { border-style: dashed; border-color: var(--sky); }
+.ls-steps { color: var(--soft); font-size: .92rem; margin: 0 0 4px 18px; padding: 0; }
+table.exp.ls td, table.exp.ls th button { white-space: nowrap; }
+table.exp.ls td.l { white-space: normal; min-width: 8rem; }
+table.exp.ls tbody tr { cursor: default; }
+.st-swap { color: var(--mint); font-weight: 600; }
+.st-bad { color: var(--out); }
+
+@media (max-width: 760px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .row2 .fld { width: calc(50% - 7px); }
+  .lus { grid-template-columns: minmax(0, 1fr); }
+  table.pool .wide, table.pool .sal { display: none; }
+  table.proj.pool td, table.proj.pool th button { padding-left: 3px; padding-right: 3px; }
+  table.proj.pool td.l { min-width: 0; }
+  table.pool td.l { min-width: 0; white-space: normal; }
+  table.pool .pn { font-size: .88rem; overflow-wrap: anywhere; }
+  table.pool input.ctl { width: 3.2rem; padding: 6px 3px; }
+  .tg { width: 29px; height: 34px; }
+  .tg.bs { width: 38px; }
+  .msal { display: inline !important; }
+  body.stats-on table.pool .stat { display: none; }
+  body.stats-on table.pool tr.srow { display: table-row; }
+  body.stats-on table.pool tr[data-k] td { border-bottom: 0; }
+  table.pool tr.srow td { text-align: left; white-space: normal; color: var(--soft); font-size: .8rem; padding: 0 8px 9px !important; }
+  select.bsel { width: 3.7rem; padding: 6px 10px 6px 3px; font-size: .8rem; background-position: right 2px center; }
+  .buildbar .btn { min-width: 0; padding: 12px 18px; }
+  .buildbar .wrap { gap: 12px; }
+  .res-head .seg { flex: 1 1 100%; }
+  .res-head .seg button { flex: 1; padding: 9px 6px; }
+  .dl-btns { flex: 1 1 100%; }
+  select.lsort { flex: 1 1 100%; }
+  .tool-more { flex: 1 1 100%; }
+  table.pool .b-st { display: inline-block; padding: 1px 4px; }
+  body.has-opt table.pool .optc { display: none; }
+  .mopt { display: inline; }
+  .tool-more .btn { flex: 1 1 auto; }
+  .flex-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .row2 .fld.wide2 { width: 100%; }
+  .tools #contest { flex: 1 1 100%; }
+  .tools #contest button { flex: 1; padding: 9px 6px; }
+  .lu td { padding-left: 4px; padding-right: 4px; }
+  .lu td:first-child { padding-left: 10px; }
+  .lu td.sl { width: 2.6rem; }
+  .lu td.tm { width: 2.7rem; }
+  .lu td.sa { width: 3.7rem; }
+  .lu td.pp { width: 2.6rem; }
+  .lu td.x { width: 28px; padding-right: 6px; }
+  .lu .tt { min-width: 2.1rem; font-size: .66rem; padding: 2px 3px; }
+  .lu table { font-size: .88rem; }
+  body.rewind table.pool .act { display: none; }
+  .mact { display: inline; }
+  .tools #night { flex: 1 1 100%; }
+  .dl-btns .btn { flex: 1; }
+}
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .wrap { padding: 0 16px; }
+  .nav-links { display: none; }
+  .nav-menu { display: block; position: relative; }
+  .nav-menu .nav-links { display: block; position: absolute; right: 0; top: 46px; background: var(--navy); border: 1px solid var(--line); border-radius: 8px; padding: 6px; min-width: 220px; z-index: 5; }
+  .head { padding: 28px 0 20px; }
+  .tools { gap: 10px; }
+  .tools .seg, .tools select.ctl, .tools .search { flex: 1 1 100%; }
+  .seg button { flex: 1; }
+  table.proj .wide { display: none; }
+  table.proj td, table.proj th button { padding-left: 8px; padding-right: 8px; }
+  tr.row { cursor: pointer; }
+  table.proj td.l { white-space: normal; min-width: 9.5rem; }
+  .b-st { display: none; }
+  tr.row.open .pline { display: block; color: var(--soft); font-size: .82rem; margin-top: 4px; white-space: normal; }
+  .tile-v { font-size: 2rem; }
+}
+@media (prefers-reduced-motion: no-preference) { .btn, .seg button, .pos button { transition: background-color .15s, border-color .15s, color .15s; } }
+</style>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3T435K36YH"></script>
+<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag("js", new Date()); gtag("config", "G-3T435K36YH");</script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="nav-logo" href="/"><img src="/logo-small.png" alt="Three7 DFS home" width="54" height="54"></a>
+    <ul class="nav-links">
+      <li><a href="/#method">How it works</a></li>
+      <li><a href="/#pricing">Pricing</a></li>
+      <li><details class="dd"><summary class="on">NFL</summary>
+        <ul><li><a href="/nfl/">NFL Projections</a></li><li><a rel="nofollow" href="https://nfl.three7dfs.com">NFL Optimizer</a></li></ul></details></li>
+      <li><details class="dd"><summary>NBA</summary>
+        <ul><li><a href="/nba/">NBA Projections</a></li><li><a rel="nofollow" href="https://thirtyseven.shinyapps.io/NBA_Preds/">NBA Optimizer</a></li></ul></details></li>
+      <li><details class="dd"><summary>MLB</summary>
+        <ul><li><a href="https://mlb.three7dfs.com">MLB Optimizer</a></li></ul></details></li>
+    </ul>
+    <details class="nav-menu">
+      <summary>Menu</summary>
+      <ul class="nav-links">
+        <li><a href="/#method">How it works</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li class="grp">NFL</li><li><a href="/nfl/">NFL Projections</a></li><li><a rel="nofollow" href="https://nfl.three7dfs.com">NFL Optimizer</a></li>
+        <li class="grp">NBA</li><li><a href="/nba/">NBA Projections</a></li><li><a rel="nofollow" href="https://thirtyseven.shinyapps.io/NBA_Preds/">NBA Optimizer</a></li>
+        <li class="grp">MLB</li><li><a href="https://mlb.three7dfs.com">MLB Optimizer</a></li>
+      </ul>
+    </details>
+  </div>
+</header>
+
+<main>
+  <section class="head wrap" aria-labelledby="page-h">
+    <p class="eyebrow">Three7 DFS <span class="beta">BETA</span></p>
+    <h1 id="page-h">NFL lineup optimizer</h1>
+    <p class="head-meta" id="meta">Loading this week's projections…</p>
+    <p class="head-lede">Our projections, your settings: lock, exclude, boost or edit any player, set exposures and stacks, and build up to 150 lineups. It all runs in your browser.</p>
+  </section>
+
+  <section class="wrap sec" aria-label="Site and slate">
+    <div class="tools">
+      <select class="ctl" id="night" aria-label="Week" hidden><option value="">This week</option></select>
+      <div class="seg" id="site" role="group" aria-label="Site">
+        <button type="button" data-site="dk" aria-pressed="true">DraftKings</button>
+        <button type="button" data-site="fd" aria-pressed="false">FanDuel</button>
+      </div>
+      <div class="seg" id="contest" role="group" aria-label="Contest"></div>
+      <select class="ctl" id="slate" aria-label="Slate"></select>
+    </div>
+    <p class="rewind-note" id="rewind" hidden></p>
+  </section>
+
+  <section class="wrap sec">
+    <details class="fold" id="fold-set" data-fold="set">
+      <summary><h2>Settings</h2><span class="fold-sum" id="sum-set"></span></summary>
+      <div class="fold-body">
+        <div class="panel">
+          <div class="grid">
+            <div class="fld"><label for="n">Lineups</label><input class="ctl num" id="n" type="number" min="1" max="150" step="1" value="5"></div>
+            <div class="fld"><label for="exposure">Global exposure %</label><input class="ctl num" id="exposure" type="number" min="1" max="100" step="5" value="60"></div>
+            <div class="fld" data-c="Classic Captain"><label for="minProj">Min proj</label><input class="ctl num" id="minProj" type="number" min="0" max="30" step="0.5" value="1"></div>
+            <div class="fld"><label for="random">Randomness %</label><input class="ctl num" id="random" type="number" min="0" max="30" step="5" value="0"></div>
+            <div class="fld"><label for="minUnique">Min unique players</label><input class="ctl num" id="minUnique" type="number" min="1" max="5" step="1" value="1"></div>
+            <div class="fld" data-c="Classic Captain"><label for="minSal">Min salary</label><input class="ctl num" id="minSal" type="number" min="0" step="100" value="0"></div>
+            <div class="fld" data-c="Classic Captain"><label for="maxSal">Max salary</label><input class="ctl num" id="maxSal" type="number" step="100" value="50000"></div>
+            <div class="fld" data-c="Classic"><label for="maxTeam">Max per team</label><input class="ctl num" id="maxTeam" type="number" min="2" step="1" value="7"></div>
+            <div class="fld" data-c="Classic"><label for="dstOpp">Offense vs my DST</label>
+              <select class="ctl" id="dstOpp"><option value="off">Allow</option><option value="pass">No QB/WR/TE vs DST</option><option value="all">No offense vs DST</option></select></div>
+            <div class="fld" data-c="TotalYards Touchdowns"><label for="pc">Pass catchers (WR/TE)</label><input class="ctl num" id="pc" type="number" min="0" max="3" step="1" value="2"></div>
+            <div class="fld" id="opt-fld" hidden><span class="lbl">Exposure caps</span><label class="chk"><input type="checkbox" id="useOpt"> From Optimal %</label></div>
+          </div>
+        </div>
+        <div class="panel" data-c="Classic">
+          <p class="lbl" style="margin:0 0 8px">Teams <span style="font-weight:400">· tap once to keep only those teams, twice to remove a team</span></p>
+          <div class="chips" id="teams"></div>
+        </div>
+        <div class="panel" data-c="Classic">
+          <div class="row2" style="margin-top:0">
+            <div class="fld"><label for="stack">QB stack</label>
+              <select class="ctl" id="stack"><option value="none">No</option><option value="qb">Yes</option></select></div>
+            <div class="fld"><label for="bringBack">Bring-back</label><input class="ctl num" id="bringBack" type="number" min="0" max="2" step="1" value="0"></div>
+          </div>
+          <div data-stack="qb" style="margin-top:12px">
+            <p class="lbl" style="margin:0 0 8px">With the QB, at least</p>
+            <div class="flex-grid stack-grid">
+              <div class="fp"><b>WR</b><input class="ctl num" id="swr" type="number" min="0" max="3" step="1" value="1" aria-label="WRs with the QB"></div>
+              <div class="fp"><b>TE</b><input class="ctl num" id="ste" type="number" min="0" max="2" step="1" value="1" aria-label="TEs with the QB"></div>
+              <div class="fp"><b>Any WR/TE</b><input class="ctl num" id="spc" type="number" min="0" max="4" step="1" value="0" aria-label="Any WR or TE with the QB"></div>
+              <div class="fp"><b>RB</b><input class="ctl num" id="srb" type="number" min="0" max="2" step="1" value="0" aria-label="RBs with the QB"></div>
+              <div class="fp"><b>DST</b><input class="ctl num" id="sdst" type="number" min="0" max="1" step="1" value="0" aria-label="His DST with the QB"></div>
+            </div>
+            <p class="lbl" style="margin:12px 0 8px">QB from <span style="font-weight:400">· none picked = any team; sorted by our team total</span></p><div class="chips" id="steams"></div>
+          </div>
+          <p class="hint" style="margin:10px 0 0">Bring-back: at least this many RB/WR/TE from the team the QB plays.</p>
+        </div>
+        <!-- [CONTESTS] Showdown / single game -->
+        <div class="panel" data-c="Captain">
+          <div class="row2" style="margin-top:0">
+            <div class="fld wide2"><label for="script">Game script</label>
+              <select class="ctl" id="script"><option value="">Pick a game script</option></select></div>
+          </div>
+          <p class="hint" id="script-about" hidden></p>
+          <div class="row2">
+            <div class="fld"><label for="cmode" id="cmode-l">Lock captain</label>
+              <select class="ctl" id="cmode"><option value="">Anyone</option><option value="team">Team</option><option value="pos">Position</option><option value="player">Player</option></select></div>
+            <div class="fld" data-cm="team"><label for="cteam">Captain team</label><select class="ctl" id="cteam"></select></div>
+          </div>
+          <div data-cm="pos" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Captain positions</p><div class="chips" id="cpos"></div></div>
+          <div data-cm="player" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Captain players <span style="font-weight:400">· pick one or more</span></p><div class="chips" id="cplay"></div></div>
+        </div>
+        <div class="panel" data-c="Captain Tiers">
+          <div class="row2" style="margin-top:0">
+            <div class="fld"><label for="xteam">Stack team</label><select class="ctl" id="xteam"></select></div>
+            <div class="fld"><label for="xsize">Stack size</label><input class="ctl num" id="xsize" type="number" min="2" max="5" step="1" value="3"></div>
+          </div>
+        </div>
+        <div class="panel" data-c="Captain">
+          <p class="lbl" style="margin:0 0 8px">Flex spots <span style="font-weight:400">· min – max of each position in the 5 Flex spots (the captain isn't counted)</span></p>
+          <div class="flex-grid" id="flex"></div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="wrap sec">
+    <details class="fold" id="fold-pool" data-fold="pool" open>
+      <summary><h2>Players</h2><span class="fold-sum" id="sum-pool"></span></summary>
+      <div class="fold-body">
+        <div class="tools" style="border-top:0;padding-top:0">
+          <div class="pos" id="pos" role="group" aria-label="Position">
+            <button type="button" data-pos="" aria-pressed="true">All</button>
+            <button type="button" data-pos="QB" aria-pressed="false">QB</button>
+            <button type="button" data-pos="RB" aria-pressed="false">RB</button>
+            <button type="button" data-pos="WR" aria-pressed="false">WR</button>
+            <button type="button" data-pos="TE" aria-pressed="false">TE</button>
+            <button type="button" data-pos="DST" aria-pressed="false">DST</button>
+            <button type="button" data-pos="K" aria-pressed="false" id="pos-k">K</button>
+            <button type="button" data-pos="*" aria-pressed="false">Changed</button>
+          </div>
+          <select class="ctl" id="pteam" aria-label="Team"><option value="">All teams</option></select>
+          <input class="ctl search" id="q" type="search" placeholder="Search players" autocomplete="off">
+          <button type="button" class="btn btn-line slim" id="stats" aria-pressed="false">Show stats</button>
+          <button type="button" class="btn btn-line slim" id="reset">Reset changes</button>
+          <span class="tool-more">
+            <button type="button" class="btn btn-line slim" id="tpl">Template</button>
+            <button type="button" class="btn btn-line slim" id="upl">Upload my projections</button>
+            <button type="button" class="btn btn-line slim" id="dlt">Download table</button>
+            <input type="file" id="uplf" accept=".csv,text/csv" hidden>
+          </span>
+        </div>
+        <div class="upbar" id="upbar" hidden>
+          <span id="upnote"></span>
+          <label class="upw">Ours <input type="range" id="upw" min="0" max="100" step="5" value="100"> Mine <b id="upwv">100%</b></label>
+          <button type="button" class="clear" id="upx">Remove upload</button>
+        </div>
+        <div class="card">
+          <div class="card-bar"><span class="card-title">Player pool</span><span class="card-note">Proj and Exp % are yours to change · blank = ours</span></div>
+          <div class="scroll pool-scroll">
+            <table class="proj pool">
+              <thead><tr>
+                <th title="Lock in every lineup"><button type="button" data-sort="lock">Lock</button></th>
+                <th title="Leave out"><button type="button" data-sort="out">Out</button></th>
+                <th class="l"><button type="button" data-sort="n">Player</button></th>
+                <th class="sal"><button type="button" data-sort="sal">Salary</button></th>
+                <th><button type="button" data-sort="p">Proj</button></th>
+                <th class="act"><button type="button" data-sort="act">Actual</button></th>
+                <th><button type="button" data-sort="exp">Exp %</button></th>
+                <th title="Boost or suppress our projection"><button type="button" data-sort="boost">Boost</button></th>
+                <th class="wide"><button type="button" data-sort="v">Value</button></th>
+                <th class="optc"><button type="button" data-sort="opt">Opt %</button></th>
+                <th class="stat"><button type="button" data-sort="rg">Range</button></th>
+                <th class="stat"><button type="button" data-sort="py">Pass yds</button></th>
+                <th class="stat"><button type="button" data-sort="ptd">Pass TD</button></th>
+                <th class="stat"><button type="button" data-sort="int">INT</button></th>
+                <th class="stat"><button type="button" data-sort="ry">Rush yds</button></th>
+                <th class="stat"><button type="button" data-sort="rtd">Rush TD</button></th>
+                <th class="stat"><button type="button" data-sort="rec">Rec</button></th>
+                <th class="stat"><button type="button" data-sort="recy">Rec yds</button></th>
+                <th class="stat"><button type="button" data-sort="rectd">Rec TD</button></th>
+              </tr></thead>
+              <tbody id="rows"><tr><td colspan="19" class="empty">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <p class="count" id="count"></p>
+      </div>
+    </details>
+  </section>
+
+  <section class="wrap sec" id="results" hidden>
+    <details class="fold" id="fold-res" data-fold="res" open>
+      <summary><h2>Lineups</h2><span class="fold-sum" id="sum-res"></span></summary>
+      <div class="fold-body">
+        <div class="res-head">
+          <div class="seg" id="rtab" role="group" aria-label="Show">
+            <button type="button" data-tab="lu" aria-pressed="true">Lineups</button>
+            <button type="button" data-tab="pl" aria-pressed="false">Players</button>
+            <button type="button" data-tab="tm" aria-pressed="false">Teams</button>
+            <button type="button" data-tab="gm" aria-pressed="false">Games</button>
+          </div>
+          <select class="ctl lsort" id="lsort" aria-label="Sort lineups">
+            <option value="build">Sort: build order</option><option value="proj">Sort: projection</option>
+            <option value="ceil">Sort: ceiling</option><option value="floor">Sort: floor</option><option value="avg">Sort: average</option>
+            <option value="act" data-rw>Sort: actual</option>
+          </select>
+          <div class="dl-btns">
+            <button type="button" class="btn btn-line slim" id="dlf" hidden>Download these</button>
+            <button type="button" class="btn btn-solid slim" id="dl">Download all</button>
+          </div>
+        </div>
+        <div class="filt" id="filt" hidden></div>
+        <p class="note" id="outnote" hidden></p>
+        <div id="rbody"></div>
+      </div>
+    </details>
+  </section>
+</main>
+
+<section class="wrap sec" id="lswap-sec" aria-label="Late swap">
+  <details class="fold" id="fold-ls" data-fold="ls">
+    <summary><h2>Late swap</h2><span class="fold-sum">DraftKings Classic · swap players in games that haven't kicked off</span></summary>
+    <div class="fold-body">
+      <div class="panel">
+        <ol class="ls-steps">
+          <li>On DraftKings: My Contests → Upcoming → Edit Entries (NFL Classic) → Download. That's DKEntries.csv.</li>
+          <li>Choose it here and press Late swap. Players whose game has kicked off stay; every other spot gets our best projection (with your edits and uploads).</li>
+          <li>Download the new file and upload it on the same DraftKings page. Your file never leaves this browser.</li>
+        </ol>
+        <div class="row2">
+          <div class="fld wide2"><label for="lsf">DKEntries.csv</label><input class="ctl" id="lsf" type="file" accept=".csv,text/csv"></div>
+          <div class="fld"><label for="lslock">Games locked</label><select class="ctl" id="lslock"><option value="now">Right now</option></select></div>
+          <div class="fld"><label for="lsgain">Min. gain (pts)</label><input class="ctl num" id="lsgain" type="number" min="0" step="0.5" value="0.5"></div>
+          <div class="fld"><label for="lsshare">Max share, new player %</label><input class="ctl num" id="lsshare" type="number" min="5" max="100" step="5" value="100"></div>
+          <div class="fld"><label for="lsdst">Offense vs my DST</label><select class="ctl" id="lsdst"><option value="off">Allow</option><option value="pass">No QB/WR/TE vs DST</option><option value="all">No offense vs DST</option></select></div>
+        </div>
+        <div class="build" style="margin-top:14px">
+          <button type="button" class="btn btn-solid" id="lsgo" disabled>Late swap</button>
+          <button type="button" class="btn btn-line" id="lsdl" hidden>Download DraftKings file</button>
+        </div>
+        <p class="msg" id="lsmsg" role="status" aria-live="polite"></p>
+      </div>
+      <div class="card" id="lsres" hidden><div class="scroll"><table class="exp ls"><thead><tr>
+        <th class="l">Entry</th><th class="l">Out</th><th class="l">In</th><th>Locked</th><th>Before</th><th>After</th><th>Gain</th><th>Status</th>
+      </tr></thead><tbody id="lsrows"></tbody></table></div></div>
+    </div>
+  </details>
+</section>
+
+<div class="buildbar" role="region" aria-label="Build lineups">
+  <div class="wrap">
+    <button type="button" class="btn btn-solid" id="go" disabled>Build lineups</button>
+    <div class="bb-mid">
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      <div class="bar" id="bar" hidden><i></i></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p style="margin:0">© 2026 Three7 DFS · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a> · <a href="mailto:support@three7dfs.com">support@three7dfs.com</a></p>
+    <p style="margin:0">Not affiliated with DraftKings or FanDuel. 18+ only.</p>
+  </div>
+</footer>
+
+<script>
+/* Three7 NFL optimizer core: the same rules as the NFL app's optimizer (run_optimizer_once,
+   lineup_rule_rows, flex_limit_rows, script_rule_rows, fast_optimize_generic), in the browser.
+   Classic: one yes/no per player with position counts (QB 1, RB 2-3, WR 3-4, TE 1-2, DST 1);
+   the extra RB/WR/TE is labeled FLEX afterwards, like the app. Other contests: (player, spot) pairs. */
+var T7Opt = (function () {
+  var SLOTS = {
+    dk: ["QB", "RB", "RB", "WR", "WR", "WR", "TE", "FLEX", "DST"],
+    fd: ["QB", "RB", "RB", "WR", "WR", "WR", "TE", "FLEX", "DEF"]
+  };
+  var CAP = { dk: 50000, fd: 60000 };
+  var CPOS = ["QB", "RB", "WR", "TE", "DST"];
+  var FLOORS = { QB: 8, RB: 18, WR: 26, TE: 10, DST: 8 }, MAXUSE = { QB: 1, RB: 3, WR: 4, TE: 2, DST: 1 };
+  function gameKey(a, b) { return [a, b].sort().join("@"); }
+  function num(v) { return v != null && v !== "" && !isNaN(+v) ? +v : null; }
+
+  // Pool size per position (the app's classic_pool_limits): tighter exposure needs more players
+  function poolLimits(exposure) {
+    var e = Math.max(exposure, 0.05), out = {};
+    CPOS.forEach(function (q) {
+      var need = Math.ceil(MAXUSE[q] / e);
+      out[q] = FLOORS[q] >= need ? FLOORS[q] : Math.min(40, Math.ceil(need * 1.05));
+    });
+    return out;
+  }
+
+  // The player pool for one site + Classic slate. edits[key] = {lock, out, boost (%), proj, exp (%)}
+  function prepare(players, site, slate, s, edits) {
+    edits = edits || {};
+    var all = [];
+    players.forEach(function (p) {
+      var x = p[site];
+      if (!x || !x.sl || !(slate in x.sl) || x.sl[slate] == null) return;
+      if (CPOS.indexOf(p.pos) < 0) return;
+      var key = p.n + "|" + p.tm, e = edits[key] || {};
+      var proj = num(e.proj) != null ? +e.proj : x.p;
+      if (proj == null || isNaN(proj)) return;
+      all.push({ key: key, name: p.n, team: p.tm, opp: p.opp, game: gameKey(p.tm, p.opp), pos: p.pos,
+                 id: x.id ? x.id[slate] : null, salary: +x.sl[slate], proj: Math.round(proj * 10) / 10,
+                 floor: x.f, ceil: x.c, avg: x.a, act: x.act,
+                 lock: !!e.lock, out: !!e.out, boost: Math.max(-90, Math.min(100, +e.boost || 0)),
+                 exp: num(e.exp) != null ? Math.max(0, Math.min(1, +e.exp / 100)) : null });
+    });
+    var keep = s.keepTeams || [], remove = s.removeTeams || [], stackT = (s.stack && s.stack.teams) || [];
+    var pool = all.filter(function (r) {
+      if (r.out && !r.lock) return false;                                     // Exclude
+      if (!r.lock && !(r.proj > s.minProj)) return false;                     // Min Proj (locks always in)
+      if (keep.length && keep.indexOf(r.team) < 0 && !r.lock) return false;   // Keep Teams
+      if (remove.indexOf(r.team) >= 0) return false;                          // Remove Teams
+      return true;
+    });
+    pool.forEach(function (r) {
+      r.fpts = r.proj * (1 + r.boost / 100);                                    // Boost / Suppress
+      r.cap = r.lock ? 1 : (r.exp != null ? r.exp : s.exposure);
+    });
+    // pool trimming by position; locks, exposure edits and Stack Teams' players always kept
+    var lim = poolLimits(s.exposure), cnt = {};
+    pool.sort(function (a, b) { return b.fpts - a.fpts; });
+    return pool.filter(function (r) {
+      if (r.lock || r.exp != null || stackT.indexOf(r.team) >= 0) return true;
+      cnt[r.pos] = (cnt[r.pos] || 0) + 1;
+      return cnt[r.pos] <= lim[r.pos];
+    });
+  }
+
+  function gauss(rnd) { var u = 1 - rnd(), v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+  // the shared lineup loop: exposure caps (coach's rolling rule, then the plain cap), randomness,
+  // min unique players. vars: [{p, name, m}], R = players per lineup.
+  async function loop(solver, pool, vars, rows, R, s, opts, pickedOf, make) {
+    var rnd = opts.random || Math.random, n = pool.length, L = s.n;
+    var used = new Array(n).fill(0), banned = [], lineups = [], cuts = [];
+    var capCount = pool.map(function (r) { return r.cap > 0 ? Math.max(1, Math.floor(r.cap * L + 1e-9)) : 0; });
+    var minUnique = Math.max(1, Math.min(s.minUnique || 1, R));
+    var bins = vars.map(function (v) { return v.name; }).concat(opts.aux || []);
+    async function solve(ban, fpts) {
+      var obj = {}, ub = {};
+      vars.forEach(function (v) { obj[v.name] = Math.round(fpts[v.p] * (v.m || 1) * 1e4) / 1e4; if (ban[v.p]) ub[v.name] = 0; });
+      var res = await solver({ obj: obj, rows: rows.concat(cuts), bins: bins, ub: ub });
+      if (!res.ok) return null;
+      var picked = vars.filter(function (v) { return res.x[v.name] > 0.5; });
+      return picked.length === R ? picked : null;
+    }
+    for (var i = 1; i <= L; i++) {
+      var fpts = pool.map(function (r) { return s.random > 0 ? r.fpts * Math.max(1 + gauss(rnd) * s.random / 100, 0) : r.fpts; });
+      var banSet = {}; banned.forEach(function (p) { banSet[p] = 1; });
+      var picked = await solve(banSet, fpts);
+      // coach's rolling rule can leave nothing (lineup 1 = 100% of 1 lineup); fall back to the plain cap
+      if (!picked) {
+        var atCap = {}, diff = false;
+        used.forEach(function (u, p) { if (u >= capCount[p]) atCap[p] = 1; });
+        Object.keys(atCap).forEach(function (p) { if (!banSet[p]) diff = true; });
+        banned.forEach(function (p) { if (!atCap[p]) diff = true; });
+        if (diff) picked = await solve(atCap, fpts);
+      }
+      if (!picked) {
+        if (!lineups.length) throw new Error(opts.noneMsg || "No valid lineup found. Try raising exposure or loosening locks, stacks or lineup rules.");
+        return { lineups: lineups, stopped: true };
+      }
+      lineups.push(make(picked));
+      if (opts.onProgress) await opts.onProgress(i, L);
+      // later lineups need at least minUnique players not in this one (players count once in any spot)
+      var ps = picked.map(function (v) { return v.p; }), cu = {};
+      if (minUnique > 1) vars.forEach(function (v) { if (ps.indexOf(v.p) >= 0) cu[v.name] = 1; });
+      else picked.forEach(function (v) { cu[v.name] = 1; });
+      cuts.push({ c: cu, op: "<=", rhs: R - minUnique });
+      ps.forEach(function (p) { used[p]++; });
+      banned = [];
+      used.forEach(function (u, p) { if (u / i > pool[p].cap || u >= capCount[p]) banned.push(p); });
+    }
+    return { lineups: lineups, stopped: false };
+  }
+
+  // Classic. s: n, exposure, random, minUnique, minSal, maxSal, maxTeam, dstOpp ("off" | "pass" | "all"),
+  //   bringBack, stack: null | {teams: [], wr, te, pc, rb, dst}
+  async function run(solver, pool, site, s, opts) {
+    opts = opts || {};
+    var R = 9, cap = Math.min(CAP[site], s.maxSal || CAP[site]);
+    var maxTeam = site === "dk" ? Math.min(s.maxTeam || 7, 7) : Math.min(s.maxTeam || 4, 4);
+    if (s.minSal > cap) throw new Error("Min Salary is higher than Max Salary.");
+    if (!pool.length) throw new Error("No players left in the pool. Loosen Min Proj, kept or removed teams, or exclusions.");
+    var vars = pool.map(function (r, p) { return { p: p, name: "x" + p }; });
+    var rows = [];
+    function row(pred, coef, op, rhs) { var c = {}; pool.forEach(function (r, p) { if (pred(r, p)) { var k = coef ? coef(r, p) : 1; if (k) c["x" + p] = (c["x" + p] || 0) + k; } }); if (Object.keys(c).length) rows.push({ c: c, op: op, rhs: rhs }); else if ((op === "=" || op === ">=") && rhs > 0) rows.push({ impossible: true }); }
+    var is = function (q) { return function (r) { return r.pos === q; }; };
+    row(function () { return true; }, null, "=", R);
+    row(is("QB"), null, "=", 1); row(is("DST"), null, "=", 1);
+    row(is("RB"), null, ">=", 2); row(is("RB"), null, "<=", 3);
+    row(is("WR"), null, ">=", 3); row(is("WR"), null, "<=", 4);
+    row(is("TE"), null, ">=", 1); row(is("TE"), null, "<=", 2);
+    row(function () { return true; }, function (r) { return r.salary; }, "<=", cap);
+    if (s.minSal > 0) row(function () { return true; }, function (r) { return r.salary; }, ">=", s.minSal);
+    var teams = [], games = [];
+    pool.forEach(function (r) { if (teams.indexOf(r.team) < 0) teams.push(r.team); if (games.indexOf(r.game) < 0) games.push(r.game); });
+    teams.forEach(function (t) { row(function (r) { return r.team === t; }, null, "<=", maxTeam); });
+    if (site === "dk") games.forEach(function (g) { row(function (r) { return r.game === g; }, null, "<=", R - 1); });   // 2+ games
+    pool.forEach(function (r, p) { if (r.lock) row(function (x, q) { return q === p; }, null, ">=", 1); });
+    // [STACK] the QB comes from a Stack Team; with him at least N of each group from his team
+    var st = s.stack;
+    if (st && st.teams && st.teams.length) row(function (r) { return r.pos === "QB" && st.teams.indexOf(r.team) < 0; }, null, "<=", 0);
+    var GROUPS = { wr: ["WR"], te: ["TE"], pc: ["WR", "TE"], rb: ["RB"], dst: ["DST"] };
+    pool.forEach(function (q, qi) {
+      if (q.pos !== "QB") return;
+      if (st) Object.keys(GROUPS).forEach(function (g) {
+        var k = +st[g] || 0; if (k <= 0) return;
+        row(function (r, p) { return p === qi || (GROUPS[g].indexOf(r.pos) >= 0 && r.team === q.team); }, function (r, p) { return p === qi ? -k : 1; }, ">=", 0);
+      });
+      if (s.bringBack > 0 && q.opp) row(function (r, p) { return p === qi || (["RB", "WR", "TE"].indexOf(r.pos) >= 0 && r.team === q.opp); }, function (r, p) { return p === qi ? -s.bringBack : 1; }, ">=", 0);
+    });
+    // Offense vs my DST: a DST picked -> none of the offense it faces
+    if (s.dstOpp === "pass" || s.dstOpp === "all") {
+      var off = s.dstOpp === "all" ? ["QB", "RB", "WR", "TE"] : ["QB", "WR", "TE"];
+      pool.forEach(function (d, di) {
+        if (d.pos !== "DST" || !d.opp) return;
+        if (!pool.some(function (r) { return off.indexOf(r.pos) >= 0 && r.team === d.opp; })) return;
+        row(function (r, p) { return p === di || (off.indexOf(r.pos) >= 0 && r.team === d.opp); }, function (r, p) { return p === di ? 9 : 1; }, "<=", 9);
+      });
+    }
+    if (rows.some(function (r) { return r.impossible; })) throw new Error("No valid lineup found: the pool is missing a position. Loosen Min Proj, teams or exclusions.");
+    return loop(solver, pool, vars, rows, R, s, opts, null, function (picked) {
+      var lu = picked.map(function (v) { return pool[v.p]; });
+      // label the extra RB/WR/TE as FLEX (the lowest projected at the over-filled position), like the app
+      var base = { RB: 2, WR: 3, TE: 1 }, flex = null;
+      Object.keys(base).forEach(function (q) {
+        var at = lu.filter(function (r) { return r.pos === q; });
+        if (at.length > base[q]) flex = at.slice().sort(function (a, b) { return a.proj - b.proj; })[0];
+      });
+      var order = SLOTS[site], out = [], left = lu.slice();
+      order.forEach(function (sl) {
+        var want = sl === "DEF" ? "DST" : sl, j = -1;
+        left.forEach(function (r, k) { if (j < 0 && (sl === "FLEX" ? r === flex : r.pos === want && r !== flex)) j = k; });
+        var r = left.splice(j, 1)[0];
+        out.push({ slot: sl, key: r.key, name: r.name, id: r.id, team: r.team, opp: r.opp, game: r.game, salary: r.salary,
+                   proj: r.proj, pos: r.pos, floor: r.floor, ceil: r.ceil, avg: r.avg, act: r.act });
+      });
+      return out;
+    });
+  }
+
+  // =====================================================================================
+  // Showdown (DraftKings) / single game (FanDuel MVP), DraftKings Tiers, Total Yards and Touchdowns
+  // =====================================================================================
+  var XC = {
+    "dk|Captain":    { slots: ["CPT", "FLEX", "FLEX", "FLEX", "FLEX", "FLEX"], mult: { CPT: 1.5 }, cap: 50000, captain: "CPT" },
+    // FanDuel's single game (salary file: "MVP - 1.5X Points/AnyFLEX" and an "MVP 1.5x Salary" column): MVP scores 1.5x and costs 1.5x
+    "fd|Captain":    { slots: ["MVP", "FLEX", "FLEX", "FLEX", "FLEX", "FLEX"], mult: { MVP: 1.5 }, cap: 60000, captain: "MVP", capSal: 1.5,
+                       head: ["MVP - 1.5X Points", "AnyFLEX", "AnyFLEX", "AnyFLEX", "AnyFLEX", "AnyFLEX"] },
+    "dk|Tiers":      { slots: ["T1", "T2", "T3", "T4", "T5", "T6"], mult: {}, cap: 0 },
+    "dk|TotalYards": { slots: ["FLEX", "FLEX", "FLEX"], mult: {}, cap: 0, maxTeam: 2, stat: "yds" },
+    "dk|Touchdowns": { slots: ["FLEX", "FLEX", "FLEX"], mult: {}, cap: 0, stat: "tds" }
+  };
+  function xspec(site, contest) { return XC[site + "|" + contest]; }
+  function multOf(spec, t) { return spec.mult[t] || 1; }
+  function baseOf(p, site, contest) { var sp = xspec(site, contest); return sp && sp.stat ? p[sp.stat] : (p[site] ? p[site].p : null); }
+
+  // pool for a non-Classic slate. p[site].xs[contest + "|" + slate] = { u: [id, salary], c: [id, salary] (DK CPT row), t: "T3" }
+  function prepareX(players, site, contest, slate, s, edits) {
+    edits = edits || {};
+    var spec = xspec(site, contest), k = contest + "|" + slate, st = !!spec.stat, out = [];
+    players.forEach(function (p) {
+      var x = p[site]; if (!x || !x.xs || !x.xs[k]) return;
+      var z = x.xs[k], key = p.n + "|" + p.tm, e = edits[key] || {};
+      var base = baseOf(p, site, contest);
+      var proj = num(e.proj) != null ? +e.proj : base;
+      if (proj == null || isNaN(proj)) return;
+      out.push({ key: key, name: p.n, team: p.tm, opp: p.opp, game: gameKey(p.tm, p.opp), pos: p.pos, tier: z.t || null,
+                 ids: { u: z.u ? z.u[0] : null, c: z.c ? z.c[0] : (spec.capSal && z.u ? z.u[0] : null) },
+                 sal: { u: z.u ? +z.u[1] || 0 : 0, c: z.c ? +z.c[1] || 0 : (spec.capSal && z.u ? Math.round((+z.u[1] || 0) * spec.capSal) : 0) },
+                 salary: z.u ? +z.u[1] || 0 : 0, proj: Math.round(proj * (st && spec.stat === "tds" ? 100 : 10)) / (st && spec.stat === "tds" ? 100 : 10),
+                 floor: st ? null : x.f, ceil: st ? null : x.c, avg: st ? null : x.a, act: st ? null : x.act,
+                 lock: !!e.lock, out: !!e.out, boost: Math.max(-90, Math.min(100, +e.boost || 0)),
+                 exp: num(e.exp) != null ? Math.max(0, Math.min(1, +e.exp / 100)) : null });
+    });
+    var pool = out.filter(function (r) {
+      if (r.out && !r.lock) return false;
+      if (contest === "Captain" && !r.lock && !(r.proj > s.minProj)) return false;   // Min Proj (Showdown, like the app)
+      return true;
+    });
+    pool.forEach(function (r) {
+      r.fpts = r.proj * (1 + r.boost / 100);
+      r.cap = r.lock ? 1 : (r.exp != null ? r.exp : s.exposure);
+      if ((contest === "Captain" || contest === "Tiers") && s.stack && s.stack.team === r.team && r.exp == null && !r.lock) r.cap = 1;   // the app: stack team at 100%
+      r.types = [];
+      spec.slots.forEach(function (t) {
+        if (r.types.indexOf(t) >= 0) return;
+        if (/^T\d$/.test(t)) { if (r.tier === t) r.types.push(t); return; }
+        if (site === "dk" && t === "CPT" && !r.ids.c) return;        // no captain row for him in the file
+        r.types.push(t);
+      });
+    });
+    return pool.filter(function (r) { return r.types.length; });
+  }
+
+  // Captain game-script team rules (the app's script_rule_rows). vars: {p, t}. C = captain spot name.
+  function scriptRows(script, vars, pool, C, add) {
+    if (!script || !script.extra || !script.extra.length) return;
+    var teams = []; pool.forEach(function (r) { if (teams.indexOf(r.team) < 0) teams.push(r.team); });
+    if (teams.length !== 2) return;                     // single-game slates only
+    var other = function (t) { return teams[0] === t ? teams[1] : teams[0]; };
+    var M = 6, PASS = ["WR", "TE"];
+    var P = function (v) { return pool[v.p]; }, cpt = function (v) { return v.t === C; };
+    var nPlayers = function (f) { var u = {}; vars.forEach(function (v) { if (f(v)) u[v.p] = 1; }); return Object.keys(u).length; };
+    var any = function (f) { return vars.some(f); };
+    var atLeast = function (f, k) { if (nPlayers(f) >= k) add(function (v) { return f(v) ? 1 : 0; }, ">=", k); };
+    var atMost = function (f, k) { if (any(f)) add(function (v) { return f(v) ? 1 : 0; }, "<=", k); };
+    var ifCptMin = function (cap, f, k) { if (any(cap) && nPlayers(function (v) { return f(v) && !cap(v); }) >= k) add(function (v) { return (f(v) ? 1 : 0) - (cap(v) ? k : 0); }, ">=", 0); };
+    var ifCptMax = function (cap, f, k) { if (any(cap) && any(f)) add(function (v) { return (f(v) ? 1 : 0) + (cap(v) ? M : 0); }, "<=", k + M); };
+    var tp = function (t, list) { return function (v) { return P(v).team === t && list.indexOf(P(v).pos) >= 0; }; };
+    script.extra.forEach(function (x) {
+      if (x === "pc_both") teams.forEach(function (t) { atLeast(tp(t, PASS), 1); });
+      else if (x === "max4") teams.forEach(function (t) { atMost(function (v) { return P(v).team === t; }, 4); });
+      else if (x === "blowout") {
+        var t = script.team; if (teams.indexOf(t) < 0) return;
+        atMost(tp(other(t), ["DST", "K", "RB"]), 0);
+        atLeast(tp(t, ["RB"]), 1);
+        atMost(function (v) { return cpt(v) && P(v).pos === "K"; }, 0);
+      } else if (x === "cpt_rb_dst") teams.forEach(function (t) {
+        var cap = function (v) { return cpt(v) && tp(t, ["RB"])(v); };
+        ifCptMin(cap, function (v) { return !cpt(v) && tp(t, ["DST"])(v); }, 1);
+        ifCptMax(cap, tp(other(t), ["DST", "RB", "QB"]), 0);
+        ifCptMax(cap, tp(other(t), PASS), 1);
+      });
+      else if (x === "cpt_only_rb") teams.forEach(function (t) {
+        var cap = function (v) { return cpt(v) && tp(t, ["RB"])(v); };
+        ifCptMax(cap, function (v) { return !cpt(v) && tp(t, ["RB"])(v); }, 0);
+        ifCptMax(cap, tp(other(t), ["DST"]), 0);
+      });
+      else if (x === "need_dst") atLeast(function (v) { return P(v).pos === "DST"; }, 1);
+      else if (x === "dst_vs_qb") teams.forEach(function (t) {
+        var d = tp(t, ["DST"]), q = tp(other(t), ["QB"]);
+        if (any(d) && any(q)) add(function (v) { return (q(v) ? 1 : 0) + (d(v) ? M : 0); }, "<=", M);
+      });
+      else if (x === "cpt_dst_vs_offense") teams.forEach(function (t) {
+        var cap = function (v) { return cpt(v) && tp(t, ["DST"])(v); };
+        ifCptMax(cap, tp(other(t), ["QB"]), 0);
+        ifCptMax(cap, tp(other(t), PASS), 1);
+      });
+      else if (x === "cpt_k_offense") teams.forEach(function (t) {
+        ifCptMin(function (v) { return cpt(v) && tp(t, ["K"])(v); }, tp(t, ["QB", "RB", "WR", "TE"]), 2);
+      });
+    });
+  }
+
+  // s: n, exposure, random, minUnique, minSal, maxSal, stack {team, size}, captain {team, pos: [], keys: []},
+  //    flex {QB: [min, max], ...} (the 5 Flex spots), script {extra: [...], team}, pc (pass catchers, Yards / TDs)
+  async function runX(solver, pool, site, contest, s, opts) {
+    opts = opts || {};
+    var spec = xspec(site, contest), slots = spec.slots, R = slots.length;
+    var need = {}; slots.forEach(function (t) { need[t] = (need[t] || 0) + 1; });
+    if (!pool.length) throw new Error("No players left in the pool. Loosen Min Proj or exclusions.");
+    var cap = spec.cap ? Math.min(spec.cap, s.maxSal || spec.cap) : 0;
+    if (spec.cap && s.minSal > cap) throw new Error("Min Salary is higher than Max Salary.");
+    var C = spec.captain, cl = s.captain || {};
+    var vars = [];
+    pool.forEach(function (r, p) {
+      r.types.forEach(function (t) {
+        if (t === C) {   // Lock Captain: team / positions / players
+          if (cl.team && r.team !== cl.team) return;
+          if (cl.pos && cl.pos.length && cl.pos.indexOf(r.pos) < 0) return;
+          if (cl.keys && cl.keys.length && cl.keys.indexOf(r.key) < 0) return;
+        }
+        vars.push({ p: p, t: t, name: "x" + vars.length,
+                    sal: t === C && r.ids.c ? r.sal.c : r.sal.u, id: t === C && r.ids.c ? r.ids.c : r.ids.u, m: multOf(spec, t) });
+      });
+    });
+    // the app: a captain locked by name can be captain in every lineup (100% exposure)
+    if (cl.keys && cl.keys.length) pool.forEach(function (r) { if (cl.keys.indexOf(r.key) >= 0 && r.exp == null) r.cap = 1; });
+    var rows = [], impossible = false;
+    function add(coef, op, rhs) { var c = {}; vars.forEach(function (v) { var k = coef(v); if (k) c[v.name] = k; }); if (Object.keys(c).length) rows.push({ c: c, op: op, rhs: rhs }); else if ((op === "=" || op === ">=") && rhs > 0) impossible = true; }
+    function row(pred, coef, op, rhs) { add(function (v) { return pred(v) ? (coef ? coef(v) : 1) : 0; }, op, rhs); }
+    Object.keys(need).forEach(function (t) { row(function (v) { return v.t === t; }, null, "=", need[t]); });
+    pool.forEach(function (r, p) { if (r.types.length > 1) row(function (v) { return v.p === p; }, null, "<=", 1); });
+    if (cap) row(function () { return true; }, function (v) { return v.sal; }, "<=", cap);
+    if (cap && s.minSal > 0) row(function () { return true; }, function (v) { return v.sal; }, ">=", s.minSal);
+    var teams = []; pool.forEach(function (r) { if (teams.indexOf(r.team) < 0) teams.push(r.team); });
+    var maxTeam = contest === "Captain" ? R - 1 : (spec.maxTeam || R);   // Showdown needs both teams
+    if (maxTeam < R) teams.forEach(function (t) { row(function (v) { return pool[v.p].team === t; }, null, "<=", maxTeam); });
+    pool.forEach(function (r, p) { if (r.lock) row(function (v) { return v.p === p; }, null, ">=", 1); });
+    if (s.stack && s.stack.team && s.stack.size > 0) row(function (v) { return pool[v.p].team === s.stack.team; }, null, ">=", s.stack.size);
+    if (C && s.flex) Object.keys(s.flex).forEach(function (q) {   // Flex spots: min / max of each position
+      var lim = s.flex[q], nflex = R - 1;
+      if (lim[0] > 0) row(function (v) { return v.t !== C && pool[v.p].pos === q; }, null, ">=", lim[0]);
+      if (lim[1] < nflex) row(function (v) { return v.t !== C && pool[v.p].pos === q; }, null, "<=", lim[1]);
+    });
+    if (spec.stat && s.pc > 0) row(function (v) { return ["WR", "TE"].indexOf(pool[v.p].pos) >= 0; }, null, ">=", s.pc);   // # of pass catchers
+    if (C) scriptRows(s.script, vars, pool, C, add);
+    if (impossible) throw new Error("No valid lineup found. Try loosening Lock Captain, locks, stacks or Flex limits.");
+    var order = slots.filter(function (t, j) { return slots.indexOf(t) === j; });
+    return loop(solver, pool, vars, rows, R, s, Object.assign({ noneMsg: "No valid lineup found. Try raising exposure or loosening locks, Lock Captain, stacks or Flex limits." }, opts), null, function (picked) {
+      picked.sort(function (a, b) { return order.indexOf(a.t) - order.indexOf(b.t) || pool[b.p].fpts - pool[a.p].fpts; });
+      return picked.map(function (v) {
+        var r = pool[v.p], m = v.m, sc = function (x) { return x == null || Array.isArray(x) ? null : x * m; };
+        var dec = spec.stat === "tds" ? 100 : 10;
+        return { slot: v.t, key: r.key, name: r.name, id: v.id, team: r.team, opp: r.opp, game: r.game, pos: r.pos,
+                 salary: v.sal, proj: Math.round(r.proj * m * dec) / dec, floor: sc(r.floor), ceil: sc(r.ceil), avg: sc(r.avg), act: sc(r.act) };
+      });
+    });
+  }
+  function uploadCsvX(lineups, site, contest) {
+    var spec = xspec(site, contest);
+    return [(spec.head || spec.slots).join(",")].concat(lineups.map(function (lu) { return lu.map(function (x) { return x.id; }).join(","); })).join("\n") + "\n";
+  }
+
+  // ---- solver adapter ----
+  function glpkSolver(glpk) {
+    return async function (M) {
+      var vars = function (c) { return Object.keys(c).map(function (v) { return { name: v, coef: c[v] }; }); };
+      var type = { "<=": glpk.GLP_UP, ">=": glpk.GLP_LO, "=": glpk.GLP_FX };
+      var model = {
+        name: "lineup", objective: { direction: glpk.GLP_MAX, name: "obj", vars: vars(M.obj) },
+        subjectTo: M.rows.map(function (r, i) { return { name: "r" + i, vars: vars(r.c), bnds: { type: type[r.op], ub: r.rhs, lb: r.rhs } }; })
+          .concat(Object.keys(M.ub).map(function (v, i) { return { name: "b" + i, vars: [{ name: v, coef: 1 }], bnds: { type: glpk.GLP_FX, ub: 0, lb: 0 } }; })),
+        binaries: M.bins
+      };
+      var res = await glpk.solve(model, { msglev: glpk.GLP_MSG_OFF, presol: true });
+      if (!res || !res.result || (res.result.status !== glpk.GLP_OPT)) return { ok: false };
+      return { ok: true, x: res.result.vars };
+    };
+  }
+
+  // Upload file (header + one row per lineup) in the site's template order
+  function uploadCsv(lineups, site) {
+    return [SLOTS[site].join(",")].concat(lineups.map(function (lu) { return lu.map(function (x) { return x.id; }).join(","); })).join("\n") + "\n";
+  }
+
+  return { XC: XC, xspec: xspec, prepareX: prepareX, runX: runX, uploadCsvX: uploadCsvX, baseOf: baseOf,
+           SLOTS: SLOTS, CAP: CAP, CPOS: CPOS, gameKey: gameKey, prepare: prepare, run: run, poolLimits: poolLimits,
+           glpkSolver: glpkSolver, uploadCsv: uploadCsv };
+})();
+/* Three7 NFL late swap (DraftKings Classic): the NFL app's late swap, in the browser.
+   DraftKings repeats slot names (RB, RB, WR, WR, WR), so slots are kept by position.
+   The member's DKEntries.csv never leaves their computer. */
+var T7LS = (function () {
+  var LABELS = ["QB", "RB", "RB", "WR", "WR", "WR", "TE", "FLEX", "DST"];        // DraftKings' header
+  var SLOTS  = ["QB", "RB1", "RB2", "WR1", "WR2", "WR3", "TE", "FLEX", "DST"];   // our names for them
+  var BASE = {}; SLOTS.forEach(function (s, k) { BASE[s] = LABELS[k]; });
+  var CAP = 50000;
+
+  // CSV text -> array of rows (handles quotes)
+  function parseCsv(t) {
+    var rows = [], row = [], cell = "", q = false;
+    t = String(t).replace(/^﻿/, "");
+    for (var i = 0; i < t.length; i++) {
+      var ch = t[i];
+      if (q) { if (ch === '"') { if (t[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ",") { row.push(cell); cell = ""; }
+      else if (ch === "\n" || ch === "\r") { if (ch === "\r" && t[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+      else cell += ch;
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+  // "Josh Allen (40123456)" / "... (LOCKED)" / a bare ID -> "40123456"
+  function cellId(x) {
+    x = String(x == null ? "" : x).trim();
+    if (/^\d{5,}$/.test(x)) return x;
+    var m = x.match(/\((\d{5,})\)/); return m ? m[1] : null;
+  }
+  // "BUF@MIA 11/22/2026 01:00PM ET" -> Date (Eastern); none once the game has started
+  function kickOf(info) {
+    var m = String(info).match(/(\d{2})\/(\d{2})\/(\d{4}) (\d{1,2}):(\d{2})([AP])M/);
+    if (!m) return null;
+    var h = (+m[4] % 12) + (m[6] === "P" ? 12 : 0);
+    return etDate(+m[3], +m[1], +m[2], h, +m[5]);
+  }
+  function etDate(y, mo, d, h, mi) {   // a clock time in New York -> Date
+    var guess = Date.UTC(y, mo - 1, d, h + 5, mi);
+    var et = new Date(guess).toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
+    var p = et.match(/(\d+)\/(\d+)\/(\d+),? (\d+):(\d+)/);
+    var shown = Date.UTC(+p[3], +p[1] - 1, +p[2], +p[4] % 24, +p[5]);
+    return new Date(guess + (Date.UTC(y, mo - 1, d, h, mi) - shown));
+  }
+
+  function read(text) {
+    var raw = parseCsv(text);
+    if (!raw.length) throw new Error("That file is empty.");
+    var hdr = raw[0].map(function (x) { return String(x).trim(); });
+    var s0 = hdr.indexOf("QB");
+    var ok = hdr[0] === "Entry ID" && s0 >= 0 && LABELS.every(function (l, k) { return hdr[s0 + k] === l; });
+    if (!ok) {
+      if (hdr[0] === "Entry ID" && hdr.indexOf("CPT") >= 0) throw new Error("This is a Showdown entries file. Late swap is for NFL Classic: in Showdown every player locks when the one game kicks off.");
+      throw new Error("This doesn't look like a DraftKings NFL Classic entries file (DKEntries.csv).");
+    }
+    var body = raw.slice(1), entries = [], lockedIds = {};
+    body.forEach(function (r) {
+      var id = String(r[0] || "").trim();
+      if (!/^\d+$/.test(id)) return;
+      var e = { entry_id: id, contest: r[1] || "", contest_id: r[2] || "", fee: r[3] || "", slots: {} };
+      SLOTS.forEach(function (s, k) { var c = r[s0 + k] || ""; e.slots[s] = cellId(c); if (/LOCKED/i.test(c) && cellId(c)) lockedIds[cellId(c)] = 1; });
+      entries.push(e);
+    });
+    if (!entries.length) throw new Error("No entries found in the file.");
+    // the player list: the block that starts with "Position, Name + ID, ..."
+    var r0 = -1, c0 = -1;
+    for (var i = 0; i < body.length && r0 < 0; i++) { var j = body[i].indexOf("Name + ID"); if (j >= 0) { r0 = i; c0 = j - 1; } }
+    if (r0 < 0) throw new Error("No player list found in the file.");
+    var ph = body[r0].slice(c0).map(function (x) { return String(x).trim(); });
+    var col = function (r, name) { var k = ph.indexOf(name); return k < 0 ? "" : String(r[c0 + k] == null ? "" : r[c0 + k]).trim(); };
+    var pool = [];
+    body.slice(r0 + 1).forEach(function (r) {
+      var id = col(r, "ID"); if (!id) return;
+      var info = col(r, "Game Info"), team = col(r, "TeamAbbrev"), sal = parseFloat(col(r, "Salary").replace(/[^0-9.]/g, ""));
+      if (isNaN(sal)) return;
+      var gm = info.match(/^([A-Za-z]+)\s*@\s*([A-Za-z]+)/), kick = kickOf(info), post = /postpon|cancel|suspend/i.test(info);
+      var roster = col(r, "Roster Position");
+      pool.push({ id: id, name: col(r, "Name"), team: team, roster: roster, pos: roster.split("/")[0].trim(), salary: sal,
+                  game: gm ? gm[1] + "@" + gm[2] : null, kick: kick, postponed: post,
+                  started: !kick && !!info && !post, avg: parseFloat(col(r, "AvgPointsPerGame")) });
+    });
+    // game for the "2 games" rule: from the matchup, else from a teammate's row, else the team
+    var byTeam = {}; pool.forEach(function (p) { if (p.game) byTeam[p.team] = p.game; });
+    pool.forEach(function (p) {
+      if (!p.game) p.game = byTeam[p.team] || "team:" + p.team;
+      var sides = p.game.replace(/^team:/, "").split("@");
+      p.opp = p.game.indexOf("team:") === 0 ? "" : (sides[0] === p.team ? sides[1] : sides[0]);   // for "Offense vs My DST"
+      p.dkLocked = p.started || !!lockedIds[p.id];
+    });
+    var startedGames = {}; pool.forEach(function (p) { if (p.dkLocked) startedGames[p.game] = 1; });
+    pool.forEach(function (p) { if (startedGames[p.game]) p.dkLocked = true; });
+    var kicks = {}; pool.forEach(function (p) { if (p.kick) kicks[+p.kick] = p.kick; });
+    return { entries: entries, pool: pool, kicks: Object.keys(kicks).sort().map(function (k) { return kicks[k]; }) };
+  }
+
+  // best lineup for one entry: keep = {slot: id or null}. dstOpp: "off" | "pass" | "all"
+  async function solveEntry(solver, pool, byId, keep, banned, dstOpp) {
+    var open = SLOTS.filter(function (s) { return !keep[s]; });
+    if (!open.length) return Object.assign({}, keep);
+    var lockedIds = SLOTS.map(function (s) { return keep[s]; }).filter(Boolean);
+    var lk = lockedIds.map(function (id) { return byId[id]; }).filter(Boolean);
+    var cand = pool.filter(function (p) { return !p.locked && lockedIds.indexOf(p.id) < 0 && !banned[p.id]; });
+    // Offense vs My DST: settle what the locked players already decide
+    var off = dstOpp === "pass" ? ["QB", "WR", "TE"] : dstOpp === "all" ? ["QB", "RB", "WR", "TE"] : [];
+    if (off.length) {
+      var lkDstOpp = lk.filter(function (p) { return p.pos === "DST" && p.opp; }).map(function (p) { return p.opp; });
+      var lkOffTeams = lk.filter(function (p) { return off.indexOf(p.pos) >= 0; }).map(function (p) { return p.team; });
+      cand = cand.filter(function (p) {
+        if (off.indexOf(p.pos) >= 0 && lkDstOpp.indexOf(p.team) >= 0) return false;      // my locked DST: not its opponents
+        if (p.pos === "DST" && lkOffTeams.indexOf(p.opp) >= 0) return false;              // my locked offense: not a DST facing it
+        return true;
+      });
+    }
+    var vars = [];
+    open.forEach(function (s) { cand.forEach(function (p, i) { if (p.roster.split("/").map(function (x) { return x.trim(); }).indexOf(BASE[s]) >= 0) vars.push({ p: i, s: s, n: "x" + vars.length }); }); });
+    if (!vars.length) return null;
+    var rows = [];
+    var row = function (pred, coef, op, rhs) { var c = {}; vars.forEach(function (v) { if (pred(v)) c[v.n] = (c[v.n] || 0) + (coef ? coef(v) : 1); }); rows.push({ c: c, op: op, rhs: rhs }); };
+    open.forEach(function (s) { row(function (v) { return v.s === s; }, null, "=", 1); });
+    cand.forEach(function (p, i) { if (vars.some(function (v) { return v.p === i; })) row(function (v) { return v.p === i; }, null, "<=", 1); });
+    var lockedSal = lk.reduce(function (a, p) { return a + p.salary; }, 0);
+    row(function () { return true; }, function (v) { return cand[v.p].salary; }, "<=", CAP - lockedSal);
+    // DraftKings needs players from at least 2 games
+    var lg = []; lk.forEach(function (p) { if (lg.indexOf(p.game) < 0) lg.push(p.game); });
+    if (lg.length === 1) row(function (v) { return cand[v.p].game !== lg[0]; }, null, ">=", 1);
+    if (!lg.length) { var gs = []; cand.forEach(function (p) { if (gs.indexOf(p.game) < 0) gs.push(p.game); });
+      gs.forEach(function (g) { row(function (v) { return cand[v.p].game === g; }, null, "<=", open.length - 1); }); }
+    // Offense vs My DST, both still open: a DST picked -> none of the offense it faces
+    if (off.length) {
+      var big = open.length;
+      cand.forEach(function (d, di) {
+        if (d.pos !== "DST" || !d.opp || !vars.some(function (v) { return v.p === di; })) return;
+        var vs = function (v) { return off.indexOf(cand[v.p].pos) >= 0 && cand[v.p].team === d.opp; };
+        if (!vars.some(vs)) return;
+        row(function (v) { return vs(v) || v.p === di; }, function (v) { return v.p === di ? big : 1; }, "<=", big);
+      });
+    }
+    if (rows.some(function (r) { return !Object.keys(r.c).length && (r.op === "=" || r.op === ">=") && r.rhs > 0; })) return null;
+    rows = rows.filter(function (r) { return Object.keys(r.c).length; });
+    var obj = {}; vars.forEach(function (v) { obj[v.n] = Math.round(cand[v.p].proj * 1e4) / 1e4; });
+    var res = await solver({ obj: obj, rows: rows, bins: vars.map(function (v) { return v.n; }), ub: {} });
+    if (!res.ok) return null;
+    var out = Object.assign({}, keep);
+    vars.forEach(function (v) { if (res.x[v.n] > 0.5) out[v.s] = cand[v.p].id; });
+    return SLOTS.every(function (s) { return out[s]; }) ? out : null;
+  }
+
+  // proj: {dkId: points}. lockAt: Date (games kicking off at or before it are locked).
+  async function run(solver, dk, proj, lockAt, minGain, maxShare, onProgress, dstOpp) {
+    var pool = dk.pool.map(function (p) {
+      return Object.assign({}, p, { proj: p.postponed ? 0 : (proj[p.id] == null ? 0 : proj[p.id]),
+                                    locked: p.dkLocked || (p.kick && p.kick <= lockAt) });
+    });
+    var byId = {}; pool.forEach(function (p) { byId[p.id] = p; });
+    var n = dk.entries.length, capN = Math.max(1, Math.floor(maxShare * n + 1e-9)), used = {}, out = [];
+    for (var i = 0; i < n; i++) {
+      var e = dk.entries[i], cur = {}, keep = {};
+      SLOTS.forEach(function (s) { var id = e.slots[s]; cur[s] = id && byId[id] ? id : null; keep[s] = cur[s] && byId[cur[s]].locked ? cur[s] : null; });
+      var curIds = SLOTS.map(function (s) { return cur[s]; }).filter(Boolean);
+      var banned = {}; Object.keys(used).forEach(function (id) { if (used[id] >= capN && curIds.indexOf(id) < 0) banned[id] = 1; });
+      var nw = await solveEntry(solver, pool, byId, keep, banned, dstOpp || "off");
+      var pts = function (L) { return SLOTS.reduce(function (a, s) { return a + (L[s] && byId[L[s]] ? byId[L[s]].proj : 0); }, 0); };
+      var before = pts(cur), status = "No change";
+      if (!nw) { nw = cur; status = "No valid lineup"; }
+      else {
+        var gain = pts(nw) - before;
+        if (!curIds.length || gain >= minGain) {
+          var ins = SLOTS.map(function (s) { return nw[s]; }).filter(function (id) { return curIds.indexOf(id) < 0; });
+          if (ins.length) { ins.forEach(function (id) { used[id] = (used[id] || 0) + 1; }); status = "Swap"; }
+          else if (SLOTS.some(function (s) { return nw[s] !== cur[s]; })) status = "Swap";   // same players, new spots (e.g. FLEX)
+          else nw = cur;
+        } else nw = cur;
+      }
+      var newIds = SLOTS.map(function (s) { return nw[s]; });
+      out.push({ entry: e, lineup: nw, status: status, locked: SLOTS.filter(function (s) { return keep[s]; }).length,
+                 out: curIds.filter(function (id) { return newIds.indexOf(id) < 0; }).map(function (id) { return byId[id].name; }),
+                 in: newIds.filter(function (id) { return id && curIds.indexOf(id) < 0; }).map(function (id) { return byId[id].name; }),
+                 before: before, after: pts(nw), salary: SLOTS.reduce(function (a, s) { return a + (nw[s] && byId[nw[s]] ? byId[nw[s]].salary : 0); }, 0) });
+      if (onProgress) await onProgress(i + 1, n);
+    }
+    var lockedGames = {}; pool.forEach(function (p) { if (p.locked) lockedGames[p.game] = 1; });
+    var g = Object.keys(lockedGames), nGames = g.filter(function (x) { return x.indexOf("team:") !== 0; }).length + Math.ceil(g.filter(function (x) { return x.indexOf("team:") === 0; }).length / 2);
+    return { rows: out, nLockedGames: nGames, pool: pool };
+  }
+
+  // DraftKings upload: same header as the download (RB, RB, WR, WR, WR ...), IDs in the slots, changed entries only
+  function uploadCsv(res) {
+    var q = function (x) { x = x == null ? "" : String(x); return /[",]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; };
+    return ["Entry ID,Contest Name,Contest ID,Entry Fee," + LABELS.join(",")].concat(res.rows.filter(function (r) { return r.status === "Swap"; }).map(function (r) {
+      return [r.entry.entry_id, r.entry.contest, r.entry.contest_id, r.entry.fee].concat(SLOTS.map(function (s) { return r.lineup[s]; })).map(q).join(",");
+    })).join("\n") + "\n";
+  }
+  return { SLOTS: SLOTS, LABELS: LABELS, parseCsv: parseCsv, read: read, run: run, uploadCsv: uploadCsv, etDate: etDate };
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  var GLPK_URL = "https://cdn.jsdelivr.net/npm/glpk.js@5.0.0/dist/index.js";
+  var MAX_LINEUPS = 150;
+  var LOCK = '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align:-2px"><path fill="currentColor" d="M4 7V5a4 4 0 0 1 8 0v2h.5A1.5 1.5 0 0 1 14 8.5v5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5v-5A1.5 1.5 0 0 1 3.5 7H4zm2 0h4V5a2 2 0 0 0-4 0v2z"/></svg>';
+  var D = null, glpk = null, busy = false, result = null, showAll = false, rtab = "lu";
+  var F = [];                      // lineup filters from the exposure tables: {t: "pl"|"tm"|"gm", k, label}
+  var XS = { pl: { k: "c", dir: -1 }, tm: { k: "c", dir: -1 }, gm: { k: "c", dir: -1 } };   // exposure table sorts
+  var BOOSTS = [45, 30, 15, 0, -15, -30, -45];
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function f1(x) { return x == null || isNaN(x) ? "" : (Math.round(x * 10) / 10).toFixed(1); }
+  function money(x) { return x == null ? "" : "$" + Number(x).toLocaleString("en-US"); }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function load(k, d) { try { var v = JSON.parse(store(k)); return v == null ? d : v; } catch (e) { return d; } }
+  function track(name, params) { try { if (typeof window.gtag === "function") window.gtag("event", name, params || {}); } catch (e) {} }
+
+  // ---------- state ----------
+  var DEF = {
+    dk: { n: 5, exposure: 60, minProj: 1, random: 0, minUnique: 1, minSal: 0, maxSal: 50000, maxTeam: 7, stack: "none", dstOpp: "off", bringBack: 0, swr: 1, ste: 1, spc: 0, srb: 0, sdst: 0, pc: 2 },
+    fd: { n: 5, exposure: 60, minProj: 1, random: 0, minUnique: 1, minSal: 0, maxSal: 60000, maxTeam: 4, stack: "none", dstOpp: "off", bringBack: 0, swr: 1, ste: 1, spc: 0, srb: 0, sdst: 0, pc: 2 }
+  };
+  var LIM0 = { bringBack: [0, 2], swr: [0, 3], ste: [0, 2], spc: [0, 4], srb: [0, 2], sdst: [0, 1], pc: [0, 3] };
+  var LIM = { dk: Object.assign({ maxSal: [40000, 50000], maxTeam: [2, 7] }, LIM0), fd: Object.assign({ maxSal: [40000, 60000], maxTeam: [2, 4] }, LIM0) };
+  // NFL keeps its own saved settings (t7nfl.*), apart from the NBA page's
+  var S = { site: store("t7nfl.site") === "fd" ? "fd" : "dk", contest: store("t7nfl.contest") || "Classic", slate: null, pos: "", team: "", q: "", sort: "p", dir: -1,
+            set: load("t7nfl.settings", {}) };
+  ["dk", "fd"].forEach(function (s) { S.set[s] = Object.assign({}, DEF[s], S.set[s] || {}); });
+  // [CONTESTS] Showdown / single game ("Captain"), Tiers and Total Points keep their own settings
+  var CNAME = { dk: { Classic: "Classic", Captain: "Showdown", Tiers: "Tiers", TotalYards: "Total yards", Touchdowns: "Touchdowns" },
+                fd: { Classic: "Classic", Captain: "Single game" } };
+  var FLEX_POS = ["QB", "RB", "WR", "TE", "K", "DST"];
+  var STATC = { TotalYards: 1, Touchdowns: 1 };           // contests scored on a stat, not fantasy points
+  function nosalC(c) { return c === "Tiers" || !!STATC[c]; }
+  function fmtP(x) { return x == null || isNaN(x) ? "" : S.contest === "Touchdowns" ? (+x).toFixed(2) : f1(x); }
+  function defFor(site, contest) {
+    var d = Object.assign({}, DEF[site]);
+    if (contest !== "Classic") {
+      var fl = {}; FLEX_POS.forEach(function (q) { fl[q] = [0, 5]; });
+      Object.assign(d, { xteam: "", xsize: contest === "Tiers" ? 2 : 3, cmode: "", cteam: "", cpos: [], ckeys: [], flex: fl, script: "", pc: 2 });
+    }
+    return d;
+  }
+  function ck() { return S.contest === "Classic" ? S.site : S.site + "|" + S.contest; }
+  function SET() { S.set[ck()] = Object.assign(defFor(S.site, S.contest), S.set[ck()] || {}); return S.set[ck()]; }
+  function isX() { return S.contest !== "Classic"; }
+  var E = {}, T = {}, U = null;   // U = uploaded projections for this slate: { rows: {key: my}, w: 0..1, note }            // player edits and team picks for the current site + slate
+  function slateKey() { return "t7nfl.w" + D.week + "." + S.site + "." + (isX() ? S.contest + "." : "") + S.slate; }
+  function loadSlate() {
+    var v = load(slateKey(), {}); E = v.E || {}; T = v.T || { mode: {}, st: [] }; U = v.U || null; T.st = T.st || []; T.mode = T.mode || {};
+  }
+  function saveSlate() { store(slateKey(), JSON.stringify({ E: E, T: T, U: U })); }
+  function saveSet() { store("t7nfl.settings", JSON.stringify(S.set)); store("t7nfl.site", S.site); store("t7nfl.contest", S.contest); }
+
+  // ---------- data: the projections page carries tonight's numbers ----------
+  var TONIGHT = null, NIGHTS = {};
+  function getNight(w) {   // [REWIND] a finished week: /nfl/weeks/<week>.json
+    if (NIGHTS[w]) return Promise.resolve(NIGHTS[w]);
+    return fetch("/nfl/weeks/" + w + ".json").then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (d) { NIGHTS[w] = d; return d; });
+  }
+  function getIndex() {
+    return fetch("/nfl/weeks/index.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+  }
+  function getData() {
+    return fetch("/nfl/?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    }).then(function (html) {
+      var m = html.match(/<script id="t7-data" type="application\/json">([\s\S]*?)<\/script>/);
+      if (!m) throw new Error("no data");
+      return JSON.parse(m[1]);
+    });
+  }
+
+  function slates() {
+    if (!isX()) return D.slates.filter(function (s) { return s.site === S.site; });
+    return (D.xslates || []).filter(function (s) { return s.site === S.site && s.contest === S.contest; });
+  }
+  function contests() {   // contests this site has slates for tonight
+    return Object.keys(CNAME[S.site]).filter(function (c) {
+      return c === "Classic" ? D.slates.some(function (s) { return s.site === S.site; }) : (D.xslates || []).some(function (s) { return s.site === S.site && s.contest === c; });
+    });
+  }
+  function entry(p) {     // this player's spot on the current slate (salary, captain salary, tier) or null
+    var x = p[S.site]; if (!x) return null;
+    if (!isX()) return x.sl && S.slate in x.sl && x.sl[S.slate] != null ? { sal: +x.sl[S.slate] } : null;
+    var z = x.xs && x.xs[S.contest + "|" + S.slate]; if (!z) return null;
+    var nosal = nosalC(S.contest);
+    var sp = T7Opt.xspec(S.site, S.contest);
+    return { sal: nosal ? null : (z.u ? +z.u[1] : null), csal: z.c ? +z.c[1] : (sp && sp.capSal && z.u ? Math.round(+z.u[1] * sp.capSal) : null), tier: z.t || null };
+  }
+  function players() { return D.players.filter(function (p) { return entry(p) !== null; }); }
+  // [OPT %] the pipeline's optimal % for this slate (Showdown: the bigger of the CPT and FLEX numbers)
+  function optOf(p) {
+    var x = p[S.site], z = x && x.op && x.op[S.contest + "|" + S.slate]; if (!z) return null;
+    if (S.contest === "Captain") { var a = z.CPT || 0, b = z.FLEX || 0; return z.CPT == null && z.FLEX == null ? null : Math.max(a, b); }
+    return z.ALL == null ? null : z.ALL;
+  }
+  function slateHasOpt() { return players().some(function (p) { return optOf(p) != null; }); }
+  // [UPLOAD] our number blended toward the member's: w = 1 -> theirs only
+  function upProj(p, base) {
+    if (!U || !U.rows) return base;
+    var my = U.rows[keyOf(p)]; if (my == null || base == null) return my == null ? base : my;
+    return Math.round((U.w * my + (1 - U.w) * base) * 10) / 10;
+  }
+  function effEdits() {   // what the optimizer uses: uploads (blended), then the member's own edits on top
+    if (!U || !U.rows) return E;
+    var out = {};
+    players().forEach(function (p) {
+      var k = keyOf(p), e = Object.assign({}, E[k] || {});
+      if ((e.proj == null || e.proj === "") && U.rows[k] != null) e.proj = upProj(p, baseProj(p));
+      if (Object.keys(e).length) out[k] = e;
+    });
+    return out;
+  }
+  function baseProj(p) { return isX() ? T7Opt.baseOf(p, S.site, S.contest) : p[S.site].p; }   // Total Yards / Touchdowns score the stat
+  function actOf(p) { return STATC[S.contest] ? null : p[S.site].act; }                         // no final yards / TDs saved
+  function keyOf(p) { return p.n + "|" + p.tm; }
+
+  // ---------- team colors (each team's main color; abbreviations as the site files spell them) ----------
+  var TC = { ARI: "#97233F", ATL: "#A71930", BAL: "#241773", BUF: "#00338D", CAR: "#0085CA", CHI: "#0B162A", CIN: "#FB4F14",
+    CLE: "#311D00", DAL: "#003594", DEN: "#FB4F14", DET: "#0076B6", GB: "#203731", HOU: "#03202F", IND: "#002C5F", JAX: "#006778",
+    JAC: "#006778", KC: "#E31837", LV: "#000000", LAC: "#0080C6", LAR: "#003594", LA: "#003594", MIA: "#008E97", MIN: "#4F2683",
+    NE: "#002244", NO: "#D3BC8D", NYG: "#0B2265", NYJ: "#125740", PHI: "#004C54", PIT: "#FFB612", SF: "#AA0000", SEA: "#002244",
+    TB: "#D50A0A", TEN: "#0C2340", WAS: "#5A1414", WSH: "#5A1414" };
+  function lum(h) {
+    var c = [1, 3, 5].map(function (i) { var v = parseInt(h.substr(i, 2), 16) / 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+    return .2126 * c[0] + .7152 * c[1] + .0722 * c[2];
+  }
+  function teamTag(t) {
+    var c = TC[t];
+    if (!c) return '<span class="tt" style="color:var(--soft);box-shadow:inset 0 0 0 1px var(--line)">' + esc(t) + "</span>";
+    var L = lum(c);
+    return '<span class="tt" style="background:' + c + ";color:" + (L > .35 ? "#121925" : "#fff") + (L < .03 ? ";box-shadow:inset 0 0 0 1px #9AA8BD" : "") + '">' + esc(t) + "</span>";
+  }
+  function teamDot(t) {
+    var c = TC[t]; if (!c) return "";
+    return '<span class="td" style="background:' + c + (lum(c) < .03 ? ";box-shadow:0 0 0 1px #9AA8BD" : "") + '" aria-hidden="true"></span>';
+  }
+  function gameOf(p) { return T7Opt.gameKey(p.tm, p.opp); }
+  function teamTot(t) { var x = D.teams && D.teams[t]; return x ? (x.x7 != null ? x.x7 : x.it) : null; }   // Three7's team total, else Vegas
+  function teamLabel(t) { var v = teamTot(t); return v == null ? t : t + " " + (Math.round(v * 10) / 10); }
+  function teamTitle(t) { var x = D.teams && D.teams[t]; return x ? "Three7 team total " + (x.x7 == null ? "\u2013" : x.x7) + " \u00b7 Vegas implied " + (x.it == null ? "\u2013" : x.it) : t; }
+  function teamOrder(a, b) {   // highest implied total first (Three7's, else Vegas)
+    var va = teamTot(a), vb = teamTot(b);
+    return (vb == null ? -1 : vb) - (va == null ? -1 : va) || a.localeCompare(b);
+  }
+
+  // ---------- settings ----------
+  var FIELDS = ["n", "exposure", "minProj", "random", "minUnique", "minSal", "maxSal", "maxTeam", "bringBack", "swr", "ste", "spc", "srb", "sdst", "pc"];
+  function showSettings() {
+    var st = SET(), lim = LIM[S.site];
+    document.querySelectorAll("[data-c]").forEach(function (el) { el.hidden = el.dataset.c.split(" ").indexOf(S.contest) < 0; });
+    if (isX()) showX(st);
+    var ho = D && S.slate ? slateHasOpt() : false;
+    $("opt-fld").hidden = !ho; $("useOpt").checked = !!st.useOpt && ho;
+    FIELDS.forEach(function (f) {
+      var el = $(f); el.value = st[f];
+      if (lim[f]) { el.min = lim[f][0]; el.max = lim[f][1]; }
+    });
+    $("stack").value = st.stack === "qb" ? "qb" : "none"; $("dstOpp").value = st.dstOpp || "off";
+    var nk = Object.keys(T.mode || {}).filter(function (t) { return T.mode[t] === "keep"; }).length, nr = Object.keys(T.mode || {}).length - nk;
+    $("sum-set").textContent = (isX() ? [st.n + " lineup" + (st.n == 1 ? "" : "s"), st.exposure + "% exposure", st.random ? st.random + "% random" : "",
+      st.script ? "game script" : st.cmode ? "captain locked" : "", st.xteam ? st.xteam + " stack of " + st.xsize : "", STATC[S.contest] && st.pc ? st.pc + "+ pass catchers" : ""]
+      : [st.n + " lineup" + (st.n == 1 ? "" : "s"), st.exposure + "% exposure", st.random ? st.random + "% random" : "",
+      st.stack === "qb" ? "QB stack" : "", st.bringBack ? "bring-back " + st.bringBack : "", st.dstOpp !== "off" ? "no offense vs DST" : "",
+      nk ? nk + " team" + (nk > 1 ? "s" : "") + " kept" : "", nr ? nr + " team" + (nr > 1 ? "s" : "") + " removed" : ""]).filter(Boolean).join(" \u00b7 ");
+    document.querySelectorAll("[data-stack]").forEach(function (el) { el.hidden = el.dataset.stack !== st.stack; });
+  }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+  function readSettings() {
+    var st = SET(), lim = LIM[S.site];
+    FIELDS.forEach(function (f) {
+      var v = parseFloat($(f).value);
+      if (isNaN(v)) v = DEF[S.site][f];
+      if (lim[f]) v = clamp(v, lim[f][0], lim[f][1]);
+      st[f] = v;
+    });
+    st.n = clamp(Math.round(st.n), 1, MAX_LINEUPS); st.exposure = clamp(st.exposure, 1, 100);
+    st.random = clamp(st.random, 0, 50); st.minUnique = clamp(Math.round(st.minUnique), 1, 5);
+    st.stack = $("stack").value; st.dstOpp = $("dstOpp").value;
+    ["bringBack", "swr", "ste", "spc", "srb", "sdst", "pc"].forEach(function (f) { st[f] = Math.round(st[f]); });
+    st.useOpt = $("useOpt").checked;
+    if (isX()) {
+      st.xteam = $("xteam").value; st.xsize = clamp(Math.round(+$("xsize").value || 2), 1, 5);
+      st.cmode = $("cmode").value; st.cteam = $("cteam").value;
+      FLEX_POS.forEach(function (q) {
+        var lo = Math.round(+$("fmin-" + q).value), hi = Math.round(+$("fmax-" + q).value);
+        st.flex[q] = [clamp(isNaN(lo) ? 0 : lo, 0, 5), clamp(isNaN(hi) ? 5 : hi, 0, 5)];
+      });
+    }
+    saveSet();
+    return st;
+  }
+
+  // ---------- [CONTESTS] showdown / tiers / total points controls ----------
+  var SCRIPTS = [   // the NFL app's one-click game scripts (settings you can see + team rules in `extra`)
+    { k: "shootout", label: "Shootout", about: "Both offenses score. QB or WR captain, a QB and 2+ WRs in Flex, a WR or TE from each team, at most 4 players from one team, no DST or K.",
+      cpos: ["QB", "WR"], flex: { QB: [1, 5], WR: [2, 5], DST: [0, 0], K: [0, 0] }, extra: ["pc_both", "max4"] },
+    { k: "qb_duel", label: "QB duel", about: "Both QBs have big days. QB captain plus the other QB, each with a WR or TE of his own, at most 4 players from one team, no DST and at most 1 K.",
+      cpos: ["QB"], flex: { QB: [1, 1], DST: [0, 0], K: [0, 1] }, extra: ["pc_both", "max4"] },
+    { k: "pass_catchers", label: "Pass-catcher shootout", about: "Receivers win it, not QBs. WR or TE captain, no QBs, 3+ WRs, a WR or TE from each team, at most 4 players from one team, no DST or K.",
+      cpos: ["WR", "TE"], flex: { QB: [0, 0], WR: [3, 5], DST: [0, 0], K: [0, 0] }, extra: ["pc_both", "max4"] },
+    { k: "blowout", team: true, label: "%s blowout", size: 5, extra: ["blowout", "dst_vs_qb"],
+      about: "%1 dominates. Captain (not the kicker) and 5 of 6 players from %1, including an RB. The one %2 player is a QB, WR or TE playing from behind, never their DST, K or RB." },
+    { k: "ground", label: "Ground and pound", about: "One team runs and its defense holds. RB captain with his own team's DST in Flex. From the other team: no QB, RB or DST and at most 1 WR or TE. At most 1 QB and 2 WRs.",
+      cpos: ["RB"], flex: { DST: [1, 1], QB: [0, 1], WR: [0, 2] }, extra: ["cpt_rb_dst"] },
+    { k: "bellcow", label: "Bell-cow RB", about: "One back gets all the work. RB captain, no other RB from his team and not the DST he's facing.",
+      cpos: ["RB"], flex: {}, extra: ["cpt_only_rb", "dst_vs_qb"] },
+    { k: "grind", label: "Defensive grind", about: "Low scoring. DST, K or RB captain, a DST and a K in the lineup, never a QB against a DST you use, at most 1 QB, 2 WRs and 1 TE.",
+      cpos: ["DST", "K", "RB"], flex: { QB: [0, 1], WR: [0, 2], TE: [0, 1], K: [1, 5] }, extra: ["need_dst", "dst_vs_qb"] },
+    { k: "dst_score", label: "Defensive score", about: "A defense decides it. DST captain, no QB and at most 1 WR or TE from the offense it faces.",
+      cpos: ["DST"], flex: { QB: [0, 1], K: [1, 5] }, extra: ["cpt_dst_vs_offense", "dst_vs_qb"] },
+    { k: "kicker", label: "Kicker game", needsK: true, about: "Drives stall in the red zone. K captain with 2+ players from his own offense, at most 2 WRs and 1 TE.",
+      cpos: ["K"], flex: { WR: [0, 2], TE: [0, 1] }, extra: ["cpt_k_offense", "dst_vs_qb"] }
+  ];
+  function slateHasK() { return players().some(function (p) { return p.pos === "K"; }); }
+  function scriptOf(v) { return v ? SCRIPTS.filter(function (g) { return g.k === String(v).split(":")[0]; })[0] || null : null; }
+  function scriptAbout(g, v) {
+    var t = String(v).split(":")[1] || "", o = slateTeams().filter(function (x) { return x !== t; })[0] || "the other team";
+    return g.about.replace(/%1/g, t).replace(/%2/g, o);
+  }
+  function slateTeams() { var t = {}; players().forEach(function (p) { t[p.tm] = 1; }); return Object.keys(t).sort(); }
+  function showX(st) {
+    var teams = slateTeams(), C = S.site === "dk" ? "CPT" : "MVP";
+    $("cmode-l").textContent = "Lock " + (S.site === "dk" ? "captain (CPT)" : "MVP");
+    var opt = function (v, l, sel) { return '<option value="' + esc(v) + '"' + (sel ? " selected" : "") + ">" + esc(l) + "</option>"; };
+    $("xteam").innerHTML = opt("", "No stack", !st.xteam) + teams.map(function (t) { return opt(t, t, t === st.xteam); }).join("");
+    $("xsize").value = st.xsize;
+    $("cmode").value = st.cmode;
+    if (st.cmode === "team" && teams.indexOf(st.cteam) < 0) st.cteam = teams[0] || "";
+    $("cteam").innerHTML = teams.map(function (t) { return opt(t, t, t === st.cteam); }).join("");
+    document.querySelectorAll("[data-cm]").forEach(function (el) { el.hidden = el.dataset.cm !== st.cmode; });
+    $("cpos").innerHTML = FLEX_POS.map(function (q) { return '<button type="button" class="chip" data-q="' + q + '" aria-pressed="' + (st.cpos.indexOf(q) >= 0) + '">' + q + "</button>"; }).join("");
+    var ps = players().slice().sort(function (a, b) { return (baseProj(b) || 0) - (baseProj(a) || 0); });
+    $("cplay").innerHTML = ps.map(function (p) { var k = keyOf(p); return '<button type="button" class="chip" data-k="' + esc(k) + '" aria-pressed="' + (st.ckeys.indexOf(k) >= 0) + '">' + esc(p.n) + "</button>"; }).join("");
+    $("flex").innerHTML = FLEX_POS.map(function (q) {
+      return '<div class="fp"><b>' + q + '</b><div><input class="ctl num" id="fmin-' + q + '" type="number" min="0" max="5" step="1" value="' + st.flex[q][0] + '" aria-label="Min ' + q + '">' +
+        '<input class="ctl num" id="fmax-' + q + '" type="number" min="0" max="5" step="1" value="' + st.flex[q][1] + '" aria-label="Max ' + q + '"></div></div>';
+    }).join("") + '<p class="hint" style="grid-column:1/-1;margin:0">Min \u2013 max for each position</p>';
+    var hasK = slateHasK();
+    $("script").innerHTML = opt("", "Pick a game script", !st.script) + SCRIPTS.filter(function (g) { return !g.needsK || hasK; }).map(function (g) {
+      return g.team ? teams.map(function (t) { var v = g.k + ":" + t; return opt(v, g.label.replace("%s", t), st.script === v); }).join("") : opt(g.k, g.label, st.script === g.k);
+    }).join("") + opt("clear", "Clear script (back to defaults)", false);
+    var cur = scriptOf(st.script);
+    $("script-about").hidden = !cur;
+    $("script-about").textContent = cur ? scriptAbout(cur, st.script) : "";
+    void C;
+  }
+  function applyScript(v) {
+    var st = SET(), d = defFor(S.site, S.contest);
+    st.cmode = ""; st.cteam = ""; st.cpos = []; st.ckeys = []; st.xteam = ""; st.xsize = d.xsize; st.flex = d.flex; st.script = "";
+    if (v && v !== "clear") {
+      var key = v.split(":")[0], team = v.split(":")[1], g = SCRIPTS.filter(function (x) { return x.k === key; })[0];
+      if (g) {
+        var hasK = slateHasK();
+        st.script = v;
+        if (g.cpos) { st.cmode = "pos"; st.cpos = g.cpos.filter(function (q) { return hasK || q !== "K"; }); }
+        if (g.flex) Object.keys(g.flex).forEach(function (q) { if (hasK || q !== "K") st.flex[q] = g.flex[q].slice(); });
+        if (g.team) { st.cmode = "team"; st.cteam = team; st.xteam = team; st.xsize = g.size; }
+      }
+    }
+    saveSet(); showSettings();
+  }
+  ["xteam", "xsize", "cmode", "cteam"].forEach(function (id) { $(id).addEventListener("change", function () { readSettings(); showSettings(); }); });
+  $("script").addEventListener("change", function () { applyScript(this.value); });
+  $("flex").addEventListener("change", function () { readSettings(); showSettings(); });
+  $("cpos").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; toggleIn(SET().cpos, b.dataset.q); saveSet(); showSettings(); });
+  $("cplay").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; toggleIn(SET().ckeys, b.dataset.k); saveSet(); showSettings(); });
+  FIELDS.forEach(function (f) { $(f).addEventListener("change", function () { readSettings(); showSettings(); }); });
+  $("useOpt").addEventListener("change", function () { readSettings(); showSettings(); render(); });
+  $("stack").addEventListener("change", function () { readSettings(); showSettings(); });
+  $("dstOpp").addEventListener("change", function () { readSettings(); showSettings(); });
+
+  // team chips: neutral -> keep -> remove
+  function drawTeams() {
+    var list = players(), teams = {};
+    list.forEach(function (p) { teams[p.tm] = 1; });
+    $("teams").innerHTML = Object.keys(teams).sort().map(function (t) {
+      var m = T.mode[t] || "";
+      return '<button type="button" class="chip ' + m + '" data-t="' + esc(t) + '" aria-label="' + esc(t) + (m ? " (" + m + ")" : "") + '">' + esc(t) + "</button>";
+    }).join("");
+    $("steams").innerHTML = Object.keys(teams).sort(teamOrder).map(function (t) {
+      return '<button type="button" class="chip" data-t="' + esc(t) + '" title="' + esc(teamTitle(t)) + '" aria-pressed="' + (T.st.indexOf(t) >= 0) + '">' + esc(teamLabel(t)) + "</button>";
+    }).join("");
+  }
+  $("teams").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var t = b.dataset.t, m = T.mode[t] || "";
+    T.mode[t] = m === "" ? "keep" : m === "keep" ? "remove" : "";
+    if (!T.mode[t]) delete T.mode[t];
+    saveSlate(); drawTeams(); showSettings();
+  });
+  function toggleIn(arr, v) { var i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
+  $("steams").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; toggleIn(T.st, b.dataset.t); saveSlate(); drawTeams(); });
+
+  // ---------- player pool ----------
+  function edited(e) { return e && (e.lock || e.out || e.boost || (e.proj != null && e.proj !== "") || (e.exp != null && e.exp !== "")); }
+  function rowData() {
+    return players().map(function (p) {
+      var x = p[S.site], e = E[keyOf(p)] || {}, en = entry(p), sal = en.sal, base = upProj(p, baseProj(p));
+      var pj = e.proj != null && e.proj !== "" ? +e.proj : base;
+      return { p: p, x: x, key: keyOf(p), n: p.n, pos: p.pos, tm: p.tm, opp: p.opp, sal: sal, csal: en.csal, tier: en.tier,
+               base: base, up: !!(U && U.rows && U.rows[keyOf(p)] != null), opt: optOf(p), pj: pj, e: e, act: actOf(p), v: sal && !STATC[S.contest] ? pj / (sal / 1000) : null };
+    });
+  }
+  function sortVal(r, k) {
+    switch (k) {
+      case "lock": return r.e.lock ? 1 : 0; case "out": return r.e.out ? 1 : 0; case "n": return r.n;
+      case "sal": return S.contest === "Tiers" ? -(+String(r.tier || "T9").slice(1)) : r.sal; case "p": return r.pj; case "exp": return r.e.exp == null || r.e.exp === "" ? -1 : +r.e.exp;
+      case "boost": return +r.e.boost || 0; case "v": return r.v; case "opt": return r.opt;
+      case "rg": return r.x.c; case "act": return r.act; default: return STATK.indexOf(k) >= 0 ? r.p[k] : null;
+    }
+  }
+  var STATK = ["py", "ptd", "int", "ry", "rtd", "rec", "recy", "rectd"];
+  function f0(x) { return x == null || isNaN(x) ? "" : String(Math.round(x)); }
+  function statCell(p, k) { var v = p[k]; if (v == null) return ""; return /y$/.test(k) ? f0(v) : f1(v); }
+  function statLine(p) {   // phone: the stat line under the player
+    if (p.pos === "DST") return [p.sk != null ? f1(p.sk) + " sacks" : "", p.dint != null ? f1(p.dint) + " INT" : ""].filter(Boolean).join(" \u00b7 ");
+    if (p.pos === "K") return p.fg != null ? f1(p.fg) + " FG" : "";
+    var out = [];
+    if (p.py >= 1) out.push(f0(p.py) + " pass yds", f1(p.ptd) + " pass TD", f1(p.int) + " INT");
+    if (p.ry >= 1) out.push(f0(p.ry) + " rush yds", f1(p.rtd) + " rush TD");
+    if (p.rec >= 0.1) out.push(f1(p.rec) + " rec", f0(p.recy) + " rec yds", f1(p.rectd) + " rec TD");
+    return out.join(" \u00b7 ");
+  }
+  function render() {
+    $("pos-k").hidden = !slateHasK();
+    if (S.pos === "K" && !slateHasK()) S.pos = "";
+    var rows = rowData().filter(function (r) {
+      if (S.pos === "*") { if (!edited(r.e)) return false; }
+      else if (S.pos && r.pos !== S.pos) return false;
+      if (S.team && r.tm !== S.team) return false;
+      if (S.q && r.n.toLowerCase().indexOf(S.q) < 0 && r.tm.toLowerCase() !== S.q) return false;
+      return true;
+    });
+    rows.sort(function (a, b) {
+      var x = sortVal(a, S.sort), y = sortVal(b, S.sort);
+      if (typeof x === "string") return S.dir * x.localeCompare(y);
+      return S.dir * ((x == null ? -1e9 : x) - (y == null ? -1e9 : y)) || b.pj - a.pj;
+    });
+    var gx = SET().exposure;
+    document.body.classList.toggle("has-opt", slateHasOpt());
+    showUpbar();
+    var hs = document.querySelector('table.pool th button[data-sort="sal"]'), hp = document.querySelector('table.pool th button[data-sort="p"]');
+    hs.textContent = S.contest === "Tiers" ? "Tier" : "Salary"; hp.textContent = S.contest === "TotalYards" ? "Yards" : S.contest === "Touchdowns" ? "TDs" : "Proj";
+    $("rows").innerHTML = rows.length ? rows.map(function (r) {
+      var e = r.e, b = +e.boost || 0, p = r.p;
+      var badge = p.out ? ' <span class="badge b-out">OUT</span>' : "";
+      return '<tr data-k="' + esc(r.key) + '"' + (e.out ? ' class="is-out"' : "") + ">" +
+        '<td><button type="button" class="tg lk" data-a="lock" aria-pressed="' + !!e.lock + '" aria-label="Lock ' + esc(r.n) + '">' + LOCK + '</button></td>' +
+        '<td><button type="button" class="tg ex" data-a="out" aria-pressed="' + !!e.out + '" aria-label="Leave out ' + esc(r.n) + '">\u2715</button></td>' +
+        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + teamDot(r.tm) + esc(r.pos) + " \u00b7 " + esc(r.tm) + " vs " + esc(r.opp) + '<span class="msal"> \u00b7 ' + (S.contest === "Tiers" ? esc(r.tier || "") : STATC[S.contest] ? "" : money(r.sal)) + "</span>" + (r.opt != null ? '<span class="mopt"> \u00b7 opt ' + Math.round(100 * r.opt) + "%</span>" : "") + (S.night && !STATC[S.contest] ? '<span class="mact"> \u00b7 ' + (r.act == null ? "\u2013" : f1(r.act)) + " actual</span>" : "") + "</span>" +
+          "</td>" +
+        '<td class="num sal">' + (S.contest === "Tiers" ? esc(r.tier || "") : STATC[S.contest] ? "\u2013" : money(r.sal) + (r.csal ? '<span class="pm">' + (S.site === "dk" ? "CPT " : "MVP ") + money(r.csal) + "</span>" : "")) + "</td>" +
+        '<td><input class="ctl num' + (e.proj != null && e.proj !== "" ? " set" : r.up ? " up" : "") + '" data-a="proj" type="number" step="' + (S.contest === "Touchdowns" ? "0.05" : S.contest === "TotalYards" ? "1" : "0.5") + '" min="0" inputmode="decimal" placeholder="' + fmtP(r.base) + '" value="' + (e.proj == null ? "" : esc(e.proj)) + '" aria-label="Projection for ' + esc(r.n) + '"></td>' +
+        '<td class="act num">' + (r.act == null ? "\u2013" : f1(r.act)) + "</td>" +
+        '<td><input class="ctl num' + (e.exp != null && e.exp !== "" ? " set" : "") + '" data-a="exp" type="number" step="5" min="0" max="100" inputmode="numeric" placeholder="' + gx + '" value="' + (e.exp == null ? "" : esc(e.exp)) + '" aria-label="Exposure for ' + esc(r.n) + '"></td>' +
+        '<td><select class="ctl bsel' + (b > 0 ? " up" : b < 0 ? " dn" : "") + '" data-a="boost" aria-label="Boost or suppress ' + esc(r.n) + '">' +
+          BOOSTS.map(function (v) { return '<option value="' + v + '"' + (v === b ? " selected" : "") + ">" + (v > 0 ? "+" + v + "%" : v < 0 ? "\u2212" + (-v) + "%" : "\u2013") + "</option>"; }).join("") + "</select></td>" +
+        '<td class="wide num">' + (r.v == null ? "" : r.v.toFixed(2) + "x") + "</td>" +
+        '<td class="optc num">' + (r.opt == null ? "\u2013" : Math.round(100 * r.opt) + "%") + "</td>" +
+        '<td class="stat">' + (r.x.f == null ? "" : f1(r.x.f) + "\u2013" + f1(r.x.c)) + "</td>" +
+        STATK.map(function (c) { return '<td class="stat num">' + statCell(p, c) + "</td>"; }).join("") +
+        "</tr>" +
+        '<tr class="srow"><td colspan="19">' + [r.x.f == null ? "" : f1(r.x.f) + "\u2013" + f1(r.x.c) + " range", statLine(p)].filter(Boolean).join(" \u00b7 ") + "</td></tr>";
+    }).join("") : '<tr><td colspan="19" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
+    var all = rowData(), nE = all.filter(function (r) { return edited(r.e); }).length;
+    $("count").textContent = rows.length + " of " + all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "");
+    $("sum-pool").textContent = all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "") + (ago() ? " \u00b7 " + ago() : "");
+    document.querySelectorAll("table.pool th").forEach(function (th) {
+      var b = th.querySelector("button");
+      if (b && b.dataset.sort === S.sort) th.setAttribute("aria-sort", S.dir < 0 ? "descending" : "ascending"); else th.removeAttribute("aria-sort");
+    });
+  }
+  function setEdit(key, field, val) {
+    var e = E[key] || (E[key] = {});
+    if (val === "" || val == null || val === false || val === 0) delete e[field]; else e[field] = val;
+    if (!edited(e)) delete E[key];
+    saveSlate();
+  }
+  $("rows").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-a]"); if (!b) return;
+    var k = b.closest("tr").dataset.k, cur = E[k] || {};
+    if (b.dataset.a === "lock") { setEdit(k, "lock", !cur.lock); if (!cur.lock) setEdit(k, "out", false); }
+    if (b.dataset.a === "out") { setEdit(k, "out", !cur.out); if (!cur.out) setEdit(k, "lock", false); }
+    render();
+  });
+  $("rows").addEventListener("change", function (e) {
+    var i = e.target.closest("input[data-a], select[data-a]"); if (!i) return;
+    var k = i.closest("tr").dataset.k, v = i.value.trim();
+    if (i.dataset.a === "boost") { setEdit(k, "boost", +v || 0); render(); return; }
+    if (v !== "" && isNaN(+v)) v = "";
+    if (i.dataset.a === "exp" && v !== "") v = String(clamp(+v, 0, 100));
+    if (i.dataset.a === "proj" && v !== "") v = String(Math.max(0, +v));
+    setEdit(k, i.dataset.a, v);
+    render();
+  });
+  document.querySelector("table.pool thead").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-sort]"); if (!b) return;
+    var k = b.dataset.sort;
+    if (S.sort === k) S.dir = -S.dir; else { S.sort = k; S.dir = k === "n" ? 1 : -1; }
+    render();
+  });
+  $("pos").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    S.pos = b.dataset.pos;
+    this.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+    render();
+  });
+  $("q").addEventListener("input", function () { S.q = this.value.trim().toLowerCase(); render(); });
+  $("pteam").addEventListener("change", function () { S.team = this.value; render(); });
+  // ---------- [UPLOAD] my projections, template, table download ----------
+  function csvCell(x) { x = x == null ? "" : String(x); return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }
+  function saveCsv(name, lines) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([lines.map(function (r) { return r.map(csvCell).join(","); }).join("\n") + "\n"], { type: "text/csv" }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+  function siteIdsOf(p) {   // every site ID this player has on the current slate (DK Showdown: CPT and UTIL)
+    var x = p[S.site];
+    if (!isX()) return x.id && x.id[S.slate] ? [String(x.id[S.slate])] : [];
+    var z = x.xs[S.contest + "|" + S.slate]; return [z.u && z.u[0], z.c && z.c[0]].filter(Boolean).map(String);
+  }
+  function fileTag() { return (S.site === "dk" ? "draftkings" : "fanduel") + "_" + S.contest.toLowerCase() + "_" + String(S.slate).replace(/[^A-Za-z0-9]+/g, "-") + "_week" + D.week; }
+  $("tpl").addEventListener("click", function () {
+    var ps = players().slice().sort(function (a, b) { return (baseProj(b) || 0) - (baseProj(a) || 0); });
+    saveCsv("three7_nfl_template_" + fileTag() + ".csv", [["ID", "Name", "Team", "Pos", "Salary", "Three7 " + (S.contest === "TotalYards" ? "Yards" : S.contest === "Touchdowns" ? "TDs" : "Proj"), "My Proj"]].concat(ps.map(function (p) {
+      var en = entry(p); return [siteIdsOf(p)[0] || "", p.n, p.tm, p.pos, en.sal == null ? "" : en.sal, fmtP(baseProj(p)), U && U.rows && U.rows[keyOf(p)] != null ? U.rows[keyOf(p)] : ""];
+    })));
+  });
+  $("upl").addEventListener("click", function () { $("uplf").value = ""; $("uplf").click(); });
+  $("uplf").addEventListener("change", function () {
+    var file = this.files && this.files[0]; if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { msg("That file is too big (2 MB max). Use the template.", true); return; }
+    file.text().then(function (text) {
+      var raw = T7LS.parseCsv(text).filter(function (r) { return r.some(function (c) { return String(c).trim(); }); });
+      if (raw.length < 2) throw new Error("That file has no rows.");
+      var hd = raw[0].map(function (h) { return String(h).trim().toLowerCase().replace(/\s+/g, " "); });
+      var pc = ["my proj", "my_proj", "myproj", "my projection", "my projections"].map(function (h) { return hd.indexOf(h); }).filter(function (i) { return i >= 0; })[0];
+      if (pc == null) throw new Error('Couldn\'t find a "My Proj" column. Start from the template.');
+      var ic = hd.indexOf("id"), nc = ["name", "player", "player name"].map(function (h) { return hd.indexOf(h); }).filter(function (i) { return i >= 0; })[0];
+      if (ic < 0 && nc == null) throw new Error("The file needs an ID or Name column. Start from the template.");
+      var byId = {}, byName = {}, nameN = {};
+      players().forEach(function (p) {
+        siteIdsOf(p).forEach(function (id) { byId[id] = keyOf(p); });
+        var nn = p.n.toLowerCase().replace(/\s+/g, " ").trim(); nameN[nn] = (nameN[nn] || 0) + 1; byName[nn] = keyOf(p);
+      });
+      var rows = {}, ok = 0, nf = 0, amb = 0, bad = 0;
+      raw.slice(1).forEach(function (r) {
+        var v = String(r[pc] == null ? "" : r[pc]).trim(); if (!v) return;     // left empty: keep ours
+        var my = parseFloat(v.replace(/[,$ ]/g, ""));
+        if (isNaN(my) || my < -50 || my > 1000) { bad++; return; }
+        var k = ic >= 0 ? byId[String(r[ic]).trim()] : null;
+        if (!k && nc != null) { var nn = String(r[nc]).toLowerCase().replace(/\s+/g, " ").trim(); if (nameN[nn] > 1) { amb++; return; } k = byName[nn]; }
+        if (!k) { nf++; return; }
+        if (rows[k] == null) ok++;
+        rows[k] = my;
+      });
+      if (!ok) throw new Error("None of those players are on this slate. Start from this slate's template.");
+      var parts = ["Applied " + ok + " projection" + (ok === 1 ? "" : "s")];
+      if (nf) parts.push(nf + " skipped (not on this slate)");
+      if (amb) parts.push(amb + " skipped (name matches more than one player, add the ID)");
+      if (bad) parts.push(bad + " skipped (not a number)");
+      U = { rows: rows, w: U ? U.w : 1, note: parts.join(" \u00b7 ") };
+      saveSlate(); render(); msg(U.note);
+    }).catch(function (err) { msg(err.message || String(err), true); });
+  });
+  function showUpbar() {
+    $("upbar").hidden = !U;
+    if (!U) return;
+    $("upnote").textContent = "Your projections: " + U.note + ".";
+    $("upw").value = Math.round(U.w * 100); $("upwv").textContent = Math.round(U.w * 100) + "%";
+  }
+  $("upw").addEventListener("input", function () { if (!U) return; U.w = +this.value / 100; $("upwv").textContent = this.value + "%"; });
+  $("upw").addEventListener("change", function () { if (!U) return; saveSlate(); render(); });
+  $("upx").addEventListener("click", function () { U = null; saveSlate(); render(); });
+  $("dlt").addEventListener("click", function () {
+    var rows = rowData().sort(function (a, b) { return b.pj - a.pj; }), tp = !!STATC[S.contest];
+    saveCsv("three7_nfl_projections_" + fileTag() + ".csv", [["ID", "Name", "Team", "Opp", "Pos", S.contest === "Tiers" ? "Tier" : "Salary", S.contest === "TotalYards" ? "Yards" : S.contest === "Touchdowns" ? "TDs" : "Proj", "Floor", "Ceiling", "Value",
+      "Opt %", "Pass yds", "Pass TD", "INT", "Rush yds", "Rush TD", "Rec", "Rec yds", "Rec TD"]].concat(rows.map(function (r) {
+      var p = r.p;
+      return [siteIdsOf(p)[0] || "", r.n, r.tm, r.opp, r.pos, S.contest === "Tiers" ? r.tier : tp ? "" : r.sal, fmtP(r.pj), tp ? "" : f1(r.x.f), tp ? "" : f1(r.x.c),
+              r.v == null || tp ? "" : r.v.toFixed(2), r.opt == null ? "" : Math.round(100 * r.opt)].concat(STATK.map(function (k) { return statCell(p, k); }));
+    })));
+    track("download_projections", { sport: "nfl", site: S.site, contest: S.contest });
+  });
+
+  // ---------- [LATE SWAP] DraftKings Classic ----------
+  var LS = { dk: null, res: null };
+  function lsMsg(t, err) { $("lsmsg").textContent = t || ""; $("lsmsg").className = "msg" + (err ? " err" : ""); }
+  $("lsf").addEventListener("change", function () {
+    var file = this.files && this.files[0]; LS.dk = null; LS.res = null; $("lsres").hidden = true; $("lsdl").hidden = true; $("lsgo").disabled = true;
+    if (!file) return;
+    file.text().then(function (t) {
+      LS.dk = T7LS.read(t);
+      var fmt = function (d) { return d.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" }); };
+      $("lslock").innerHTML = '<option value="now">Right now</option>' + LS.dk.kicks.map(function (k) { return '<option value="' + (+k) + '">As if it\'s ' + esc(fmt(k)) + " (those games kicked off)</option>"; }).join("");
+      $("lsgo").disabled = false;
+      lsMsg(LS.dk.entries.length + " entr" + (LS.dk.entries.length === 1 ? "y" : "ies") + " found. Press Late swap.");
+    }).catch(function (err) { lsMsg(err.message || String(err), true); });
+  });
+  function lsProj() {   // our projection by DraftKings ID, from every DK Classic slate this week (edits and uploads applied)
+    var out = {}, byName = {}, dup = {}, src = TONIGHT || D;
+    var EE = (S.site === "dk" && S.contest === "Classic" && D === src) ? effEdits() : {};
+    src.players.forEach(function (p) {
+      var x = p.dk; if (!x || x.p == null) return;
+      var e = EE[keyOf(p)], pj = e && e.proj != null && e.proj !== "" ? +e.proj : x.p;
+      if (e && e.out) pj = 0;
+      if (e && e.boost) pj = pj * (1 + e.boost / 100);
+      Object.keys(x.id || {}).forEach(function (sl) { if (x.id[sl]) out[String(x.id[sl])] = pj; });
+      var nn = p.n.toLowerCase(); if (byName[nn] != null) dup[nn] = 1; byName[nn] = pj;
+    });
+    return { byId: out, byName: byName, dup: dup };
+  }
+  $("lsgo").addEventListener("click", function () {
+    if (!LS.dk || busy) return;
+    var P = lsProj(), proj = {};
+    LS.dk.pool.forEach(function (p) { var v = P.byId[p.id]; if (v == null && !P.dup[p.name.toLowerCase()]) v = P.byName[p.name.toLowerCase()]; if (v != null) proj[p.id] = v; });
+    if (!Object.keys(proj).length) { lsMsg("None of the players in this file match this week's projections. Is it this week's NFL Classic file?", true); return; }
+    var v = $("lslock").value, lockAt = v === "now" ? new Date() : new Date(+v);
+    var gain = Math.max(0, +$("lsgain").value || 0), share = Math.min(1, Math.max(0.05, (+$("lsshare").value || 100) / 100));
+    busy = true; $("lsgo").disabled = true; lsMsg("Loading the optimizer\u2026");
+    getSolver().then(function (g) {
+      return T7LS.run(T7Opt.glpkSolver(g), LS.dk, proj, lockAt, gain, share, function (i, n) { lsMsg("Entry " + i + " of " + n + "\u2026"); return new Promise(function (r) { setTimeout(r, 0); }); }, $("lsdst").value);
+    }).then(function (res) {
+      LS.res = res;
+      var sw = res.rows.filter(function (r) { return r.status === "Swap"; });
+      lsMsg(sw.length + " of " + res.rows.length + " entries changed \u00b7 " + res.nLockedGames + " game" + (res.nLockedGames === 1 ? "" : "s") + " locked \u00b7 +" +
+        f1(sw.reduce(function (a, r) { return a + r.after - r.before; }, 0)) + " projected points in total" + (sw.length ? "" : " \u00b7 every entry is already best"));
+      $("lsrows").innerHTML = res.rows.slice().sort(function (a, b) { return (b.after - b.before) - (a.after - a.before); }).map(function (r) {
+        var g = r.after - r.before;
+        return '<tr><td class="l">' + esc(r.entry.entry_id) + '<span class="pm">' + esc(r.entry.contest) + '</span></td><td class="l">' + esc(r.out.join(", ")) + '</td><td class="l">' + esc(r.in.join(", ")) +
+          '</td><td class="num">' + r.locked + '</td><td class="num">' + f1(r.before) + '</td><td class="num">' + f1(r.after) + '</td><td class="num' + (g > 0 && r.status === "Swap" ? " st-swap" : "") + '">' +
+          (r.status === "Swap" ? (g >= 0 ? "+" : "") + f1(g) : "") + '</td><td class="' + (r.status === "Swap" ? "st-swap" : r.status === "No valid lineup" ? "st-bad" : "") + '">' + esc(r.status) + "</td></tr>";
+      }).join("");
+      $("lsres").hidden = false; $("lsdl").hidden = !sw.length;
+      track("late_swap", { sport: "nfl", entries: res.rows.length, changed: sw.length });
+    }).catch(function (err) { lsMsg(err.message || String(err), true); })
+      .then(function () { busy = false; $("lsgo").disabled = !LS.dk; });
+  });
+  $("lsdl").addEventListener("click", function () {
+    if (!LS.res) return;
+    var a = document.createElement("a"), d = new Date().toLocaleString("sv-SE", { timeZone: "America/New_York" }).replace(/[^0-9]/g, "").slice(0, 12);
+    a.href = URL.createObjectURL(new Blob([T7LS.uploadCsv(LS.res)], { type: "text/csv" }));
+    a.download = "DKEntries_lateswap_" + d + ".csv"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  });
+
+  function fillTeamFilter() {
+    var teams = slateTeams();
+    if (teams.indexOf(S.team) < 0) S.team = "";
+    $("pteam").innerHTML = '<option value="">All teams</option>' + teams.map(function (t) { return '<option value="' + esc(t) + '"' + (t === S.team ? " selected" : "") + ">" + esc(t) + "</option>"; }).join("");
+  }
+  $("reset").addEventListener("click", function () {
+    if (!Object.keys(E).length && !Object.keys(T.mode).length && !T.st.length && !U) return;
+    if (!window.confirm("Clear every lock, exclusion, boost, projection and exposure change (and any uploaded projections) for this slate?")) return;
+    E = {}; T = { mode: {}, st: [] }; U = null; saveSlate(); drawTeams(); render();
+  });
+
+  // ---------- site / slate ----------
+  function fillSlates() {
+    var cs = contests();
+    if (cs.indexOf(S.contest) < 0) S.contest = cs[0] || "Classic";
+    $("contest").innerHTML = cs.map(function (c) { return '<button type="button" data-contest="' + c + '" aria-pressed="' + (c === S.contest) + '">' + CNAME[S.site][c] + "</button>"; }).join("");
+    $("contest").hidden = cs.length < 2;
+    var list = slates();
+    $("slate").innerHTML = list.map(function (s) { return '<option value="' + esc(s.key) + '">' + esc(s.label) + "</option>"; }).join("");
+    if (!list.some(function (s) { return s.key === S.slate; })) S.slate = list.length ? list[0].key : null;
+    $("slate").value = S.slate || "";
+    document.querySelectorAll("#site button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.site === S.site)); });
+    loadSlate(); showSettings(); drawTeams(); fillTeamFilter(); render();
+    $("go").disabled = !S.slate;
+    if (result && (result.site !== S.site || result.slate !== S.slate || result.contest !== S.contest)) { result = null; $("results").hidden = true; }
+  }
+  $("site").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || busy) return;
+    S.site = b.dataset.site; saveSet(); fillSlates();
+  });
+  $("slate").addEventListener("change", function () { if (busy) return; S.slate = this.value; fillSlates(); });
+  $("contest").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || busy) return;
+    S.contest = b.getAttribute("data-contest"); S.slate = null; saveSet(); fillSlates();
+  });
+
+  // ---------- build ----------
+  function msg(t, err) { $("msg").textContent = t || ""; $("msg").className = "msg" + (err ? " err" : ""); }
+  function getSolver() {
+    if (glpk) return Promise.resolve(glpk);
+    return import(GLPK_URL).then(function (m) { return m.default(); }).then(function (g) { glpk = g; return g; });
+  }
+  function build() {
+    if (busy || !S.slate) return;
+    var st = readSettings(); showSettings();
+    var keep = [], remove = [];
+    Object.keys(T.mode).forEach(function (t) { (T.mode[t] === "keep" ? keep : remove).push(t); });
+    var s = { n: st.n, exposure: st.exposure / 100, minProj: st.minProj, random: st.random, minUnique: st.minUnique,
+              minSal: st.minSal, maxSal: st.maxSal, maxTeam: st.maxTeam, keepTeams: keep, removeTeams: remove,
+              dstOpp: st.dstOpp || "off", bringBack: st.bringBack || 0,
+              stack: st.stack === "qb" ? { teams: T.st.slice(), wr: st.swr, te: st.ste, pc: st.spc, rb: st.srb, dst: st.sdst } : null };
+    if (isX()) {
+      s.stack = st.xteam ? { team: st.xteam, size: st.xsize } : null;
+      s.captain = st.cmode === "team" ? { team: st.cteam } : st.cmode === "pos" ? { pos: st.cpos.slice() } : st.cmode === "player" ? { keys: st.ckeys.slice() } : {};
+      s.flex = st.flex; s.pc = st.pc;
+      var g0 = scriptOf(st.script); s.script = g0 ? { extra: g0.extra, team: String(st.script).split(":")[1] || "" } : null;
+      var bad = FLEX_POS.filter(function (q) { return st.flex[q][0] > st.flex[q][1]; });
+      if (bad.length) { msg("Flex spots: Min is above Max for " + bad.join(", ") + ".", true); return; }
+      if (S.contest === "Captain" && FLEX_POS.reduce(function (a, q) { return a + st.flex[q][0]; }, 0) > 5) { msg("Flex spots: the Mins add up to more than the 5 Flex spots.", true); return; }
+    }
+    var X = isX(), contest = S.contest, EE = effEdits();
+    var useOpt = !!st.useOpt && slateHasOpt();
+    function poolFor(cushion) {   // cushion = null: Global Exposure; else Optimal % + cushion
+      var ed = EE;
+      if (cushion != null) {
+        ed = {}; Object.keys(EE).forEach(function (k) { ed[k] = Object.assign({}, EE[k]); });
+        players().forEach(function (p) {
+          var k = keyOf(p), e = ed[k] || (ed[k] = {});
+          if (e.exp == null || e.exp === "") e.exp = String(100 * Math.min(1, Math.max((optOf(p) || 0) + cushion, 1 / s.n)));
+        });
+      }
+      return X ? T7Opt.prepareX(D.players, S.site, contest, S.slate, s, ed) : T7Opt.prepare(D.players, S.site, S.slate, s, ed);
+    }
+    var pool = poolFor(useOpt ? 0.10 : null);
+    busy = true; $("go").disabled = true; $("bar").hidden = false; $("bar").firstChild.style.width = "0";
+    msg(glpk ? "Building\u2026" : "Loading the optimizer\u2026");
+    var t0 = Date.now();
+    var note = "";
+    getSolver().then(function (g) {
+      var once = function (pl) {
+        return (X ? T7Opt.runX(T7Opt.glpkSolver(g), pl, S.site, contest, s, opts) : T7Opt.run(T7Opt.glpkSolver(g), pl, S.site, s, opts))
+          .catch(function (err) { if (useOpt) return { lineups: [], stopped: true, err: err }; throw err; });
+      };
+      var opts = { onProgress: function (i, L) {
+        $("bar").firstChild.style.width = (100 * i / L) + "%";
+        msg("Building lineup " + i + " of " + L + "\u2026");
+        return new Promise(function (r) { setTimeout(r, 0); });   // let the page repaint
+      } };
+      if (!useOpt) return once(pool);
+      // [OPT %] like the app: Optimal % + 10; if that can't build them all, +20, +30, then Global Exposure
+      var best = null, tries = [0.10, 0.20, 0.30, null];
+      var step = function (k) {
+        var c = tries[k];
+        return once(k === 0 ? pool : poolFor(c)).then(function (r) {
+          if (!best || r.lineups.length > best.lineups.length) { best = r; note = c == null ? "Optimal % caps were too tight, so Global Exposure was used." : c > 0.10 ? "Used Optimal % + " + Math.round(c * 100) + " to build them all." : ""; }
+          if (r.lineups.length >= s.n || k === tries.length - 1) { if (!best.lineups.length) throw best.err || new Error("No valid lineup found."); return best; }
+          return step(k + 1);
+        });
+      };
+      return step(0);
+    }).then(function (r) {
+      result = { lineups: r.lineups, site: S.site, slate: S.slate, contest: contest, n: s.n, rewind: !!S.night, best: null };
+      showAll = false; F = [];
+      msg(r.stopped ? "Built " + r.lineups.length + " of " + s.n + " lineups: the settings didn't allow more (try raising exposure or loosening locks and stacks)."
+                    : "Built " + r.lineups.length + " lineup" + (r.lineups.length === 1 ? "" : "s") + " in " + ((Date.now() - t0) / 1000).toFixed(1) + "s." + (note ? " " + note : ""));
+      track("build_lineups", { sport: "nfl", site: S.site, contest: contest, lineups: r.lineups.length, rewind: !!S.night });
+      if (S.night) return bestPossible().then(function (bl) { result.best = bl; return r; });
+      return r;
+    }).then(function (r) {
+      $("results").hidden = false; $("fold-res").open = true;
+      drawResults();
+      $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+    }).catch(function (err) {
+      var m = err && err.message ? err.message : String(err);
+      msg(/import|fetch|module|load/i.test(m) && !glpk ? "Couldn't load the optimizer. Check your connection and try again." : m, true);
+    }).then(function () { busy = false; $("go").disabled = false; $("bar").hidden = true; });
+  }
+  $("go").addEventListener("click", build);
+  // [REWIND] the best lineup anyone could have built that night: everyone at his actual score, site rules only
+  function bestPossible() {
+    var ed = {}, base = {};
+    if (STATC[S.contest]) return Promise.resolve(null);
+    if (!players().some(function (p) { return actOf(p) != null; })) return Promise.resolve(null);   // no final scores saved
+    players().forEach(function (p) { var a = actOf(p); ed[keyOf(p)] = { proj: a == null ? 0 : Math.max(0, a) }; base[keyOf(p)] = baseProj(p); });
+    var X = isX(), spec = X ? T7Opt.xspec(S.site, S.contest) : null;
+    var s = { n: 1, exposure: 1, minProj: -99, random: 0, minUnique: 1, minSal: 0, maxSal: X ? spec.cap : T7Opt.CAP[S.site], maxTeam: S.site === "dk" ? 7 : 4, stack: null, dstOpp: "off", bringBack: 0 };
+    var pool = X ? T7Opt.prepareX(D.players, S.site, S.contest, S.slate, s, ed) : T7Opt.prepare(D.players, S.site, S.slate, s, ed);
+    return (X ? T7Opt.runX(T7Opt.glpkSolver(glpk), pool, S.site, S.contest, s) : T7Opt.run(T7Opt.glpkSolver(glpk), pool, S.site, s)).then(function (r) {
+      return r.lineups[0].map(function (x) { var m = X ? (spec.mult[x.slot] || 1) : 1; x.proj = base[x.key] == null ? null : Math.round(base[x.key] * m * 10) / 10; return x; });   // our projection next to the actual
+    }).catch(function () { return null; });
+  }
+
+  // ---------- results ----------
+  function tot(lu, f) { return lu.reduce(function (a, x) { return a + (x[f] == null ? 0 : +x[f]); }, 0); }
+  function anyAct(lu) { return lu.some(function (x) { return x.act != null && !Array.isArray(x.act); }); }
+  function hasAll(lu, f) { return lu.every(function (x) { return x[f] != null && !Array.isArray(x[f]); }); }
+  var LSORT = "build";
+  function sortIdx(idx) {
+    if (LSORT === "build") return idx;
+    var L = result.lineups;
+    return idx.slice().sort(function (a, b) { return tot(L[b], LSORT) - tot(L[a], LSORT) || a - b; });
+  }
+  function card(lu, title, cls) {
+    var rw = !!result.rewind;
+    var line2 = [hasAll(lu, "floor") ? "Floor <b>" + f1(tot(lu, "floor")) + "</b>" : "", hasAll(lu, "ceil") ? "Ceiling <b>" + f1(tot(lu, "ceil")) + "</b>" : "",
+                 hasAll(lu, "avg") ? "Avg <b>" + f1(tot(lu, "avg")) + "</b>" : ""].filter(Boolean).join(" \u00b7 ");
+    var nosal = nosalC(result.contest), td = result.contest === "Touchdowns";
+    var fp = function (x) { return td ? (x == null ? "" : (+x).toFixed(2)) : f1(x); };
+    return '<div class="card lu' + (cls ? " " + cls : "") + (nosal ? " nosal" : "") + '"><div class="card-bar"><span class="card-title">' + title + '</span><span class="card-note num">' +
+      fp(tot(lu, "proj")) + (result.contest === "TotalYards" ? " yds" : td ? " TDs" : " proj") + (rw ? ' \u00b7 <span class="actv">' + (anyAct(lu) ? f1(tot(lu, "act")) : "\u2013") + " actual</span>" : "") + (nosal ? "" : " \u00b7 " + money(tot(lu, "salary"))) + "</span>" +
+      (line2 ? '<span class="tots" title="Each total adds up the players\u2019 own numbers (floor = everyone has a bad night). Best for comparing lineups.">' + line2 + "</span>" : "") +
+      "</div><table>" +
+      lu.map(function (x) {
+        var out = E[x.key] && E[x.key].out;
+        return '<tr' + (out ? ' class="gone"' : "") + '><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) + '">' + esc(x.name) +
+          '</td><td class="tm">' + teamTag(x.team) + '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + (rw ? (x.act == null ? "\u2013" : f1(x.act)) : fp(x.proj)) +
+          '</td><td class="x"><button type="button" class="rm" data-k="' + esc(x.key) + '" aria-pressed="' + !!out + '" title="' +
+          (out ? "Put back for the next build" : "Leave out of the next build") + '" aria-label="' + (out ? "Put back " : "Leave out ") + esc(x.name) + '">\u2715</button></td></tr>';
+      }).join("") + "</table></div>";
+  }
+  function hasItem(lu, f) {
+    return lu.some(function (x) { return f.t === "pl" ? x.key === f.k : f.t === "tm" ? x.team === f.k : x.game === f.k; });
+  }
+  function shownIdx() {   // lineups that pass every filter (all of them must be in the lineup)
+    var out = [];
+    result.lineups.forEach(function (lu, i) { if (F.every(function (f) { return hasItem(lu, f); })) out.push(i); });
+    return out;
+  }
+  function removedNames() {
+    var seen = {}, names = [];
+    result.lineups.forEach(function (lu) { lu.forEach(function (x) { if (!seen[x.key] && E[x.key] && E[x.key].out) { seen[x.key] = 1; names.push(x.name); } }); });
+    return names;
+  }
+  function expRows(L) {   // exposure counts for the current tab
+    var by = {};
+    L.forEach(function (lu) {
+      var seen = {};
+      lu.forEach(function (x) {
+        var k = rtab === "pl" ? x.key : rtab === "tm" ? x.team : x.game;
+        if (!by[k]) by[k] = { k: k, c: 0, n: 0, name: rtab === "pl" ? x.name : rtab === "tm" ? x.team : x.game.replace("@", " / "), team: x.team };
+        by[k].n++;
+        if (!seen[k]) { seen[k] = 1; by[k].c++; }
+      });
+    });
+    return Object.keys(by).map(function (k) { return by[k]; });
+  }
+  function drawResults() {
+    var R = result; if (!R) return;
+    var L = R.lineups, idx = shownIdx();
+    var pts = L.map(function (lu) { return tot(lu, "proj"); });
+    var head = L.length + " lineup" + (L.length === 1 ? "" : "s") + " \u00b7 " + (R.site === "dk" ? "DraftKings" : "FanDuel") + (R.contest && R.contest !== "Classic" ? " " + CNAME[R.site][R.contest] : "") +
+      " \u00b7 " + f1(Math.max.apply(null, pts)) + (L.length > 1 ? " to " + f1(Math.min.apply(null, pts)) : "") + " proj";
+    if (R.rewind && !L.some(anyAct)) head += " \u00b7 no final scores saved for this contest that night";
+    else if (R.rewind) { var ac = L.map(function (lu) { return tot(lu, "act"); }); head += " \u00b7 best actual " + f1(Math.max.apply(null, ac)) + (R.best ? " (best possible " + f1(tot(R.best, "act")) + ")" : ""); }
+    $("sum-res").textContent = head;
+    document.querySelectorAll("#rtab button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.tab === rtab)); });
+    // filters
+    $("filt").hidden = !F.length;
+    $("filt").innerHTML = F.length ? "Showing " + idx.length + " of " + L.length + " lineups with " +
+      F.map(function (f, j) { return '<button type="button" class="chip" data-j="' + j + '" aria-label="Remove filter ' + esc(f.label) + '">' + esc(f.label) + " \u2715</button>"; }).join(" ") +
+      ' <button type="button" class="clear" data-j="all">Clear</button>' : "";
+    $("dlf").hidden = !F.length || !idx.length;
+    $("dlf").textContent = "Download these " + idx.length;
+    // players removed for the next build
+    var gone = removedNames();
+    $("outnote").hidden = !gone.length;
+    $("outnote").innerHTML = gone.length ? "Out next build: " + esc(gone.join(", ")) + ' <button type="button" class="btn btn-line slim" id="rebuild">Build again</button>' : "";
+    var html = "";
+    if (rtab === "lu") {
+      var ord = sortIdx(idx), list = showAll ? ord : ord.slice(0, 24);
+      html = idx.length ? '<div class="lus">' + (R.best && !F.length ? card(R.best, "Best possible", "best") : "") +
+        list.map(function (i) { return card(L[i], "#" + (i + 1)); }).join("") + "</div>" +
+        (idx.length > list.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + idx.length + " lineups</button>" : "")
+        : '<p class="msg">No lineup has all of those. Remove a filter.</p>';
+    } else {
+      var rows = expRows(idx.map(function (i) { return L[i]; })), xs = XS[rtab], n = idx.length || 1;
+      rows.sort(function (a, b) {
+        var x = xs.k === "name" ? a.name.localeCompare(b.name) : (a[xs.k] - b[xs.k]);
+        return xs.dir * x || b.c - a.c;
+      });
+      var what = rtab === "pl" ? "Player" : rtab === "tm" ? "Team" : "Game";
+      var th = function (k, label, cls) { return '<th' + (cls ? ' class="' + cls + '"' : "") + (xs.k === k ? ' aria-sort="' + (xs.dir < 0 ? "descending" : "ascending") + '"' : "") +
+        '><button type="button" data-xs="' + k + '">' + label + "</button></th>"; };
+      html = '<div class="card"><div class="scroll"><table class="exp"><thead><tr>' + th("name", what, "l") +
+        (rtab === "pl" ? th("c", "Lineups") + th("c", "Exposure") : th("c", "Lineups") + th("n", "Players")) + '<th class="l"></th></tr></thead><tbody>' +
+        rows.map(function (r) {
+          var sel = F.some(function (f) { return f.t === rtab && f.k === r.k; }), share = r.c / n;
+          return '<tr data-k="' + esc(r.k) + '" data-label="' + esc(r.name) + '"' + (sel ? ' class="sel" aria-selected="true"' : "") + '><td class="l">' + esc(r.name) +
+            (rtab === "pl" ? ' <span class="pm" style="display:inline">' + esc(r.team) + "</span>" : "") + '</td><td class="num">' + r.c + "</td>" +
+            '<td class="num">' + (rtab === "pl" ? Math.round(100 * share) + "%" : r.n) + '</td><td class="barc"><div class="xb"><i style="width:' + (100 * share) + '%"></i></div></td></tr>';
+        }).join("") + '</tbody></table></div></div><p class="hint">Tap a row to show only lineups with it; tap more to narrow down.</p>';
+    }
+    $("rbody").innerHTML = html;
+  }
+  $("rtab").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; rtab = b.dataset.tab; drawResults(); });
+  $("rbody").addEventListener("click", function (e) {
+    var rm = e.target.closest("button.rm");
+    if (rm) {   // leave this player out of the next build (or put him back)
+      var k = rm.dataset.k, cur = E[k] || {};
+      setEdit(k, "out", !cur.out); if (!cur.out) setEdit(k, "lock", false);
+      render(); drawResults(); return;
+    }
+    if (e.target.closest("#more")) { showAll = true; drawResults(); return; }
+    var sb = e.target.closest("button[data-xs]");
+    if (sb) { var xs = XS[rtab], k2 = sb.dataset.xs; if (xs.k === k2) xs.dir = -xs.dir; else { xs.k = k2; xs.dir = k2 === "name" ? 1 : -1; } drawResults(); return; }
+    var tr = e.target.closest("table.exp tbody tr");
+    if (tr) {
+      var j = -1; F.forEach(function (f, i) { if (f.t === rtab && f.k === tr.dataset.k) j = i; });
+      if (j >= 0) F.splice(j, 1); else F.push({ t: rtab, k: tr.dataset.k, label: tr.dataset.label });
+      showAll = false; drawResults();
+    }
+  });
+  $("filt").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-j]"); if (!b) return;
+    if (b.dataset.j === "all") F = []; else F.splice(+b.dataset.j, 1);
+    drawResults();
+  });
+  $("outnote").addEventListener("click", function (e) { if (e.target.closest("#rebuild")) build(); });
+  function download(list, tag) {
+    var csv = result.contest && result.contest !== "Classic" ? T7Opt.uploadCsvX(list, result.site, result.contest) : T7Opt.uploadCsv(list, result.site);
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = "three7_nfl_" + (result.site === "dk" ? "draftkings" : "fanduel") + "_" + (result.contest || "Classic").toLowerCase() + "_week" + D.week + (tag ? "_" + tag : "") + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    track("download_lineups", { sport: "nfl", site: result.site, lineups: list.length });
+  }
+  $("dl").addEventListener("click", function () { if (result) download(sortIdx(result.lineups.map(function (x, i) { return i; })).map(function (i) { return result.lineups[i]; }), ""); });
+  $("dlf").addEventListener("click", function () { if (result) download(sortIdx(shownIdx()).map(function (i) { return result.lineups[i]; }), "filtered"); });
+  $("lsort").addEventListener("change", function () { LSORT = this.value; showAll = false; drawResults(); });
+  function sortOptions() {   // "Sort: actual" only when looking back at a finished night
+    var o = $("lsort").querySelector("option[data-rw]");
+    if (S.night) { if (!o) { o = document.createElement("option"); o.value = "act"; o.textContent = "Sort: actual"; o.setAttribute("data-rw", ""); $("lsort").appendChild(o); } }
+    else if (o) { o.remove(); if (LSORT === "act") { LSORT = "build"; $("lsort").value = "build"; } }
+  }
+
+  // ---------- collapsible sections + stats toggle (remembered per visitor) ----------
+  var FOLD = load("t7nfl.folds", {});
+  document.querySelectorAll("details.fold").forEach(function (d) {
+    var k = d.dataset.fold;
+    if (k in FOLD) d.open = !!FOLD[k];
+    d.addEventListener("toggle", function () { FOLD[k] = d.open; store("t7nfl.folds", JSON.stringify(FOLD)); });
+  });
+  function setStats(on) {
+    document.body.classList.toggle("stats-on", on);
+    $("stats").setAttribute("aria-pressed", String(on)); $("stats").textContent = on ? "Hide stats" : "Show stats";
+    store("t7nfl.stats", on ? "1" : "0");
+  }
+  setStats(store("t7nfl.stats") === "1");
+  $("stats").addEventListener("click", function () { setStats(!document.body.classList.contains("stats-on")); });
+
+  // ---------- night (tonight or a finished night) ----------
+  function ago() {   // "updated 12 min ago" from when these projections were published
+    if (!D || !D.updated || S.night) return "";
+    var t = Date.parse(String(D.updated).replace(/([+-]\d{2})(\d{2})$/, "$1:$2")); if (isNaN(t)) return "";
+    var m = (Date.now() - t) / 60000;
+    return m < 1 ? "updated just now" : m < 60 ? "updated " + Math.floor(m) + " min ago" : m < 1440 ? "updated " + Math.floor(m / 60) + " hr ago" :
+      "updated " + new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  setInterval(function () {   // tick the "updated" time without redrawing the table (someone may be typing in it)
+    if (!D) return;
+    var u = document.querySelector("#meta .upd"); if (u) u.textContent = ago();
+    $("sum-pool").textContent = $("sum-pool").textContent.replace(/ \u00b7 updated .*$/, "") + (ago() ? " \u00b7 " + ago() : "");
+  }, 60000);
+  function showMeta() {
+    var lbl = "Week " + D.week;
+    $("meta").innerHTML = S.night ? "<strong>Rewind \u00b7 " + esc(lbl) + "</strong> \u00b7 our projections at kickoff, and how everyone actually scored"
+      : "<strong>" + esc(lbl) + "</strong> \u00b7 projections from <a href=\"/nfl/\">this week's NFL projections</a>" + (ago() ? ' \u00b7 <span class="upd">' + ago() + "</span>" : "");
+    $("rewind").hidden = !S.night;
+    $("rewind").textContent = S.night ? "Looking back at a finished week: build lineups as you would have, then see what they actually scored." : "";
+    document.body.classList.toggle("rewind", !!S.night);
+    sortOptions();
+  }
+  $("night").addEventListener("change", function () {
+    if (busy) return;
+    var v = this.value;
+    (v ? getNight(v) : Promise.resolve(TONIGHT)).then(function (d) {
+      S.night = v; D = d; result = null; $("results").hidden = true; F = [];
+      if (!S.night && S.sort === "act") S.sort = "p";
+      showMeta(); fillSlates();
+    }).catch(function () { msg("Couldn't load that week. Try again.", true); $("night").value = S.night || ""; });
+  });
+
+  // ---------- start ----------
+  getData().then(function (data) {
+    D = TONIGHT = data; S.night = "";
+    showMeta();
+    if (!D.slates.some(function (s) { return s.site === S.site; })) S.site = S.site === "dk" ? "fd" : "dk";
+    fillSlates();
+    getIndex().then(function (idx) {
+      idx = (idx || []).filter(function (n) { return n.week !== D.week; });
+      if (!idx.length) return;
+      $("night").innerHTML = '<option value="">This week</option>' + idx.map(function (n) { return '<option value="' + esc(n.week) + '">Rewind: ' + esc(n.label) + "</option>"; }).join("");
+      $("night").hidden = false;
+    });
+  }).catch(function () {
+    $("meta").textContent = "Couldn't load this week's projections. Refresh to try again.";
+    $("rows").innerHTML = '<tr><td colspan="19" class="empty">No projections loaded.</td></tr>';
+  });
+})();
+</script>
+</body>
+</html>
