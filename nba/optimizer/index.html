@@ -187,6 +187,64 @@ table.exp td.barc { width: 40%; }
 .xb { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
 .xb i { display: block; height: 100%; background: var(--sky); }
 .more { margin-top: 14px; }
+
+/* collapsible sections */
+.fold > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; padding: 4px 0 12px; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary h2 { margin: 0; display: inline-flex; align-items: center; gap: 10px; }
+.fold > summary h2::before { content: ""; width: 0; height: 0; border: 6px solid transparent; border-left: 8px solid var(--muted); transform: translateX(3px); transition: transform .15s; }
+.fold[open] > summary h2::before { transform: translate(0, 3px) rotate(90deg); }
+.fold > summary:hover h2::before { border-left-color: var(--mint); }
+.fold-sum { color: var(--muted); font-size: .92rem; }
+.fold[open] .fold-sum.hide-open { display: none; }
+.slim { padding: 9px 14px; }
+.btn-line[aria-pressed="true"] { border-color: var(--mint); color: var(--mint); }
+
+/* stats */
+table.pool .stat { display: none; }
+body.stats-on table.pool .stat { display: table-cell; }
+table.pool td.stat { color: var(--soft); }
+table.pool tr.srow { display: none; }
+
+/* boost menu */
+select.bsel { min-height: 36px; padding: 6px 22px 6px 8px; font-size: .88rem; width: 5.4rem; }
+select.bsel.up { border-color: var(--mint); color: var(--mint); }
+select.bsel.dn { border-color: var(--warn); color: var(--warn); }
+
+/* pinned build bar */
+body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+.buildbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: rgba(18, 25, 37, .96); border-top: 1px solid var(--line);
+  padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); backdrop-filter: blur(6px); }
+.buildbar .wrap { display: flex; align-items: center; gap: 16px; }
+.buildbar .btn { flex: 0 0 auto; min-width: 170px; }
+.bb-mid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.buildbar .msg { margin: 0; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.buildbar .bar { flex: none; width: 100%; }
+
+/* lineup filters + removals */
+.filt { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; color: var(--soft); font-size: .92rem; }
+.filt .chip { display: inline-flex; align-items: center; gap: 6px; color: var(--field); background: var(--sky); border-color: var(--sky); }
+.filt .clear { background: none; border: 0; color: var(--sky); text-decoration: underline; cursor: pointer; font: inherit; padding: 4px; }
+.note { color: var(--warn); font-size: .92rem; margin: 0 0 12px; }
+.note button { margin-left: 8px; }
+.lu td.x { width: 30px; padding-left: 0; padding-right: 8px; text-align: right; }
+.lu .rm { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; font-size: .8rem; line-height: 1; padding: 0; }
+.lu .rm:hover { color: var(--out); border-color: var(--out); }
+.lu tr.gone td.nm { text-decoration: line-through; color: var(--muted); }
+.lu tr.gone .rm { color: var(--field); background: var(--out); border-color: var(--out); }
+table.exp th { padding: 0; }
+table.exp th button { all: unset; display: block; padding: 9px 14px; cursor: pointer; }
+table.exp th button:hover { color: var(--chalk); }
+table.exp th[aria-sort] button { color: var(--chalk); }
+table.exp th[aria-sort="descending"] button::after { content: " \2193"; }
+table.exp th[aria-sort="ascending"] button::after { content: " \2191"; }
+table.exp th.l button { text-align: left; }
+table.exp tbody tr { cursor: pointer; }
+table.exp tbody tr:hover td { background: rgba(176, 218, 250, .06); }
+table.exp tbody tr.sel td { background: rgba(176, 218, 250, .14); }
+table.exp tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--sky); }
+.dl-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
 @media (max-width: 760px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .row2 .fld { width: calc(50% - 7px); }
@@ -195,11 +253,22 @@ table.exp td.barc { width: 40%; }
   table.proj.pool td, table.proj.pool th button { padding-left: 3px; padding-right: 3px; }
   table.proj.pool td.l { min-width: 0; }
   table.pool td.l { min-width: 0; white-space: normal; }
-  table.pool .pn { font-size: .92rem; }
-  table.pool input.ctl { width: 3.5rem; padding: 6px 4px; }
-  .tg { width: 32px; height: 34px; }
+  table.pool .pn { font-size: .88rem; overflow-wrap: anywhere; }
+  table.pool input.ctl { width: 3.2rem; padding: 6px 3px; }
+  .tg { width: 29px; height: 34px; }
   .tg.bs { width: 38px; }
   .msal { display: inline !important; }
+  body.stats-on table.pool .stat { display: none; }
+  body.stats-on table.pool tr.srow { display: table-row; }
+  body.stats-on table.pool tr[data-k] td { border-bottom: 0; }
+  table.pool tr.srow td { text-align: left; white-space: normal; color: var(--soft); font-size: .8rem; padding: 0 8px 9px !important; }
+  select.bsel { width: 3.7rem; padding: 6px 10px 6px 3px; font-size: .8rem; background-position: right 2px center; }
+  .buildbar .btn { min-width: 0; padding: 12px 18px; }
+  .buildbar .wrap { gap: 12px; }
+  .res-head .seg { flex: 1 1 100%; }
+  .res-head .seg button { flex: 1; padding: 9px 6px; }
+  .dl-btns { flex: 1 1 100%; }
+  .dl-btns .btn { flex: 1; }
 }
 
 @media (max-width: 760px) {
@@ -271,98 +340,124 @@ table.exp td.barc { width: 40%; }
     </div>
   </section>
 
-  <section class="wrap sec" aria-labelledby="set-h">
-    <h2 id="set-h">Settings</h2>
-    <div class="panel">
-      <div class="grid">
-        <div class="fld"><label for="n">Lineups</label><input class="ctl num" id="n" type="number" min="1" max="150" step="1" value="5"></div>
-        <div class="fld"><label for="exposure">Global exposure %</label><input class="ctl num" id="exposure" type="number" min="1" max="100" step="5" value="60"></div>
-        <div class="fld"><label for="minProj">Min proj</label><input class="ctl num" id="minProj" type="number" min="0" max="30" step="0.5" value="1"></div>
-        <div class="fld"><label for="random">Randomness %</label><input class="ctl num" id="random" type="number" min="0" max="30" step="5" value="0"></div>
-        <div class="fld"><label for="minUnique">Min unique players</label><input class="ctl num" id="minUnique" type="number" min="1" max="5" step="1" value="1"></div>
-        <div class="fld"><label for="minSal">Min salary</label><input class="ctl num" id="minSal" type="number" min="0" step="100" value="0"></div>
-        <div class="fld"><label for="maxSal">Max salary</label><input class="ctl num" id="maxSal" type="number" step="100" value="50000"></div>
-        <div class="fld"><label for="maxTeam">Max per team</label><input class="ctl num" id="maxTeam" type="number" min="2" step="1" value="8"></div>
-      </div>
-    </div>
-    <div class="panel">
-      <p class="lbl" style="margin:0 0 8px">Teams <span style="font-weight:400">· tap once to keep only those teams, twice to remove a team</span></p>
-      <div class="chips" id="teams"></div>
-    </div>
-    <div class="panel">
-      <div class="row2" style="margin-top:0">
-        <div class="fld"><label for="stack">Stack</label>
-          <select class="ctl" id="stack"><option value="none">No</option><option value="game">Game</option><option value="team">Team</option></select></div>
-        <div class="fld" data-stack="game"><label for="gsize">Players from game</label><input class="ctl num" id="gsize" type="number" min="2" max="7" step="1" value="4"></div>
-        <div class="fld" data-stack="game"><label for="geach">Min each team</label><input class="ctl num" id="geach" type="number" min="0" max="4" step="1" value="1"></div>
-        <div class="fld" data-stack="team"><label for="tsize">Players from team</label><input class="ctl num" id="tsize" type="number" min="2" max="7" step="1" value="3"></div>
-      </div>
-      <div data-stack="game" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Games to stack <span style="font-weight:400">· none picked = any game</span></p><div class="chips" id="sgames"></div></div>
-      <div data-stack="team" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Teams to stack <span style="font-weight:400">· none picked = any team</span></p><div class="chips" id="steams"></div></div>
-    </div>
-  </section>
-
-  <section class="wrap sec" aria-labelledby="pool-h">
-    <h2 id="pool-h">Players</h2>
-    <div class="tools" style="border-top:0;padding-top:0">
-      <div class="pos" id="pos" role="group" aria-label="Position">
-        <button type="button" data-pos="" aria-pressed="true">All</button>
-        <button type="button" data-pos="PG" aria-pressed="false">PG</button>
-        <button type="button" data-pos="SG" aria-pressed="false">SG</button>
-        <button type="button" data-pos="SF" aria-pressed="false">SF</button>
-        <button type="button" data-pos="PF" aria-pressed="false">PF</button>
-        <button type="button" data-pos="C" aria-pressed="false">C</button>
-        <button type="button" data-pos="*" aria-pressed="false">Changed</button>
-      </div>
-      <input class="ctl search" id="q" type="search" placeholder="Search players" autocomplete="off">
-      <button type="button" class="btn btn-line" id="reset" style="padding:9px 14px">Reset changes</button>
-    </div>
-    <div class="card">
-      <div class="card-bar"><span class="card-title">Player pool</span><span class="card-note">Proj and Exp % are yours to change · blank = ours</span></div>
-      <div class="scroll pool-scroll">
-        <table class="proj pool">
-          <thead><tr>
-            <th title="Lock in every lineup"><button type="button" data-sort="lock">Lock</button></th>
-            <th title="Leave out"><button type="button" data-sort="out">Out</button></th>
-            <th class="l"><button type="button" data-sort="n">Player</button></th>
-            <th class="sal"><button type="button" data-sort="sal">Salary</button></th>
-            <th><button type="button" data-sort="p">Proj</button></th>
-            <th><button type="button" data-sort="exp">Exp %</button></th>
-            <th title="Boost +25% / suppress -25%"><button type="button" data-sort="boost">Boost</button></th>
-            <th class="wide"><button type="button" data-sort="v">Value</button></th>
-          </tr></thead>
-          <tbody id="rows"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-    <p class="count" id="count"></p>
-  </section>
-
-  <section class="wrap sec" aria-label="Build lineups">
-    <div class="build">
-      <button type="button" class="btn btn-solid" id="go" disabled>Build lineups</button>
-      <div class="bar" id="bar" hidden><i></i></div>
-    </div>
-    <p class="msg" id="msg" role="status" aria-live="polite"></p>
-  </section>
-
-  <section class="wrap sec" id="results" hidden aria-labelledby="res-h">
-    <div class="res-head">
-      <h2 id="res-h" style="margin:0">Lineups</h2>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <div class="seg" id="rtab" role="group" aria-label="Show">
-          <button type="button" data-tab="lu" aria-pressed="true">Lineups</button>
-          <button type="button" data-tab="pl" aria-pressed="false">Players</button>
-          <button type="button" data-tab="tm" aria-pressed="false">Teams</button>
-          <button type="button" data-tab="gm" aria-pressed="false">Games</button>
+  <section class="wrap sec">
+    <details class="fold" id="fold-set" data-fold="set">
+      <summary><h2>Settings</h2><span class="fold-sum" id="sum-set"></span></summary>
+      <div class="fold-body">
+        <div class="panel">
+          <div class="grid">
+            <div class="fld"><label for="n">Lineups</label><input class="ctl num" id="n" type="number" min="1" max="150" step="1" value="5"></div>
+            <div class="fld"><label for="exposure">Global exposure %</label><input class="ctl num" id="exposure" type="number" min="1" max="100" step="5" value="60"></div>
+            <div class="fld"><label for="minProj">Min proj</label><input class="ctl num" id="minProj" type="number" min="0" max="30" step="0.5" value="1"></div>
+            <div class="fld"><label for="random">Randomness %</label><input class="ctl num" id="random" type="number" min="0" max="30" step="5" value="0"></div>
+            <div class="fld"><label for="minUnique">Min unique players</label><input class="ctl num" id="minUnique" type="number" min="1" max="5" step="1" value="1"></div>
+            <div class="fld"><label for="minSal">Min salary</label><input class="ctl num" id="minSal" type="number" min="0" step="100" value="0"></div>
+            <div class="fld"><label for="maxSal">Max salary</label><input class="ctl num" id="maxSal" type="number" step="100" value="50000"></div>
+            <div class="fld"><label for="maxTeam">Max per team</label><input class="ctl num" id="maxTeam" type="number" min="2" step="1" value="8"></div>
+          </div>
         </div>
-        <button type="button" class="btn btn-solid" id="dl" style="padding:9px 16px">Download for upload</button>
+        <div class="panel">
+          <p class="lbl" style="margin:0 0 8px">Teams <span style="font-weight:400">· tap once to keep only those teams, twice to remove a team</span></p>
+          <div class="chips" id="teams"></div>
+        </div>
+        <div class="panel">
+          <div class="row2" style="margin-top:0">
+            <div class="fld"><label for="stack">Stack</label>
+              <select class="ctl" id="stack"><option value="none">No</option><option value="game">Game</option><option value="team">Team</option></select></div>
+            <div class="fld" data-stack="game"><label for="gsize">Players from game</label><input class="ctl num" id="gsize" type="number" min="2" max="7" step="1" value="4"></div>
+            <div class="fld" data-stack="game"><label for="geach">Min each team</label><input class="ctl num" id="geach" type="number" min="0" max="4" step="1" value="1"></div>
+            <div class="fld" data-stack="team"><label for="tsize">Players from team</label><input class="ctl num" id="tsize" type="number" min="2" max="7" step="1" value="3"></div>
+          </div>
+          <div data-stack="game" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Games to stack <span style="font-weight:400">· none picked = any game</span></p><div class="chips" id="sgames"></div></div>
+          <div data-stack="team" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Teams to stack <span style="font-weight:400">· none picked = any team</span></p><div class="chips" id="steams"></div></div>
+        </div>
       </div>
-    </div>
-    <p class="msg" id="rsum" style="margin:0 0 12px"></p>
-    <div id="rbody"></div>
+    </details>
+  </section>
+
+  <section class="wrap sec">
+    <details class="fold" id="fold-pool" data-fold="pool" open>
+      <summary><h2>Players</h2><span class="fold-sum" id="sum-pool"></span></summary>
+      <div class="fold-body">
+        <div class="tools" style="border-top:0;padding-top:0">
+          <div class="pos" id="pos" role="group" aria-label="Position">
+            <button type="button" data-pos="" aria-pressed="true">All</button>
+            <button type="button" data-pos="PG" aria-pressed="false">PG</button>
+            <button type="button" data-pos="SG" aria-pressed="false">SG</button>
+            <button type="button" data-pos="SF" aria-pressed="false">SF</button>
+            <button type="button" data-pos="PF" aria-pressed="false">PF</button>
+            <button type="button" data-pos="C" aria-pressed="false">C</button>
+            <button type="button" data-pos="*" aria-pressed="false">Changed</button>
+          </div>
+          <input class="ctl search" id="q" type="search" placeholder="Search players" autocomplete="off">
+          <button type="button" class="btn btn-line slim" id="stats" aria-pressed="false">Show stats</button>
+          <button type="button" class="btn btn-line slim" id="reset">Reset changes</button>
+        </div>
+        <div class="card">
+          <div class="card-bar"><span class="card-title">Player pool</span><span class="card-note">Proj and Exp % are yours to change · blank = ours</span></div>
+          <div class="scroll pool-scroll">
+            <table class="proj pool">
+              <thead><tr>
+                <th title="Lock in every lineup"><button type="button" data-sort="lock">Lock</button></th>
+                <th title="Leave out"><button type="button" data-sort="out">Out</button></th>
+                <th class="l"><button type="button" data-sort="n">Player</button></th>
+                <th class="sal"><button type="button" data-sort="sal">Salary</button></th>
+                <th><button type="button" data-sort="p">Proj</button></th>
+                <th><button type="button" data-sort="exp">Exp %</button></th>
+                <th title="Boost or suppress our projection"><button type="button" data-sort="boost">Boost</button></th>
+                <th class="wide"><button type="button" data-sort="v">Value</button></th>
+                <th class="stat"><button type="button" data-sort="rg">Range</button></th>
+                <th class="stat"><button type="button" data-sort="min">Min</button></th>
+                <th class="stat"><button type="button" data-sort="pts">Pts</button></th>
+                <th class="stat"><button type="button" data-sort="reb">Reb</button></th>
+                <th class="stat"><button type="button" data-sort="ast">Ast</button></th>
+                <th class="stat"><button type="button" data-sort="tpm">3PM</button></th>
+                <th class="stat"><button type="button" data-sort="stl">Stl</button></th>
+                <th class="stat"><button type="button" data-sort="blk">Blk</button></th>
+                <th class="stat"><button type="button" data-sort="tov">TO</button></th>
+              </tr></thead>
+              <tbody id="rows"><tr><td colspan="17" class="empty">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <p class="count" id="count"></p>
+      </div>
+    </details>
+  </section>
+
+  <section class="wrap sec" id="results" hidden>
+    <details class="fold" id="fold-res" data-fold="res" open>
+      <summary><h2>Lineups</h2><span class="fold-sum" id="sum-res"></span></summary>
+      <div class="fold-body">
+        <div class="res-head">
+          <div class="seg" id="rtab" role="group" aria-label="Show">
+            <button type="button" data-tab="lu" aria-pressed="true">Lineups</button>
+            <button type="button" data-tab="pl" aria-pressed="false">Players</button>
+            <button type="button" data-tab="tm" aria-pressed="false">Teams</button>
+            <button type="button" data-tab="gm" aria-pressed="false">Games</button>
+          </div>
+          <div class="dl-btns">
+            <button type="button" class="btn btn-line slim" id="dlf" hidden>Download these</button>
+            <button type="button" class="btn btn-solid slim" id="dl">Download all</button>
+          </div>
+        </div>
+        <div class="filt" id="filt" hidden></div>
+        <p class="note" id="outnote" hidden></p>
+        <div id="rbody"></div>
+      </div>
+    </details>
   </section>
 </main>
+
+<div class="buildbar" role="region" aria-label="Build lineups">
+  <div class="wrap">
+    <button type="button" class="btn btn-solid" id="go" disabled>Build lineups</button>
+    <div class="bb-mid">
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      <div class="bar" id="bar" hidden><i></i></div>
+    </div>
+  </div>
+</div>
 
 <footer>
   <div class="wrap">
@@ -398,7 +493,7 @@ var T7Opt = (function () {
   }
   function gameKey(a, b) { return [a, b].sort().join("@"); }
 
-  // The player pool for one site + slate. edits[key] = {lock, out, boost (+1/-1), proj, exp (%)}
+  // The player pool for one site + slate. edits[key] = {lock, out, boost (% up or down, e.g. 15 / -30), proj, exp (%)}
   function prepare(players, site, slate, s, edits) {
     edits = edits || {};
     var all = [];
@@ -410,7 +505,7 @@ var T7Opt = (function () {
       if (proj == null || isNaN(proj)) return;
       all.push({ key: key, name: p.n, team: p.tm, opp: p.opp, game: gameKey(p.tm, p.opp), pos: x.pos,
                  id: x.id ? x.id[slate] : null, salary: +x.sl[slate], proj: Math.round(proj * 10) / 10,
-                 lock: !!e.lock, out: !!e.out, boost: e.boost || 0,
+                 lock: !!e.lock, out: !!e.out, boost: Math.max(-90, Math.min(100, +e.boost || 0)),
                  exp: e.exp != null && e.exp !== "" && !isNaN(+e.exp) ? Math.max(0, Math.min(1, +e.exp / 100)) : null });
     });
     var keep = s.keepTeams || [], remove = s.removeTeams || [];
@@ -422,7 +517,7 @@ var T7Opt = (function () {
       return eligible(r.pos, site).length > 0;
     });
     pool.forEach(function (r) {
-      r.fpts = r.proj * (r.boost > 0 ? 1.25 : 1) * (r.boost < 0 ? 0.75 : 1);   // Boost / Suppress
+      r.fpts = r.proj * (1 + r.boost / 100);                                    // Boost / Suppress (e.g. +15%, -30%)
       r.cap = r.lock ? 1 : (r.exp != null ? r.exp : s.exposure);
       r.slots = eligible(r.pos, site);
     });
@@ -593,6 +688,9 @@ var T7Opt = (function () {
   var MAX_LINEUPS = 150;
   var LOCK = '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align:-2px"><path fill="currentColor" d="M4 7V5a4 4 0 0 1 8 0v2h.5A1.5 1.5 0 0 1 14 8.5v5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5v-5A1.5 1.5 0 0 1 3.5 7H4zm2 0h4V5a2 2 0 0 0-4 0v2z"/></svg>';
   var D = null, glpk = null, busy = false, result = null, showAll = false, rtab = "lu";
+  var F = [];                      // lineup filters from the exposure tables: {t: "pl"|"tm"|"gm", k, label}
+  var XS = { pl: { k: "c", dir: -1 }, tm: { k: "c", dir: -1 }, gm: { k: "c", dir: -1 } };   // exposure table sorts
+  var BOOSTS = [45, 30, 15, 0, -15, -30, -45];
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function f1(x) { return x == null || isNaN(x) ? "" : (Math.round(x * 10) / 10).toFixed(1); }
@@ -613,7 +711,10 @@ var T7Opt = (function () {
   ["dk", "fd"].forEach(function (s) { S.set[s] = Object.assign({}, DEF[s], S.set[s] || {}); });
   var E = {}, T = {};            // player edits and team picks for the current site + slate
   function slateKey() { return "t7opt." + D.date + "." + S.site + "." + S.slate; }
-  function loadSlate() { var v = load(slateKey(), {}); E = v.E || {}; T = v.T || { mode: {}, sg: [], st: [] }; }
+  function loadSlate() {
+    var v = load(slateKey(), {}); E = v.E || {}; T = v.T || { mode: {}, sg: [], st: [] };
+    Object.keys(E).forEach(function (k) { var b = E[k].boost; if (b === 1 || b === -1) E[k].boost = 15 * b; });   // early beta: +1 / -1
+  }
   function saveSlate() { store(slateKey(), JSON.stringify({ E: E, T: T })); }
   function saveSet() { store("t7opt.settings", JSON.stringify(S.set)); store("t7opt.site", S.site); }
 
@@ -650,6 +751,10 @@ var T7Opt = (function () {
       if (lim[f]) { el.min = lim[f][0]; el.max = lim[f][1]; }
     });
     $("stack").value = st.stack;
+    var nk = Object.keys(T.mode || {}).filter(function (t) { return T.mode[t] === "keep"; }).length, nr = Object.keys(T.mode || {}).length - nk;
+    $("sum-set").textContent = [st.n + " lineup" + (st.n == 1 ? "" : "s"), st.exposure + "% exposure", st.random ? st.random + "% random" : "",
+      st.stack === "game" ? "game stack" : st.stack === "team" ? "team stack" : "", nk ? nk + " team" + (nk > 1 ? "s" : "") + " kept" : "",
+      nr ? nr + " team" + (nr > 1 ? "s" : "") + " removed" : ""].filter(Boolean).join(" \u00b7 ");
     document.querySelectorAll("[data-stack]").forEach(function (el) { el.hidden = el.dataset.stack !== st.stack; });
   }
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
@@ -690,7 +795,7 @@ var T7Opt = (function () {
     var t = b.dataset.t, m = T.mode[t] || "";
     T.mode[t] = m === "" ? "keep" : m === "keep" ? "remove" : "";
     if (!T.mode[t]) delete T.mode[t];
-    saveSlate(); drawTeams();
+    saveSlate(); drawTeams(); showSettings();
   });
   function toggleIn(arr, v) { var i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
   $("sgames").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; toggleIn(T.sg, b.dataset.g); saveSlate(); drawTeams(); });
@@ -702,7 +807,7 @@ var T7Opt = (function () {
     return players().map(function (p) {
       var x = p[S.site], e = E[keyOf(p)] || {}, sal = +x.sl[S.slate];
       var pj = e.proj != null && e.proj !== "" ? +e.proj : x.p;
-      return { p: p, key: keyOf(p), n: p.n, pos: x.pos, tm: p.tm, opp: p.opp, home: p.home, inj: p.inj, sal: sal, base: x.p, pj: pj, e: e,
+      return { p: p, x: x, key: keyOf(p), n: p.n, pos: x.pos, tm: p.tm, opp: p.opp, home: p.home, inj: p.inj, sal: sal, base: x.p, pj: pj, e: e,
                v: sal ? pj / (sal / 1000) : null };
     });
   }
@@ -710,7 +815,8 @@ var T7Opt = (function () {
     switch (k) {
       case "lock": return r.e.lock ? 1 : 0; case "out": return r.e.out ? 1 : 0; case "n": return r.n;
       case "sal": return r.sal; case "p": return r.pj; case "exp": return r.e.exp == null || r.e.exp === "" ? -1 : +r.e.exp;
-      case "boost": return r.e.boost || 0; case "v": return r.v;
+      case "boost": return +r.e.boost || 0; case "v": return r.v;
+      case "rg": return r.x.c; case "min": case "pts": case "reb": case "ast": case "tpm": case "stl": case "blk": case "tov": return r.p[k];
     }
   }
   function render() {
@@ -727,20 +833,28 @@ var T7Opt = (function () {
     });
     var gx = S.set[S.site].exposure;
     $("rows").innerHTML = rows.length ? rows.map(function (r) {
-      var e = r.e, b = e.boost || 0;
+      var e = r.e, b = +e.boost || 0, p = r.p;
       var badge = r.inj && /^(out|o)$/i.test(r.inj) ? ' <span class="badge b-out">OUT</span>' : r.inj && /^(q|gtd|questionable|doubtful|d)/i.test(r.inj) ? ' <span class="badge b-q">' + esc(r.inj.slice(0, 3).toUpperCase()) + "</span>" : "";
       return '<tr data-k="' + esc(r.key) + '"' + (e.out ? ' class="is-out"' : "") + ">" +
         '<td><button type="button" class="tg lk" data-a="lock" aria-pressed="' + !!e.lock + '" aria-label="Lock ' + esc(r.n) + '">' + LOCK + '</button></td>' +
         '<td><button type="button" class="tg ex" data-a="out" aria-pressed="' + !!e.out + '" aria-label="Leave out ' + esc(r.n) + '">✕</button></td>' +
-        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + esc(r.pos) + " · " + esc(r.tm) + " " + (r.home ? "vs" : "@") + " " + esc(r.opp) + '<span class="msal"> \u00b7 ' + money(r.sal) + "</span></span></td>" +
+        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + esc(r.pos) + " · " + esc(r.tm) + " " + (r.home ? "vs" : "@") + " " + esc(r.opp) + '<span class="msal"> \u00b7 ' + money(r.sal) + "</span></span>" +
+          "</td>" +
         '<td class="num sal">' + money(r.sal) + "</td>" +
         '<td><input class="ctl num' + (e.proj != null && e.proj !== "" ? " set" : "") + '" data-a="proj" type="number" step="0.5" min="0" inputmode="decimal" placeholder="' + f1(r.base) + '" value="' + (e.proj == null ? "" : esc(e.proj)) + '" aria-label="Projection for ' + esc(r.n) + '"></td>' +
         '<td><input class="ctl num' + (e.exp != null && e.exp !== "" ? " set" : "") + '" data-a="exp" type="number" step="5" min="0" max="100" inputmode="numeric" placeholder="' + gx + '" value="' + (e.exp == null ? "" : esc(e.exp)) + '" aria-label="Exposure for ' + esc(r.n) + '"></td>' +
-        '<td><button type="button" class="tg bs' + (b > 0 ? " up" : b < 0 ? " dn" : "") + '" data-a="boost" aria-label="Boost for ' + esc(r.n) + ': ' + (b > 0 ? "+25%" : b < 0 ? "-25%" : "none") + '">' + (b > 0 ? "+25" : b < 0 ? "−25" : "–") + "</button></td>" +
-        '<td class="wide num">' + (r.v == null ? "" : r.v.toFixed(2) + "x") + "</td></tr>";
-    }).join("") : '<tr><td colspan="8" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
+        '<td><select class="ctl bsel' + (b > 0 ? " up" : b < 0 ? " dn" : "") + '" data-a="boost" aria-label="Boost or suppress ' + esc(r.n) + '">' +
+          BOOSTS.map(function (v) { return '<option value="' + v + '"' + (v === b ? " selected" : "") + ">" + (v > 0 ? "+" + v + "%" : v < 0 ? "\u2212" + (-v) + "%" : "\u2013") + "</option>"; }).join("") + "</select></td>" +
+        '<td class="wide num">' + (r.v == null ? "" : r.v.toFixed(2) + "x") + "</td>" +
+        '<td class="stat">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + "</td>" +
+        ["min", "pts", "reb", "ast", "tpm", "stl", "blk", "tov"].map(function (c) { return '<td class="stat num">' + (c === "min" ? (p.min == null ? "" : Math.round(p.min)) : f1(p[c])) + "</td>"; }).join("") +
+        "</tr>" +
+        '<tr class="srow"><td colspan="17">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + " range \u00b7 " + (p.min == null ? "" : Math.round(p.min) + " min \u00b7 ") +
+          f1(p.pts) + " pts \u00b7 " + f1(p.reb) + " reb \u00b7 " + f1(p.ast) + " ast \u00b7 " + f1(p.tpm) + " 3pm \u00b7 " + f1(p.stl) + " stl \u00b7 " + f1(p.blk) + " blk \u00b7 " + f1(p.tov) + " to</td></tr>";
+    }).join("") : '<tr><td colspan="17" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
     var all = rowData(), nE = all.filter(function (r) { return edited(r.e); }).length;
     $("count").textContent = rows.length + " of " + all.length + " players" + (nE ? " · " + nE + " changed" : "");
+    $("sum-pool").textContent = all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "");
     document.querySelectorAll("table.pool th").forEach(function (th) {
       var b = th.querySelector("button");
       if (b && b.dataset.sort === S.sort) th.setAttribute("aria-sort", S.dir < 0 ? "descending" : "ascending"); else th.removeAttribute("aria-sort");
@@ -757,12 +871,12 @@ var T7Opt = (function () {
     var k = b.closest("tr").dataset.k, cur = E[k] || {};
     if (b.dataset.a === "lock") { setEdit(k, "lock", !cur.lock); if (!cur.lock) setEdit(k, "out", false); }
     if (b.dataset.a === "out") { setEdit(k, "out", !cur.out); if (!cur.out) setEdit(k, "lock", false); }
-    if (b.dataset.a === "boost") setEdit(k, "boost", cur.boost > 0 ? -1 : cur.boost < 0 ? 0 : 1);
     render();
   });
   $("rows").addEventListener("change", function (e) {
-    var i = e.target.closest("input[data-a]"); if (!i) return;
+    var i = e.target.closest("input[data-a], select[data-a]"); if (!i) return;
     var k = i.closest("tr").dataset.k, v = i.value.trim();
+    if (i.dataset.a === "boost") { setEdit(k, "boost", +v || 0); render(); return; }
     if (v !== "" && isNaN(+v)) v = "";
     if (i.dataset.a === "exp" && v !== "") v = String(clamp(+v, 0, 100));
     if (i.dataset.a === "proj" && v !== "") v = String(Math.max(0, +v));
@@ -797,6 +911,7 @@ var T7Opt = (function () {
     document.querySelectorAll("#site button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.site === S.site)); });
     loadSlate(); showSettings(); drawTeams(); render();
     $("go").disabled = !S.slate;
+    if (result && (result.site !== S.site || result.slate !== S.slate)) { result = null; $("results").hidden = true; }
   }
   $("site").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b || busy) return;
@@ -810,7 +925,7 @@ var T7Opt = (function () {
     if (glpk) return Promise.resolve(glpk);
     return import(GLPK_URL).then(function (m) { return m.default(); }).then(function (g) { glpk = g; return g; });
   }
-  $("go").addEventListener("click", function () {
+  function build() {
     if (busy || !S.slate) return;
     var st = readSettings(); showSettings();
     var keep = [], remove = [];
@@ -830,76 +945,154 @@ var T7Opt = (function () {
         return new Promise(function (r) { setTimeout(r, 0); });   // let the page repaint
       } });
     }).then(function (r) {
-      result = { lineups: r.lineups, site: S.site, slate: S.slate, pool: pool, n: s.n, at: new Date() };
-      showAll = false;
+      result = { lineups: r.lineups, site: S.site, slate: S.slate, n: s.n };
+      showAll = false; F = [];
       msg(r.stopped ? "Built " + r.lineups.length + " of " + s.n + " lineups: the settings didn't allow more (try raising exposure or loosening locks and stacks)."
                     : "Built " + r.lineups.length + " lineup" + (r.lineups.length === 1 ? "" : "s") + " in " + ((Date.now() - t0) / 1000).toFixed(1) + "s.");
       track("build_lineups", { sport: "nba", site: S.site, lineups: r.lineups.length });
+      $("results").hidden = false; $("fold-res").open = true;
       drawResults();
-      $("results").hidden = false;
       $("results").scrollIntoView({ behavior: "smooth", block: "start" });
     }).catch(function (err) {
       var m = err && err.message ? err.message : String(err);
       msg(/import|fetch|module|load/i.test(m) && !glpk ? "Couldn't load the optimizer. Check your connection and try again." : m, true);
     }).then(function () { busy = false; $("go").disabled = false; $("bar").hidden = true; });
-  });
+  }
+  $("go").addEventListener("click", build);
 
   // ---------- results ----------
+  function tot(lu, f) { return lu.reduce(function (a, x) { return a + x[f]; }, 0); }
+  function hasItem(lu, f) {
+    return lu.some(function (x) { return f.t === "pl" ? x.key === f.k : f.t === "tm" ? x.team === f.k : x.game === f.k; });
+  }
+  function shownIdx() {   // lineups that pass every filter (all of them must be in the lineup)
+    var out = [];
+    result.lineups.forEach(function (lu, i) { if (F.every(function (f) { return hasItem(lu, f); })) out.push(i); });
+    return out;
+  }
+  function removedNames() {
+    var seen = {}, names = [];
+    result.lineups.forEach(function (lu) { lu.forEach(function (x) { if (!seen[x.key] && E[x.key] && E[x.key].out) { seen[x.key] = 1; names.push(x.name); } }); });
+    return names;
+  }
+  function expRows(L) {   // exposure counts for the current tab
+    var by = {};
+    L.forEach(function (lu) {
+      var seen = {};
+      lu.forEach(function (x) {
+        var k = rtab === "pl" ? x.key : rtab === "tm" ? x.team : x.game;
+        if (!by[k]) by[k] = { k: k, c: 0, n: 0, name: rtab === "pl" ? x.name : rtab === "tm" ? x.team : x.game.replace("@", " / "), team: x.team };
+        by[k].n++;
+        if (!seen[k]) { seen[k] = 1; by[k].c++; }
+      });
+    });
+    return Object.keys(by).map(function (k) { return by[k]; });
+  }
   function drawResults() {
     var R = result; if (!R) return;
-    var L = R.lineups, tot = function (lu, f) { return lu.reduce(function (a, x) { return a + x[f]; }, 0); };
+    var L = R.lineups, idx = shownIdx();
     var pts = L.map(function (lu) { return tot(lu, "proj"); });
-    $("rsum").textContent = L.length + " lineup" + (L.length === 1 ? "" : "s") + " · " + (R.site === "dk" ? "DraftKings" : "FanDuel") +
-      " · projected " + f1(Math.max.apply(null, pts)) + (L.length > 1 ? " to " + f1(Math.min.apply(null, pts)) : "") + " points";
+    var head = L.length + " lineup" + (L.length === 1 ? "" : "s") + " · " + (R.site === "dk" ? "DraftKings" : "FanDuel") +
+      " · " + f1(Math.max.apply(null, pts)) + (L.length > 1 ? " to " + f1(Math.min.apply(null, pts)) : "") + " pts";
+    $("sum-res").textContent = head;
     document.querySelectorAll("#rtab button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.tab === rtab)); });
+    // filters
+    $("filt").hidden = !F.length;
+    $("filt").innerHTML = F.length ? "Showing " + idx.length + " of " + L.length + " lineups with " +
+      F.map(function (f, j) { return '<button type="button" class="chip" data-j="' + j + '" aria-label="Remove filter ' + esc(f.label) + '">' + esc(f.label) + " ✕</button>"; }).join(" ") +
+      ' <button type="button" class="clear" data-j="all">Clear</button>' : "";
+    $("dlf").hidden = !F.length || !idx.length;
+    $("dlf").textContent = "Download these " + idx.length;
+    // players removed for the next build
+    var gone = removedNames();
+    $("outnote").hidden = !gone.length;
+    $("outnote").innerHTML = gone.length ? "Out next build: " + esc(gone.join(", ")) + ' <button type="button" class="btn btn-line slim" id="rebuild">Build again</button>' : "";
     var html = "";
     if (rtab === "lu") {
-      var shown = showAll ? L : L.slice(0, 24);
-      html = '<div class="lus">' + shown.map(function (lu, i) {
+      var list = showAll ? idx : idx.slice(0, 24);
+      html = idx.length ? '<div class="lus">' + list.map(function (i) {
+        var lu = L[i];
         return '<div class="card lu"><div class="card-bar"><span class="card-title">#' + (i + 1) + '</span><span class="card-note num">' +
           f1(tot(lu, "proj")) + " pts · " + money(tot(lu, "salary")) + "</span></div><table>" +
           lu.map(function (x) {
-            return '<tr><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) + '">' + esc(x.name) + '</td><td class="tm">' + esc(x.team) +
-              '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + f1(x.proj) + "</td></tr>";
+            var out = E[x.key] && E[x.key].out;
+            return '<tr' + (out ? ' class="gone"' : "") + '><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) + '">' + esc(x.name) +
+              '</td><td class="tm">' + esc(x.team) + '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + f1(x.proj) +
+              '</td><td class="x"><button type="button" class="rm" data-k="' + esc(x.key) + '" aria-pressed="' + !!out + '" title="' +
+              (out ? "Put back for the next build" : "Leave out of the next build") + '" aria-label="' + (out ? "Put back " : "Leave out ") + esc(x.name) + '">✕</button></td></tr>';
           }).join("") + "</table></div>";
-      }).join("") + "</div>" + (L.length > shown.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + L.length + " lineups</button>" : "");
+      }).join("") + "</div>" + (idx.length > list.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + idx.length + " lineups</button>" : "")
+        : '<p class="msg">No lineup has all of those. Remove a filter.</p>';
     } else {
-      var by = {}, label = {};
-      L.forEach(function (lu) {
-        var seen = {};
-        lu.forEach(function (x) {
-          var k = rtab === "pl" ? x.key : rtab === "tm" ? x.team : x.game;
-          if (seen[k] && rtab === "pl") return;
-          if (rtab === "pl") { seen[k] = 1; by[k] = (by[k] || 0) + 1; label[k] = esc(x.name) + ' <span class="pm" style="display:inline">' + esc(x.team) + "</span>"; }
-          else { by[k] = (by[k] || 0) + 1; label[k] = esc(rtab === "tm" ? x.team : x.game.replace("@", " / ")); }
-        });
+      var rows = expRows(idx.map(function (i) { return L[i]; })), xs = XS[rtab], n = idx.length || 1;
+      rows.sort(function (a, b) {
+        var x = xs.k === "name" ? a.name.localeCompare(b.name) : (a[xs.k] - b[xs.k]);
+        return xs.dir * x || b.c - a.c;
       });
-      var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; });
-      var head = rtab === "pl" ? "Player" : rtab === "tm" ? "Team" : "Game";
-      var unit = rtab === "pl" ? "Lineups" : "Players";
-      html = '<div class="card"><div class="scroll"><table class="exp"><thead><tr><th class="l">' + head + "</th><th>" + unit + "</th><th>" +
-        (rtab === "pl" ? "Exposure" : "Per lineup") + '</th><th class="l"></th></tr></thead><tbody>' +
-        keys.map(function (k) {
-          var v = by[k], share = rtab === "pl" ? v / L.length : v / L.length;
-          return '<tr><td class="l">' + label[k] + "</td><td class=\"num\">" + v +
-            '</td><td class="num">' + (rtab === "pl" ? Math.round(100 * share) + "%" : share.toFixed(1)) + '</td><td class="barc"><div class="xb"><i style="width:' +
-            (rtab === "pl" ? 100 * share : 100 * share / (R.site === "dk" ? 8 : 9)) + '%"></i></div></td></tr>';
-        }).join("") + "</tbody></table></div></div>";
+      var what = rtab === "pl" ? "Player" : rtab === "tm" ? "Team" : "Game";
+      var th = function (k, label, cls) { return '<th' + (cls ? ' class="' + cls + '"' : "") + (xs.k === k ? ' aria-sort="' + (xs.dir < 0 ? "descending" : "ascending") + '"' : "") +
+        '><button type="button" data-xs="' + k + '">' + label + "</button></th>"; };
+      html = '<div class="card"><div class="scroll"><table class="exp"><thead><tr>' + th("name", what, "l") +
+        (rtab === "pl" ? th("c", "Lineups") + th("c", "Exposure") : th("c", "Lineups") + th("n", "Players")) + '<th class="l"></th></tr></thead><tbody>' +
+        rows.map(function (r) {
+          var sel = F.some(function (f) { return f.t === rtab && f.k === r.k; }), share = r.c / n;
+          return '<tr data-k="' + esc(r.k) + '" data-label="' + esc(r.name) + '"' + (sel ? ' class="sel" aria-selected="true"' : "") + '><td class="l">' + esc(r.name) +
+            (rtab === "pl" ? ' <span class="pm" style="display:inline">' + esc(r.team) + "</span>" : "") + '</td><td class="num">' + r.c + "</td>" +
+            '<td class="num">' + (rtab === "pl" ? Math.round(100 * share) + "%" : r.n) + '</td><td class="barc"><div class="xb"><i style="width:' + (100 * share) + '%"></i></div></td></tr>';
+        }).join("") + '</tbody></table></div></div><p class="hint">Tap a row to show only lineups with it; tap more to narrow down.</p>';
     }
     $("rbody").innerHTML = html;
-    var mb = $("more"); if (mb) mb.addEventListener("click", function () { showAll = true; drawResults(); });
   }
   $("rtab").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; rtab = b.dataset.tab; drawResults(); });
-  $("dl").addEventListener("click", function () {
-    if (!result) return;
-    var csv = T7Opt.uploadCsv(result.lineups, result.site);
+  $("rbody").addEventListener("click", function (e) {
+    var rm = e.target.closest("button.rm");
+    if (rm) {   // leave this player out of the next build (or put him back)
+      var k = rm.dataset.k, cur = E[k] || {};
+      setEdit(k, "out", !cur.out); if (!cur.out) setEdit(k, "lock", false);
+      render(); drawResults(); return;
+    }
+    if (e.target.closest("#more")) { showAll = true; drawResults(); return; }
+    var sb = e.target.closest("button[data-xs]");
+    if (sb) { var xs = XS[rtab], k2 = sb.dataset.xs; if (xs.k === k2) xs.dir = -xs.dir; else { xs.k = k2; xs.dir = k2 === "name" ? 1 : -1; } drawResults(); return; }
+    var tr = e.target.closest("table.exp tbody tr");
+    if (tr) {
+      var j = -1; F.forEach(function (f, i) { if (f.t === rtab && f.k === tr.dataset.k) j = i; });
+      if (j >= 0) F.splice(j, 1); else F.push({ t: rtab, k: tr.dataset.k, label: tr.dataset.label });
+      showAll = false; drawResults();
+    }
+  });
+  $("filt").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-j]"); if (!b) return;
+    if (b.dataset.j === "all") F = []; else F.splice(+b.dataset.j, 1);
+    drawResults();
+  });
+  $("outnote").addEventListener("click", function (e) { if (e.target.closest("#rebuild")) build(); });
+  function download(list, tag) {
+    var csv = T7Opt.uploadCsv(list, result.site);
     var a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    a.download = "three7_nba_" + (result.site === "dk" ? "draftkings" : "fanduel") + "_" + D.date + ".csv";
+    a.download = "three7_nba_" + (result.site === "dk" ? "draftkings" : "fanduel") + "_" + D.date + (tag ? "_" + tag : "") + ".csv";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
-    track("download_lineups", { sport: "nba", site: result.site, lineups: result.lineups.length });
+    track("download_lineups", { sport: "nba", site: result.site, lineups: list.length });
+  }
+  $("dl").addEventListener("click", function () { if (result) download(result.lineups, ""); });
+  $("dlf").addEventListener("click", function () { if (result) download(shownIdx().map(function (i) { return result.lineups[i]; }), "filtered"); });
+
+  // ---------- collapsible sections + stats toggle (remembered per visitor) ----------
+  var FOLD = load("t7opt.folds", {});
+  document.querySelectorAll("details.fold").forEach(function (d) {
+    var k = d.dataset.fold;
+    if (k in FOLD) d.open = !!FOLD[k];
+    d.addEventListener("toggle", function () { FOLD[k] = d.open; store("t7opt.folds", JSON.stringify(FOLD)); });
   });
+  function setStats(on) {
+    document.body.classList.toggle("stats-on", on);
+    $("stats").setAttribute("aria-pressed", String(on)); $("stats").textContent = on ? "Hide stats" : "Show stats";
+    store("t7opt.stats", on ? "1" : "0");
+  }
+  setStats(store("t7opt.stats") === "1");
+  $("stats").addEventListener("click", function () { setStats(!document.body.classList.contains("stats-on")); });
 
   // ---------- start ----------
   getData().then(function (data) {
