@@ -265,6 +265,35 @@ select.lsort { min-width: 0; }
 #lsort option[data-rw] { display: none; }
 body.rewind #lsort option[data-rw] { display: block; }
 
+/* contests */
+.flex-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 12px; }
+.flex-grid .fp { display: flex; flex-direction: column; gap: 4px; }
+.flex-grid .fp b { font-size: .84rem; color: var(--muted); font-weight: 600; }
+.flex-grid .fp div { display: flex; gap: 6px; }
+.flex-grid input.ctl { width: 100%; min-width: 0; padding: 6px 8px; min-height: 36px; text-align: center; }
+.row2 .fld.wide2 { width: 320px; max-width: 100%; }
+.lu.nosal td.sa { display: none; }
+
+/* optimal %, uploads, late swap */
+.chk { display: flex; align-items: center; gap: 8px; min-height: 42px; color: var(--chalk); font-size: .95rem; cursor: pointer; }
+.chk input { width: 18px; height: 18px; accent-color: var(--mint); }
+table.pool .optc { display: none; }
+body.has-opt table.pool .optc { display: table-cell; }
+table.pool td.optc { color: var(--soft); }
+.mopt { display: none; }
+.tool-more { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.upbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 0 0 12px; padding: 10px 14px; border: 1px dashed var(--sky); border-radius: 8px; color: var(--soft); font-size: .92rem; }
+.upbar .upw { display: inline-flex; align-items: center; gap: 8px; }
+.upbar input[type=range] { accent-color: var(--sky); width: 140px; }
+.upbar .clear { background: none; border: 0; color: var(--sky); text-decoration: underline; cursor: pointer; font: inherit; padding: 4px; }
+table.pool input.ctl.up { border-style: dashed; border-color: var(--sky); }
+.ls-steps { color: var(--soft); font-size: .92rem; margin: 0 0 4px 18px; padding: 0; }
+table.exp.ls td, table.exp.ls th button { white-space: nowrap; }
+table.exp.ls td.l { white-space: normal; min-width: 8rem; }
+table.exp.ls tbody tr { cursor: default; }
+.st-swap { color: var(--mint); font-weight: 600; }
+.st-bad { color: var(--out); }
+
 @media (max-width: 760px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .row2 .fld { width: calc(50% - 7px); }
@@ -289,6 +318,14 @@ body.rewind #lsort option[data-rw] { display: block; }
   .res-head .seg button { flex: 1; padding: 9px 6px; }
   .dl-btns { flex: 1 1 100%; }
   select.lsort { flex: 1 1 100%; }
+  .tool-more { flex: 1 1 100%; }
+  body.has-opt table.pool .optc { display: none; }
+  .mopt { display: inline; }
+  .tool-more .btn { flex: 1 1 auto; }
+  .flex-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .row2 .fld.wide2 { width: 100%; }
+  .tools #contest { flex: 1 1 100%; }
+  .tools #contest button { flex: 1; padding: 9px 6px; }
   .lu td { padding-left: 4px; padding-right: 4px; }
   .lu td:first-child { padding-left: 10px; }
   .lu td.sl { width: 2.6rem; }
@@ -370,6 +407,7 @@ body.rewind #lsort option[data-rw] { display: block; }
         <button type="button" data-site="dk" aria-pressed="true">DraftKings</button>
         <button type="button" data-site="fd" aria-pressed="false">FanDuel</button>
       </div>
+      <div class="seg" id="contest" role="group" aria-label="Contest"></div>
       <select class="ctl" id="slate" aria-label="Slate"></select>
     </div>
     <p class="rewind-note" id="rewind" hidden></p>
@@ -383,19 +421,20 @@ body.rewind #lsort option[data-rw] { display: block; }
           <div class="grid">
             <div class="fld"><label for="n">Lineups</label><input class="ctl num" id="n" type="number" min="1" max="150" step="1" value="5"></div>
             <div class="fld"><label for="exposure">Global exposure %</label><input class="ctl num" id="exposure" type="number" min="1" max="100" step="5" value="60"></div>
-            <div class="fld"><label for="minProj">Min proj</label><input class="ctl num" id="minProj" type="number" min="0" max="30" step="0.5" value="1"></div>
+            <div class="fld" data-c="Classic Captain"><label for="minProj">Min proj</label><input class="ctl num" id="minProj" type="number" min="0" max="30" step="0.5" value="1"></div>
             <div class="fld"><label for="random">Randomness %</label><input class="ctl num" id="random" type="number" min="0" max="30" step="5" value="0"></div>
             <div class="fld"><label for="minUnique">Min unique players</label><input class="ctl num" id="minUnique" type="number" min="1" max="5" step="1" value="1"></div>
-            <div class="fld"><label for="minSal">Min salary</label><input class="ctl num" id="minSal" type="number" min="0" step="100" value="0"></div>
-            <div class="fld"><label for="maxSal">Max salary</label><input class="ctl num" id="maxSal" type="number" step="100" value="50000"></div>
-            <div class="fld"><label for="maxTeam">Max per team</label><input class="ctl num" id="maxTeam" type="number" min="2" step="1" value="8"></div>
+            <div class="fld" data-c="Classic Captain"><label for="minSal">Min salary</label><input class="ctl num" id="minSal" type="number" min="0" step="100" value="0"></div>
+            <div class="fld" data-c="Classic Captain"><label for="maxSal">Max salary</label><input class="ctl num" id="maxSal" type="number" step="100" value="50000"></div>
+            <div class="fld" data-c="Classic"><label for="maxTeam">Max per team</label><input class="ctl num" id="maxTeam" type="number" min="2" step="1" value="8"></div>
+            <div class="fld" id="opt-fld" hidden><span class="lbl">Exposure caps</span><label class="chk"><input type="checkbox" id="useOpt"> From Optimal %</label></div>
           </div>
         </div>
-        <div class="panel">
+        <div class="panel" data-c="Classic">
           <p class="lbl" style="margin:0 0 8px">Teams <span style="font-weight:400">· tap once to keep only those teams, twice to remove a team</span></p>
           <div class="chips" id="teams"></div>
         </div>
-        <div class="panel">
+        <div class="panel" data-c="Classic">
           <div class="row2" style="margin-top:0">
             <div class="fld"><label for="stack">Stack</label>
               <select class="ctl" id="stack"><option value="none">No</option><option value="game">Game</option><option value="team">Team</option></select></div>
@@ -405,6 +444,31 @@ body.rewind #lsort option[data-rw] { display: block; }
           </div>
           <div data-stack="game" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Games to stack <span style="font-weight:400">· none picked = any game</span></p><div class="chips" id="sgames"></div></div>
           <div data-stack="team" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Teams to stack <span style="font-weight:400">· none picked = any team</span></p><div class="chips" id="steams"></div></div>
+        </div>
+        <!-- [CONTESTS] Showdown / single game -->
+        <div class="panel" data-c="Captain">
+          <div class="row2" style="margin-top:0">
+            <div class="fld wide2"><label for="script">Game script</label>
+              <select class="ctl" id="script"><option value="">Pick a game script</option></select></div>
+          </div>
+          <p class="hint" id="script-about" hidden></p>
+          <div class="row2">
+            <div class="fld"><label for="cmode" id="cmode-l">Lock captain</label>
+              <select class="ctl" id="cmode"><option value="">Anyone</option><option value="team">Team</option><option value="pos">Position</option><option value="player">Player</option></select></div>
+            <div class="fld" data-cm="team"><label for="cteam">Captain team</label><select class="ctl" id="cteam"></select></div>
+          </div>
+          <div data-cm="pos" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Captain positions</p><div class="chips" id="cpos"></div></div>
+          <div data-cm="player" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Captain players <span style="font-weight:400">· pick one or more</span></p><div class="chips" id="cplay"></div></div>
+        </div>
+        <div class="panel" data-c="Captain Tiers">
+          <div class="row2" style="margin-top:0">
+            <div class="fld"><label for="xteam">Stack team</label><select class="ctl" id="xteam"></select></div>
+            <div class="fld"><label for="xsize">Stack size</label><input class="ctl num" id="xsize" type="number" min="2" max="5" step="1" value="3"></div>
+          </div>
+        </div>
+        <div class="panel" data-c="Captain">
+          <p class="lbl" style="margin:0 0 8px">Util limits <span style="font-weight:400">· how many of each position in the non-captain spots (a PG/SG counts for both)</span></p>
+          <div class="flex-grid" id="flex"></div>
         </div>
       </div>
     </details>
@@ -424,9 +488,21 @@ body.rewind #lsort option[data-rw] { display: block; }
             <button type="button" data-pos="C" aria-pressed="false">C</button>
             <button type="button" data-pos="*" aria-pressed="false">Changed</button>
           </div>
+          <select class="ctl" id="pteam" aria-label="Team"><option value="">All teams</option></select>
           <input class="ctl search" id="q" type="search" placeholder="Search players" autocomplete="off">
           <button type="button" class="btn btn-line slim" id="stats" aria-pressed="false">Show stats</button>
           <button type="button" class="btn btn-line slim" id="reset">Reset changes</button>
+          <span class="tool-more">
+            <button type="button" class="btn btn-line slim" id="tpl">Template</button>
+            <button type="button" class="btn btn-line slim" id="upl">Upload my projections</button>
+            <button type="button" class="btn btn-line slim" id="dlt">Download table</button>
+            <input type="file" id="uplf" accept=".csv,text/csv" hidden>
+          </span>
+        </div>
+        <div class="upbar" id="upbar" hidden>
+          <span id="upnote"></span>
+          <label class="upw">Ours <input type="range" id="upw" min="0" max="100" step="5" value="100"> Mine <b id="upwv">100%</b></label>
+          <button type="button" class="clear" id="upx">Remove upload</button>
         </div>
         <div class="card">
           <div class="card-bar"><span class="card-title">Player pool</span><span class="card-note">Proj and Exp % are yours to change · blank = ours</span></div>
@@ -442,6 +518,7 @@ body.rewind #lsort option[data-rw] { display: block; }
                 <th><button type="button" data-sort="exp">Exp %</button></th>
                 <th title="Boost or suppress our projection"><button type="button" data-sort="boost">Boost</button></th>
                 <th class="wide"><button type="button" data-sort="v">Value</button></th>
+                <th class="optc"><button type="button" data-sort="opt">Opt %</button></th>
                 <th class="stat"><button type="button" data-sort="rg">Range</button></th>
                 <th class="stat"><button type="button" data-sort="min">Min</button></th>
                 <th class="stat"><button type="button" data-sort="pts">Pts</button></th>
@@ -452,7 +529,7 @@ body.rewind #lsort option[data-rw] { display: block; }
                 <th class="stat"><button type="button" data-sort="blk">Blk</button></th>
                 <th class="stat"><button type="button" data-sort="tov">TO</button></th>
               </tr></thead>
-              <tbody id="rows"><tr><td colspan="18" class="empty">Loading…</td></tr></tbody>
+              <tbody id="rows"><tr><td colspan="19" class="empty">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -489,6 +566,35 @@ body.rewind #lsort option[data-rw] { display: block; }
     </details>
   </section>
 </main>
+
+<section class="wrap sec" id="lswap-sec" aria-label="Late swap">
+  <details class="fold" id="fold-ls" data-fold="ls">
+    <summary><h2>Late swap</h2><span class="fold-sum">DraftKings Classic · swap players in games that haven't started</span></summary>
+    <div class="fold-body">
+      <div class="panel">
+        <ol class="ls-steps">
+          <li>On DraftKings: My Contests → Upcoming → Edit Entries (NBA Classic) → Download. That's DKEntries.csv.</li>
+          <li>Choose it here and press Late swap. Players whose game has tipped stay; every other spot gets our best projection (with your edits and uploads).</li>
+          <li>Download the new file and upload it on the same DraftKings page. Your file never leaves this browser.</li>
+        </ol>
+        <div class="row2">
+          <div class="fld wide2"><label for="lsf">DKEntries.csv</label><input class="ctl" id="lsf" type="file" accept=".csv,text/csv"></div>
+          <div class="fld"><label for="lslock">Games locked</label><select class="ctl" id="lslock"><option value="now">Right now</option></select></div>
+          <div class="fld"><label for="lsgain">Min. gain (pts)</label><input class="ctl num" id="lsgain" type="number" min="0" step="0.5" value="0.5"></div>
+          <div class="fld"><label for="lsshare">Max share, new player %</label><input class="ctl num" id="lsshare" type="number" min="5" max="100" step="5" value="100"></div>
+        </div>
+        <div class="build" style="margin-top:14px">
+          <button type="button" class="btn btn-solid" id="lsgo" disabled>Late swap</button>
+          <button type="button" class="btn btn-line" id="lsdl" hidden>Download DraftKings file</button>
+        </div>
+        <p class="msg" id="lsmsg" role="status" aria-live="polite"></p>
+      </div>
+      <div class="card" id="lsres" hidden><div class="scroll"><table class="exp ls"><thead><tr>
+        <th class="l">Entry</th><th class="l">Out</th><th class="l">In</th><th>Locked</th><th>Before</th><th>After</th><th>Gain</th><th>Status</th>
+      </tr></thead><tbody id="lsrows"></tbody></table></div></div>
+    </div>
+  </details>
+</section>
 
 <div class="buildbar" role="region" aria-label="Build lineups">
   <div class="wrap">
@@ -682,6 +788,154 @@ var T7Opt = (function () {
     return { lineups: lineups, stopped: false };
   }
 
+
+  // =====================================================================================
+  // Single game (DraftKings Showdown / FanDuel MVP), DraftKings Tiers and Total Points:
+  // the rules from the NBA app's Captain / Tiers / TotalPoints optimizer.
+  // Each player can sit in one of several slot types; a lineup fills every slot.
+  // =====================================================================================
+  var XC = {
+    "dk|Captain":     { slots: ["CPT", "UTIL", "UTIL", "UTIL", "UTIL", "UTIL"], mult: { CPT: 1.5 }, cap: 50000, captain: "CPT" },
+    // FanDuel's current single game (its salary file says "MVP - 1.5X Points/UTIL"): MVP at 1.5x + 5 UTIL, same salary in every spot
+    "fd|Captain":     { slots: ["MVP", "UTIL", "UTIL", "UTIL", "UTIL", "UTIL"], mult: { MVP: 1.5 }, cap: 60000, captain: "MVP",
+                        head: ["MVP - 1.5X Points", "UTIL", "UTIL", "UTIL", "UTIL", "UTIL"] },
+    "dk|Tiers":       { slots: ["T1", "T2", "T3", "T4", "T5", "T6"], mult: {}, cap: 0 },
+    "dk|TotalPoints": { slots: ["UTIL", "UTIL", "UTIL"], mult: {}, cap: 0, maxTeam: 2 }
+  };
+  function xspec(site, contest) { return XC[site + "|" + contest]; }
+  function multOf(spec, t) { return spec.mult[t] || 1; }
+  function posIn(pos, want) { return String(pos || "").split("/").map(function (x) { return x.trim(); }).indexOf(want) >= 0; }
+
+  // pool for a non-Classic slate. A player's entry for it: p[site].xs[contest + "|" + slate] =
+  //   { u: [id, salary], c: [id, salary] (DK captain row), t: "T3" (tier) }
+  function prepareX(players, site, contest, slate, s, edits) {
+    edits = edits || {};
+    var spec = xspec(site, contest), k = contest + "|" + slate, tp = contest === "TotalPoints", out = [];
+    players.forEach(function (p) {
+      var x = p[site]; if (!x || !x.xs || !x.xs[k]) return;
+      var z = x.xs[k], key = p.n + "|" + p.tm, e = edits[key] || {};
+      var base = tp ? p.pts : x.p;
+      var proj = e.proj != null && e.proj !== "" && !isNaN(+e.proj) ? +e.proj : base;
+      if (proj == null || isNaN(proj)) return;
+      out.push({ key: key, name: p.n, team: p.tm, opp: p.opp, game: gameKey(p.tm, p.opp), pos: x.pos, tier: z.t || null,
+                 ids: { u: z.u ? z.u[0] : null, c: z.c ? z.c[0] : null }, sal: { u: z.u ? +z.u[1] || 0 : 0, c: z.c ? +z.c[1] || 0 : 0 },
+                 salary: z.u ? +z.u[1] || 0 : 0, proj: Math.round(proj * 10) / 10,
+                 floor: tp ? null : x.f, ceil: tp ? null : x.c, avg: tp ? p.pavg : x.a, act: tp ? p.apts : x.act,
+                 lock: !!e.lock, out: !!e.out, boost: Math.max(-90, Math.min(100, +e.boost || 0)),
+                 exp: e.exp != null && e.exp !== "" && !isNaN(+e.exp) ? Math.max(0, Math.min(1, +e.exp / 100)) : null });
+    });
+    var pool = out.filter(function (r) {
+      if (r.out && !r.lock) return false;
+      if (contest === "Captain" && !r.lock && !(r.proj > s.minProj)) return false;   // Min Proj (Showdown only, like the app)
+      return true;
+    });
+    pool.forEach(function (r) {
+      r.fpts = r.proj * (1 + r.boost / 100);
+      r.cap = r.lock ? 1 : (r.exp != null ? r.exp : s.exposure);
+      r.types = [];
+      spec.slots.forEach(function (t) {
+        if (r.types.indexOf(t) >= 0) return;
+        if (/^T\d$/.test(t)) { if (r.tier === t) r.types.push(t); return; }
+        if (site === "dk" && t === "CPT" && !r.ids.c) return;        // no captain row for him in the file
+        r.types.push(t);
+      });
+    });
+    return pool.filter(function (r) { return r.types.length; });
+  }
+
+  // s: n, exposure, random, minUnique, minSal, maxSal, stack {team, size}, captain {team, pos: [], keys: []},
+  //    flex {PG: [min, max], ...} (non-captain spots)
+  async function runX(solver, pool, site, contest, s, opts) {
+    opts = opts || {};
+    var spec = xspec(site, contest), rnd = opts.random || Math.random, slots = spec.slots, R = slots.length;
+    var need = {}; slots.forEach(function (t) { need[t] = (need[t] || 0) + 1; });
+    var types = Object.keys(need);
+    if (!pool.length) throw new Error("No players left in the pool. Loosen Min Proj or exclusions.");
+    var cap = spec.cap ? Math.min(spec.cap, s.maxSal || spec.cap) : 0;
+    if (spec.cap && s.minSal > cap) throw new Error("Min Salary is higher than Max Salary.");
+    var C = spec.captain, cl = s.captain || {};
+    var vars = [];
+    pool.forEach(function (r, p) {
+      r.types.forEach(function (t) {
+        if (t === C) {   // Lock Captain: team / positions / players
+          if (cl.team && r.team !== cl.team) return;
+          if (cl.pos && cl.pos.length && !cl.pos.some(function (q) { return posIn(r.pos, q); })) return;
+          if (cl.keys && cl.keys.length && cl.keys.indexOf(r.key) < 0) return;
+        }
+        vars.push({ p: p, t: t, name: "x" + vars.length,
+                    sal: t === "CPT" ? r.sal.c : r.sal.u, id: t === "CPT" ? r.ids.c : r.ids.u, m: multOf(spec, t) });
+      });
+    });
+    var rows = [];
+    function row(pred, coef, op, rhs) { var c = {}; vars.forEach(function (v) { if (pred(v)) c[v.name] = coef ? coef(v) : 1; }); if (Object.keys(c).length) rows.push({ c: c, op: op, rhs: rhs }); else if ((op === "=" || op === ">=") && rhs > 0) rows.push({ c: {}, op: op, rhs: rhs, impossible: true }); }
+    types.forEach(function (t) { row(function (v) { return v.t === t; }, null, "=", need[t]); });
+    pool.forEach(function (r, p) { row(function (v) { return v.p === p; }, null, "<=", 1); });
+    if (cap) row(function () { return true; }, function (v) { return v.sal; }, "<=", cap);
+    if (cap && s.minSal > 0) row(function () { return true; }, function (v) { return v.sal; }, ">=", s.minSal);
+    var teams = []; pool.forEach(function (r) { if (teams.indexOf(r.team) < 0) teams.push(r.team); });
+    var maxTeam = contest === "Captain" ? R - 1 : (spec.maxTeam || R);   // Showdown needs both teams
+    if (maxTeam < R) teams.forEach(function (t) { row(function (v) { return pool[v.p].team === t; }, null, "<=", maxTeam); });
+    pool.forEach(function (r, p) { if (r.lock) row(function (v) { return v.p === p; }, null, ">=", 1); });
+    if (s.stack && s.stack.team && s.stack.size > 0) row(function (v) { return pool[v.p].team === s.stack.team; }, null, ">=", s.stack.size);
+    if (C && s.flex) Object.keys(s.flex).forEach(function (q) {   // Util limits by position (a PG/SG counts for both)
+      var lim = s.flex[q], nflex = R - 1;
+      if (lim[0] > 0) row(function (v) { return v.t !== C && posIn(pool[v.p].pos, q); }, null, ">=", lim[0]);
+      if (lim[1] < nflex) row(function (v) { return v.t !== C && posIn(pool[v.p].pos, q); }, null, "<=", lim[1]);
+    });
+    if (rows.some(function (r) { return r.impossible; })) throw new Error("No valid lineup found. Try loosening Lock Captain, locks, stacks or Util limits.");
+
+    var n = pool.length, L = s.n, used = new Array(n).fill(0), banned = [], lineups = [], cuts = [];
+    var capCount = pool.map(function (r) { return r.cap > 0 ? Math.max(1, Math.floor(r.cap * L + 1e-9)) : 0; });
+    var minUnique = Math.max(1, Math.min(s.minUnique || 1, R));
+    var bins = vars.map(function (v) { return v.name; });
+
+    async function solve(ban, fpts) {
+      var obj = {}, ub = {};
+      vars.forEach(function (v) { obj[v.name] = Math.round(fpts[v.p] * v.m * 1e4) / 1e4; if (ban[v.p]) ub[v.name] = 0; });
+      var res = await solver({ obj: obj, rows: rows.concat(cuts), bins: bins, ub: ub });
+      if (!res.ok) return null;
+      var picked = vars.filter(function (v) { return res.x[v.name] > 0.5; });
+      return picked.length === R ? picked : null;
+    }
+    for (var i = 1; i <= L; i++) {
+      var fpts = pool.map(function (r) { return s.random > 0 ? r.fpts * Math.max(1 + gauss(rnd) * s.random / 100, 0) : r.fpts; });
+      var banSet = {}; banned.forEach(function (p) { banSet[p] = 1; });
+      var picked = await solve(banSet, fpts);
+      if (!picked) {
+        var atCap = {}, diff = false;
+        used.forEach(function (u, p) { if (u >= capCount[p]) atCap[p] = 1; });
+        Object.keys(atCap).forEach(function (p) { if (!banSet[p]) diff = true; });
+        banned.forEach(function (p) { if (!atCap[p]) diff = true; });
+        if (diff) picked = await solve(atCap, fpts);
+      }
+      if (!picked) {
+        if (!lineups.length) throw new Error("No valid lineup found. Try raising exposure or loosening locks, Lock Captain, stacks or Util limits.");
+        return { lineups: lineups, stopped: true };
+      }
+      var order = slots.filter(function (t, j) { return slots.indexOf(t) === j; });
+      picked.sort(function (a, b) { return order.indexOf(a.t) - order.indexOf(b.t) || pool[b.p].fpts - pool[a.p].fpts; });
+      lineups.push(picked.map(function (v) {
+        var r = pool[v.p], m = v.m, sc = function (x) { return x == null || Array.isArray(x) ? null : x * m; };
+        return { slot: v.t, key: r.key, name: r.name, id: v.id, team: r.team, opp: r.opp, game: r.game, pos: r.pos,
+                 salary: v.sal, proj: Math.round(r.proj * m * 10) / 10, floor: sc(r.floor), ceil: sc(r.ceil), avg: sc(r.avg), act: sc(r.act) };
+      }));
+      if (opts.onProgress) await opts.onProgress(i, L);
+      var cu = {};
+      if (minUnique > 1) vars.forEach(function (v) { if (picked.some(function (q) { return q.p === v.p; })) cu[v.name] = 1; });
+      else picked.forEach(function (v) { cu[v.name] = 1; });   // the same players in other spots is a new lineup
+      cuts.push({ c: cu, op: "<=", rhs: R - minUnique });
+      var ps = picked.map(function (v) { return v.p; });
+      ps.forEach(function (p) { used[p]++; });
+      banned = [];
+      used.forEach(function (u, p) { if (u / i > pool[p].cap || u >= capCount[p]) banned.push(p); });
+    }
+    return { lineups: lineups, stopped: false };
+  }
+  function uploadCsvX(lineups, site, contest) {
+    var spec = xspec(site, contest);
+    return [(spec.head || spec.slots).join(",")].concat(lineups.map(function (lu) { return lu.map(function (x) { return x.id; }).join(","); })).join("\n") + "\n";
+  }
+
   // ---- solver adapters ----
   function highsSolver(highs) {
     return function (M) {
@@ -719,8 +973,169 @@ var T7Opt = (function () {
     return [head.join(",")].concat(lineups.map(function (lu) { return lu.map(function (x) { return x.id; }).join(","); })).join("\n") + "\n";
   }
 
-  return { SLOTS: SLOTS, LABEL: LABEL, CAP: CAP, eligible: eligible, gameKey: gameKey, prepare: prepare, run: run,
+  return { XC: XC, xspec: xspec, prepareX: prepareX, runX: runX, uploadCsvX: uploadCsvX, posIn: posIn,
+           SLOTS: SLOTS, LABEL: LABEL, CAP: CAP, eligible: eligible, gameKey: gameKey, prepare: prepare, run: run,
            seat: seat, highsSolver: highsSolver, glpkSolver: glpkSolver, uploadCsv: uploadCsv };
+})();
+/* Three7 NBA late swap (DraftKings Classic): the NBA app's late swap, in the browser.
+   The member's DKEntries.csv never leaves their computer. */
+var T7LS = (function () {
+  var SLOTS = ["PG", "SG", "SF", "PF", "C", "G", "F", "UTIL"], CAP = 50000;
+
+  // CSV text -> array of rows (handles quotes)
+  function parseCsv(t) {
+    var rows = [], row = [], cell = "", q = false;
+    t = String(t).replace(/^﻿/, "");
+    for (var i = 0; i < t.length; i++) {
+      var ch = t[i];
+      if (q) { if (ch === '"') { if (t[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ",") { row.push(cell); cell = ""; }
+      else if (ch === "\n" || ch === "\r") { if (ch === "\r" && t[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+      else cell += ch;
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+  // "Nikola Jokic (44770363)" / "... (LOCKED)" / a bare ID -> "44770363"
+  function cellId(x) {
+    x = String(x == null ? "" : x).trim();
+    if (/^\d{5,}$/.test(x)) return x;
+    var m = x.match(/\((\d{5,})\)/); return m ? m[1] : null;
+  }
+  // "BOS@NYK 11/19/2026 07:30PM ET" -> Date (Eastern), or null once the game has started
+  function kickOf(info) {
+    var m = String(info).match(/(\d{2})\/(\d{2})\/(\d{4}) (\d{1,2}):(\d{2})([AP])M/);
+    if (!m) return null;
+    var h = (+m[4] % 12) + (m[6] === "P" ? 12 : 0);
+    return etDate(+m[3], +m[1], +m[2], h, +m[5]);
+  }
+  function etDate(y, mo, d, h, mi) {   // a clock time in New York -> Date
+    var guess = Date.UTC(y, mo - 1, d, h + 5, mi);
+    var et = new Date(guess).toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
+    var p = et.match(/(\d+)\/(\d+)\/(\d+),? (\d+):(\d+)/);
+    var shown = Date.UTC(+p[3], +p[1] - 1, +p[2], +p[4] % 24, +p[5]);
+    return new Date(guess + (Date.UTC(y, mo - 1, d, h, mi) - shown));
+  }
+
+  function read(text) {
+    var raw = parseCsv(text);
+    if (!raw.length) throw new Error("That file is empty.");
+    var hdr = raw[0].map(function (x) { return String(x).trim(); });
+    var idx = SLOTS.map(function (s) { return hdr.indexOf(s); });
+    if (hdr[0] !== "Entry ID" || idx.slice(0, 5).some(function (i) { return i < 0; })) {
+      if (hdr[0] === "Entry ID" && hdr.indexOf("CPT") >= 0) throw new Error("This is a Showdown entries file. Late swap is for NBA Classic: in Showdown every player locks when the one game tips.");
+      throw new Error("This doesn't look like a DraftKings NBA Classic entries file (DKEntries.csv).");
+    }
+    var body = raw.slice(1), entries = [], lockedIds = {};
+    body.forEach(function (r) {
+      var id = String(r[0] || "").trim();
+      if (!/^\d+$/.test(id)) return;
+      var e = { entry_id: id, contest: r[1] || "", contest_id: r[2] || "", fee: r[3] || "", slots: {} };
+      SLOTS.forEach(function (s, k) { var c = idx[k] >= 0 ? r[idx[k]] : ""; e.slots[s] = cellId(c); if (/LOCKED/i.test(c || "") && cellId(c)) lockedIds[cellId(c)] = 1; });
+      entries.push(e);
+    });
+    if (!entries.length) throw new Error("No entries found in the file.");
+    // the player list: the block that starts with "Position, Name + ID, ..."
+    var r0 = -1, c0 = -1;
+    for (var i = 0; i < body.length && r0 < 0; i++) { var j = body[i].indexOf("Name + ID"); if (j >= 0) { r0 = i; c0 = j - 1; } }
+    if (r0 < 0) throw new Error("No player list found in the file.");
+    var ph = body[r0].slice(c0).map(function (x) { return String(x).trim(); });
+    var col = function (r, name) { var k = ph.indexOf(name); return k < 0 ? "" : String(r[c0 + k] == null ? "" : r[c0 + k]).trim(); };
+    var pool = [];
+    body.slice(r0 + 1).forEach(function (r) {
+      var id = col(r, "ID"); if (!id) return;
+      var info = col(r, "Game Info"), team = col(r, "TeamAbbrev"), sal = parseFloat(col(r, "Salary").replace(/[^0-9.]/g, ""));
+      if (isNaN(sal)) return;
+      var gm = info.match(/^([A-Za-z]+)\s*@\s*([A-Za-z]+)/), kick = kickOf(info), post = /postpon|cancel|suspend/i.test(info);
+      pool.push({ id: id, name: col(r, "Name"), team: team, roster: col(r, "Roster Position"), salary: sal,
+                  game: gm ? gm[1] + "@" + gm[2] : null, kick: kick, postponed: post,
+                  started: !kick && !!info && !post, avg: parseFloat(col(r, "AvgPointsPerGame")) });
+    });
+    // game for the "2 games" rule: from the matchup, else from a teammate's row, else the team
+    var byTeam = {}; pool.forEach(function (p) { if (p.game) byTeam[p.team] = p.game; });
+    pool.forEach(function (p) { if (!p.game) p.game = byTeam[p.team] || "team:" + p.team; p.dkLocked = p.started || !!lockedIds[p.id]; });
+    var startedGames = {}; pool.forEach(function (p) { if (p.dkLocked) startedGames[p.game] = 1; });
+    pool.forEach(function (p) { if (startedGames[p.game]) p.dkLocked = true; });
+    var kicks = {}; pool.forEach(function (p) { if (p.kick) kicks[+p.kick] = p.kick; });
+    return { entries: entries, pool: pool, kicks: Object.keys(kicks).sort().map(function (k) { return kicks[k]; }) };
+  }
+
+  // best lineup for one entry: keep = {slot: id or null}
+  async function solveEntry(solver, pool, byId, keep, banned) {
+    var open = SLOTS.filter(function (s) { return !keep[s]; });
+    if (!open.length) return Object.assign({}, keep);
+    var lockedIds = SLOTS.map(function (s) { return keep[s]; }).filter(Boolean);
+    var cand = pool.filter(function (p) { return !p.locked && lockedIds.indexOf(p.id) < 0 && !banned[p.id]; });
+    var vars = [];
+    open.forEach(function (s) { cand.forEach(function (p, i) { if (p.roster.split("/").map(function (x) { return x.trim(); }).indexOf(s) >= 0) vars.push({ p: i, s: s, n: "x" + vars.length }); }); });
+    if (!vars.length) return null;
+    var rows = [];
+    var row = function (pred, coef, op, rhs) { var c = {}; vars.forEach(function (v) { if (pred(v)) c[v.n] = coef ? coef(v) : 1; }); rows.push({ c: c, op: op, rhs: rhs }); };
+    for (var k = 0; k < open.length; k++) { (function (s) { row(function (v) { return v.s === s; }, null, "=", 1); })(open[k]); }
+    cand.forEach(function (p, i) { if (vars.some(function (v) { return v.p === i; })) row(function (v) { return v.p === i; }, null, "<=", 1); });
+    var lockedSal = lockedIds.reduce(function (a, id) { return a + (byId[id] ? byId[id].salary : 0); }, 0);
+    row(function () { return true; }, function (v) { return cand[v.p].salary; }, "<=", CAP - lockedSal);
+    var lg = []; lockedIds.forEach(function (id) { var g = byId[id] && byId[id].game; if (g && lg.indexOf(g) < 0) lg.push(g); });
+    if (lg.length === 1) row(function (v) { return cand[v.p].game !== lg[0]; }, null, ">=", 1);
+    if (!lg.length) { var gs = []; cand.forEach(function (p) { if (gs.indexOf(p.game) < 0) gs.push(p.game); });
+      gs.forEach(function (g) { row(function (v) { return cand[v.p].game === g; }, null, "<=", open.length - 1); }); }
+    if (rows.some(function (r) { return !Object.keys(r.c).length && (r.op === "=" || r.op === ">=") && r.rhs > 0; })) return null;
+    rows = rows.filter(function (r) { return Object.keys(r.c).length; });
+    var obj = {}; vars.forEach(function (v) { obj[v.n] = Math.round(cand[v.p].proj * 1e4) / 1e4; });
+    var res = await solver({ obj: obj, rows: rows, bins: vars.map(function (v) { return v.n; }), ub: {} });
+    if (!res.ok) return null;
+    var out = Object.assign({}, keep);
+    vars.forEach(function (v) { if (res.x[v.n] > 0.5) out[v.s] = cand[v.p].id; });
+    return SLOTS.every(function (s) { return out[s]; }) ? out : null;
+  }
+
+  // proj: {dkId: points}. lockAt: Date (games tipping at or before it are locked).
+  async function run(solver, dk, proj, lockAt, minGain, maxShare, onProgress) {
+    var pool = dk.pool.map(function (p) {
+      return Object.assign({}, p, { proj: p.postponed ? 0 : (proj[p.id] == null ? 0 : proj[p.id]),
+                                    locked: p.dkLocked || (p.kick && p.kick <= lockAt) });
+    });
+    var byId = {}; pool.forEach(function (p) { byId[p.id] = p; });
+    var n = dk.entries.length, capN = Math.max(1, Math.floor(maxShare * n + 1e-9)), used = {}, out = [];
+    for (var i = 0; i < n; i++) {
+      var e = dk.entries[i], cur = {}, keep = {};
+      SLOTS.forEach(function (s) { var id = e.slots[s]; cur[s] = id && byId[id] ? id : null; keep[s] = cur[s] && byId[cur[s]].locked ? cur[s] : null; });
+      var curIds = SLOTS.map(function (s) { return cur[s]; }).filter(Boolean);
+      var banned = {}; Object.keys(used).forEach(function (id) { if (used[id] >= capN && curIds.indexOf(id) < 0) banned[id] = 1; });
+      var nw = await solveEntry(solver, pool, byId, keep, banned);
+      var pts = function (L) { return SLOTS.reduce(function (a, s) { return a + (L[s] && byId[L[s]] ? byId[L[s]].proj : 0); }, 0); };
+      var before = pts(cur), status = "No change";
+      if (!nw) { nw = cur; status = "No valid lineup"; }
+      else {
+        var gain = pts(nw) - before;
+        if (!curIds.length || gain >= minGain) {
+          var ins = SLOTS.map(function (s) { return nw[s]; }).filter(function (id) { return curIds.indexOf(id) < 0; });
+          if (ins.length) { ins.forEach(function (id) { used[id] = (used[id] || 0) + 1; }); status = "Swap"; }
+          else if (SLOTS.some(function (s) { return nw[s] !== cur[s]; })) status = "Swap";
+          else nw = cur;
+        } else nw = cur;
+      }
+      var newIds = SLOTS.map(function (s) { return nw[s]; });
+      out.push({ entry: e, lineup: nw, status: status, locked: SLOTS.filter(function (s) { return keep[s]; }).length,
+                 out: curIds.filter(function (id) { return newIds.indexOf(id) < 0; }).map(function (id) { return byId[id].name; }),
+                 in: newIds.filter(function (id) { return id && curIds.indexOf(id) < 0; }).map(function (id) { return byId[id].name; }),
+                 before: before, after: pts(nw), salary: SLOTS.reduce(function (a, s) { return a + (nw[s] && byId[nw[s]] ? byId[nw[s]].salary : 0); }, 0) });
+      if (onProgress) await onProgress(i + 1, n);
+    }
+    var lockedGames = {}; pool.forEach(function (p) { if (p.locked) lockedGames[p.game] = 1; });
+    var g = Object.keys(lockedGames), nGames = g.filter(function (x) { return x.indexOf("team:") !== 0; }).length + Math.ceil(g.filter(function (x) { return x.indexOf("team:") === 0; }).length / 2);
+    return { rows: out, nLockedGames: nGames, pool: pool };
+  }
+
+  // DraftKings upload: same header as the download, IDs in the slots, changed entries only
+  function uploadCsv(res) {
+    var q = function (x) { x = x == null ? "" : String(x); return /[",]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; };
+    return ["Entry ID,Contest Name,Contest ID,Entry Fee," + SLOTS.join(",")].concat(res.rows.filter(function (r) { return r.status === "Swap"; }).map(function (r) {
+      return [r.entry.entry_id, r.entry.contest, r.entry.contest_id, r.entry.fee].concat(SLOTS.map(function (s) { return r.lineup[s]; })).map(q).join(",");
+    })).join("\n") + "\n";
+  }
+  return { SLOTS: SLOTS, parseCsv: parseCsv, read: read, run: run, uploadCsv: uploadCsv, etDate: etDate };
 })();
 </script>
 <script>
@@ -748,17 +1163,32 @@ var T7Opt = (function () {
   };
   var LIM = { dk: { maxSal: [40000, 50000], maxTeam: [2, 8], gsize: [2, 7], geach: [0, 4], tsize: [2, 7] },
               fd: { maxSal: [40000, 60000], maxTeam: [2, 4], gsize: [2, 8], geach: [0, 4], tsize: [2, 4] } };
-  var S = { site: store("t7opt.site") === "fd" ? "fd" : "dk", slate: null, pos: "", q: "", sort: "p", dir: -1,
+  var S = { site: store("t7opt.site") === "fd" ? "fd" : "dk", contest: store("t7opt.contest") || "Classic", slate: null, pos: "", team: "", q: "", sort: "p", dir: -1,
             set: load("t7opt.settings", {}) };
   ["dk", "fd"].forEach(function (s) { S.set[s] = Object.assign({}, DEF[s], S.set[s] || {}); });
-  var E = {}, T = {};            // player edits and team picks for the current site + slate
-  function slateKey() { return "t7opt." + D.date + "." + S.site + "." + S.slate; }
+  // [CONTESTS] Showdown / single game ("Captain"), Tiers and Total Points keep their own settings
+  var CNAME = { dk: { Classic: "Classic", Captain: "Showdown", Tiers: "Tiers", TotalPoints: "Total points" },
+                fd: { Classic: "Classic", Captain: "Single game" } };
+  var FLEX_POS = ["PG", "SG", "SF", "PF", "C"];
+  function defFor(site, contest) {
+    var d = Object.assign({}, DEF[site]);
+    if (contest !== "Classic") {
+      var fl = {}; FLEX_POS.forEach(function (q) { fl[q] = [0, 5]; });
+      Object.assign(d, { xteam: "", xsize: contest === "Tiers" ? 2 : 3, cmode: "", cteam: "", cpos: [], ckeys: [], flex: fl, script: "" });
+    }
+    return d;
+  }
+  function ck() { return S.contest === "Classic" ? S.site : S.site + "|" + S.contest; }
+  function SET() { S.set[ck()] = Object.assign(defFor(S.site, S.contest), S.set[ck()] || {}); return S.set[ck()]; }
+  function isX() { return S.contest !== "Classic"; }
+  var E = {}, T = {}, U = null;   // U = uploaded projections for this slate: { rows: {key: my}, w: 0..1, note }            // player edits and team picks for the current site + slate
+  function slateKey() { return "t7opt." + D.date + "." + S.site + "." + (isX() ? S.contest + "." : "") + S.slate; }
   function loadSlate() {
-    var v = load(slateKey(), {}); E = v.E || {}; T = v.T || { mode: {}, sg: [], st: [] };
+    var v = load(slateKey(), {}); E = v.E || {}; T = v.T || { mode: {}, sg: [], st: [] }; U = v.U || null;
     Object.keys(E).forEach(function (k) { var b = E[k].boost; if (b === 1 || b === -1) E[k].boost = 15 * b; });   // early beta: +1 / -1
   }
-  function saveSlate() { store(slateKey(), JSON.stringify({ E: E, T: T })); }
-  function saveSet() { store("t7opt.settings", JSON.stringify(S.set)); store("t7opt.site", S.site); }
+  function saveSlate() { store(slateKey(), JSON.stringify({ E: E, T: T, U: U })); }
+  function saveSet() { store("t7opt.settings", JSON.stringify(S.set)); store("t7opt.site", S.site); store("t7opt.contest", S.contest); }
 
   // ---------- data: the projections page carries tonight's numbers ----------
   var TONIGHT = null, NIGHTS = {};
@@ -781,10 +1211,48 @@ var T7Opt = (function () {
     });
   }
 
-  function slates() { return D.slates.filter(function (s) { return s.site === S.site; }); }
-  function players() {   // everyone on the current site + slate
-    return D.players.filter(function (p) { var x = p[S.site]; return x && x.sl && S.slate in x.sl && x.sl[S.slate] != null; });
+  function slates() {
+    if (!isX()) return D.slates.filter(function (s) { return s.site === S.site; });
+    return (D.xslates || []).filter(function (s) { return s.site === S.site && s.contest === S.contest; });
   }
+  function contests() {   // contests this site has slates for tonight
+    return Object.keys(CNAME[S.site]).filter(function (c) {
+      return c === "Classic" ? D.slates.some(function (s) { return s.site === S.site; }) : (D.xslates || []).some(function (s) { return s.site === S.site && s.contest === c; });
+    });
+  }
+  function entry(p) {     // this player's spot on the current slate (salary, captain salary, tier) or null
+    var x = p[S.site]; if (!x) return null;
+    if (!isX()) return x.sl && S.slate in x.sl && x.sl[S.slate] != null ? { sal: +x.sl[S.slate] } : null;
+    var z = x.xs && x.xs[S.contest + "|" + S.slate]; if (!z) return null;
+    var nosal = S.contest === "Tiers" || S.contest === "TotalPoints";
+    return { sal: nosal ? null : (z.u ? +z.u[1] : null), csal: z.c ? +z.c[1] : null, tier: z.t || null };
+  }
+  function players() { return D.players.filter(function (p) { return entry(p) !== null; }); }
+  // [OPT %] the pipeline's optimal % for this slate (Showdown: the bigger of the CPT and FLEX numbers)
+  function optOf(p) {
+    var x = p[S.site], z = x && x.op && x.op[S.contest + "|" + S.slate]; if (!z) return null;
+    if (S.contest === "Captain") { var a = z.CPT || 0, b = z.FLEX || 0; return z.CPT == null && z.FLEX == null ? null : Math.max(a, b); }
+    return z.ALL == null ? null : z.ALL;
+  }
+  function slateHasOpt() { return players().some(function (p) { return optOf(p) != null; }); }
+  // [UPLOAD] our number blended toward the member's: w = 1 -> theirs only
+  function upProj(p, base) {
+    if (!U || !U.rows) return base;
+    var my = U.rows[keyOf(p)]; if (my == null || base == null) return my == null ? base : my;
+    return Math.round((U.w * my + (1 - U.w) * base) * 10) / 10;
+  }
+  function effEdits() {   // what the optimizer uses: uploads (blended), then the member's own edits on top
+    if (!U || !U.rows) return E;
+    var out = {};
+    players().forEach(function (p) {
+      var k = keyOf(p), e = Object.assign({}, E[k] || {});
+      if ((e.proj == null || e.proj === "") && U.rows[k] != null) e.proj = upProj(p, baseProj(p));
+      if (Object.keys(e).length) out[k] = e;
+    });
+    return out;
+  }
+  function baseProj(p) { return S.contest === "TotalPoints" ? p.pts : p[S.site].p; }      // Total Points scores real points
+  function actOf(p) { return S.contest === "TotalPoints" ? p.apts : p[S.site].act; }
   function keyOf(p) { return p.n + "|" + p.tm; }
 
   // ---------- team colors (each team's main color; abbreviations as the site files spell them) ----------
@@ -817,21 +1285,27 @@ var T7Opt = (function () {
   // ---------- settings ----------
   var FIELDS = ["n", "exposure", "minProj", "random", "minUnique", "minSal", "maxSal", "maxTeam", "gsize", "geach", "tsize"];
   function showSettings() {
-    var st = S.set[S.site], lim = LIM[S.site];
+    var st = SET(), lim = LIM[S.site];
+    document.querySelectorAll("[data-c]").forEach(function (el) { el.hidden = el.dataset.c.split(" ").indexOf(S.contest) < 0; });
+    if (isX()) showX(st);
+    var ho = D && S.slate ? slateHasOpt() : false;
+    $("opt-fld").hidden = !ho; $("useOpt").checked = !!st.useOpt && ho;
     FIELDS.forEach(function (f) {
       var el = $(f); el.value = st[f];
       if (lim[f]) { el.min = lim[f][0]; el.max = lim[f][1]; }
     });
     $("stack").value = st.stack;
     var nk = Object.keys(T.mode || {}).filter(function (t) { return T.mode[t] === "keep"; }).length, nr = Object.keys(T.mode || {}).length - nk;
-    $("sum-set").textContent = [st.n + " lineup" + (st.n == 1 ? "" : "s"), st.exposure + "% exposure", st.random ? st.random + "% random" : "",
+    $("sum-set").textContent = (isX() ? [st.n + " lineup" + (st.n == 1 ? "" : "s"), st.exposure + "% exposure", st.random ? st.random + "% random" : "",
+      st.cmode ? "captain locked" : "", st.xteam ? st.xteam + " stack of " + st.xsize : ""]
+      : [st.n + " lineup" + (st.n == 1 ? "" : "s"), st.exposure + "% exposure", st.random ? st.random + "% random" : "",
       st.stack === "game" ? "game stack" : st.stack === "team" ? "team stack" : "", nk ? nk + " team" + (nk > 1 ? "s" : "") + " kept" : "",
-      nr ? nr + " team" + (nr > 1 ? "s" : "") + " removed" : ""].filter(Boolean).join(" \u00b7 ");
+      nr ? nr + " team" + (nr > 1 ? "s" : "") + " removed" : ""]).filter(Boolean).join(" \u00b7 ");
     document.querySelectorAll("[data-stack]").forEach(function (el) { el.hidden = el.dataset.stack !== st.stack; });
   }
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
   function readSettings() {
-    var st = S.set[S.site], lim = LIM[S.site];
+    var st = SET(), lim = LIM[S.site];
     FIELDS.forEach(function (f) {
       var v = parseFloat($(f).value);
       if (isNaN(v)) v = DEF[S.site][f];
@@ -841,10 +1315,74 @@ var T7Opt = (function () {
     st.n = clamp(Math.round(st.n), 1, MAX_LINEUPS); st.exposure = clamp(st.exposure, 1, 100);
     st.random = clamp(st.random, 0, 50); st.minUnique = clamp(Math.round(st.minUnique), 1, 5);
     st.stack = $("stack").value;
+    st.useOpt = $("useOpt").checked;
+    if (isX()) {
+      st.xteam = $("xteam").value; st.xsize = clamp(Math.round(+$("xsize").value || 2), 1, 5);
+      st.cmode = $("cmode").value; st.cteam = $("cteam").value;
+      FLEX_POS.forEach(function (q) {
+        var lo = Math.round(+$("fmin-" + q).value), hi = Math.round(+$("fmax-" + q).value);
+        st.flex[q] = [clamp(isNaN(lo) ? 0 : lo, 0, 5), clamp(isNaN(hi) ? 5 : hi, 0, 5)];
+      });
+    }
     saveSet();
     return st;
   }
+
+  // ---------- [CONTESTS] showdown / tiers / total points controls ----------
+  var SCRIPTS = [   // the NBA app's one-click game scripts
+    { k: "blowout", team: true, label: "%s blowout", about: "%s wins big and its starters carry it. Captain from %s and 4 players from %s.", size: 4 },
+    { k: "star", team: true, star: true, label: "%s star goes off", about: "%s's top scorer has a big night. Captain from %s, no team stack." },
+    { k: "guards", label: "Guards run it", about: "Fast game, guards dominate. PG or SG captain, at least 1 PG and 1 SG in the Util spots.", cpos: ["PG", "SG"], flex: { PG: [1, 5], SG: [1, 5] } },
+    { k: "bigs", label: "Bigs on the glass", about: "Slow, physical game. PF or C captain, at least 1 C in the Util spots.", cpos: ["PF", "C"], flex: { C: [1, 5] } },
+    { k: "wings", label: "Wings take over", about: "Wings do the scoring. SF or PF captain, at most 1 C in the Util spots.", cpos: ["SF", "PF"], flex: { C: [0, 1] } }
+  ];
+  function slateTeams() { var t = {}; players().forEach(function (p) { t[p.tm] = 1; }); return Object.keys(t).sort(); }
+  function showX(st) {
+    var teams = slateTeams(), C = S.site === "dk" ? "CPT" : "MVP";
+    $("cmode-l").textContent = "Lock " + (S.site === "dk" ? "captain (CPT)" : "MVP");
+    var opt = function (v, l, sel) { return '<option value="' + esc(v) + '"' + (sel ? " selected" : "") + ">" + esc(l) + "</option>"; };
+    $("xteam").innerHTML = opt("", "No stack", !st.xteam) + teams.map(function (t) { return opt(t, t, t === st.xteam); }).join("");
+    $("xsize").value = st.xsize;
+    $("cmode").value = st.cmode;
+    if (st.cmode === "team" && teams.indexOf(st.cteam) < 0) st.cteam = teams[0] || "";
+    $("cteam").innerHTML = teams.map(function (t) { return opt(t, t, t === st.cteam); }).join("");
+    document.querySelectorAll("[data-cm]").forEach(function (el) { el.hidden = el.dataset.cm !== st.cmode; });
+    $("cpos").innerHTML = FLEX_POS.map(function (q) { return '<button type="button" class="chip" data-q="' + q + '" aria-pressed="' + (st.cpos.indexOf(q) >= 0) + '">' + q + "</button>"; }).join("");
+    var ps = players().slice().sort(function (a, b) { return (baseProj(b) || 0) - (baseProj(a) || 0); });
+    $("cplay").innerHTML = ps.map(function (p) { var k = keyOf(p); return '<button type="button" class="chip" data-k="' + esc(k) + '" aria-pressed="' + (st.ckeys.indexOf(k) >= 0) + '">' + esc(p.n) + "</button>"; }).join("");
+    $("flex").innerHTML = FLEX_POS.map(function (q) {
+      return '<div class="fp"><b>' + q + '</b><div><input class="ctl num" id="fmin-' + q + '" type="number" min="0" max="5" step="1" value="' + st.flex[q][0] + '" aria-label="Min ' + q + '">' +
+        '<input class="ctl num" id="fmax-' + q + '" type="number" min="0" max="5" step="1" value="' + st.flex[q][1] + '" aria-label="Max ' + q + '"></div></div>';
+    }).join("") + '<p class="hint" style="grid-column:1/-1;margin:0">Min \u2013 max for each position</p>';
+    $("script").innerHTML = opt("", "Pick a game script", !st.script) + SCRIPTS.map(function (g) {
+      return g.team ? teams.map(function (t) { var v = g.k + ":" + t; return opt(v, g.label.replace("%s", t), st.script === v); }).join("") : opt(g.k, g.label, st.script === g.k);
+    }).join("") + opt("clear", "Clear script (back to defaults)", false);
+    var cur = st.script ? SCRIPTS.filter(function (g) { return g.k === st.script.split(":")[0]; })[0] : null;
+    $("script-about").hidden = !cur;
+    $("script-about").textContent = cur ? cur.about.replace(/%s/g, st.script.split(":")[1] || "") : "";
+    void C;
+  }
+  function applyScript(v) {
+    var st = SET(), d = defFor(S.site, S.contest);
+    st.cmode = ""; st.cteam = ""; st.cpos = []; st.ckeys = []; st.xteam = ""; st.xsize = d.xsize; st.flex = d.flex; st.script = "";
+    if (v && v !== "clear") {
+      var key = v.split(":")[0], team = v.split(":")[1], g = SCRIPTS.filter(function (x) { return x.k === key; })[0];
+      if (g) {
+        st.script = v;
+        if (g.cpos) { st.cmode = "pos"; st.cpos = g.cpos.slice(); }
+        if (g.flex) Object.keys(g.flex).forEach(function (q) { st.flex[q] = g.flex[q].slice(); });
+        if (g.team) { st.cmode = "team"; st.cteam = team; if (!g.star) { st.xteam = team; st.xsize = g.size; } }
+      }
+    }
+    saveSet(); showSettings();
+  }
+  ["xteam", "xsize", "cmode", "cteam"].forEach(function (id) { $(id).addEventListener("change", function () { readSettings(); showSettings(); }); });
+  $("script").addEventListener("change", function () { applyScript(this.value); });
+  $("flex").addEventListener("change", function () { readSettings(); showSettings(); });
+  $("cpos").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; toggleIn(SET().cpos, b.dataset.q); saveSet(); showSettings(); });
+  $("cplay").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; toggleIn(SET().ckeys, b.dataset.k); saveSet(); showSettings(); });
   FIELDS.forEach(function (f) { $(f).addEventListener("change", function () { readSettings(); showSettings(); }); });
+  $("useOpt").addEventListener("change", function () { readSettings(); showSettings(); render(); });
   $("stack").addEventListener("change", function () { readSettings(); showSettings(); });
 
   // team chips: neutral -> keep -> remove
@@ -877,24 +1415,25 @@ var T7Opt = (function () {
   function edited(e) { return e && (e.lock || e.out || e.boost || (e.proj != null && e.proj !== "") || (e.exp != null && e.exp !== "")); }
   function rowData() {
     return players().map(function (p) {
-      var x = p[S.site], e = E[keyOf(p)] || {}, sal = +x.sl[S.slate];
-      var pj = e.proj != null && e.proj !== "" ? +e.proj : x.p;
-      return { p: p, x: x, key: keyOf(p), n: p.n, pos: x.pos, tm: p.tm, opp: p.opp, home: p.home, inj: p.inj, sal: sal, base: x.p, pj: pj, e: e,
-               v: sal ? pj / (sal / 1000) : null };
+      var x = p[S.site], e = E[keyOf(p)] || {}, en = entry(p), sal = en.sal, base = upProj(p, baseProj(p));
+      var pj = e.proj != null && e.proj !== "" ? +e.proj : base;
+      return { p: p, x: x, key: keyOf(p), n: p.n, pos: x.pos, tm: p.tm, opp: p.opp, home: p.home, inj: p.inj, sal: sal, csal: en.csal, tier: en.tier,
+               base: base, up: !!(U && U.rows && U.rows[keyOf(p)] != null), opt: optOf(p), pj: pj, e: e, act: actOf(p), v: sal ? pj / (sal / 1000) : null };
     });
   }
   function sortVal(r, k) {
     switch (k) {
       case "lock": return r.e.lock ? 1 : 0; case "out": return r.e.out ? 1 : 0; case "n": return r.n;
-      case "sal": return r.sal; case "p": return r.pj; case "exp": return r.e.exp == null || r.e.exp === "" ? -1 : +r.e.exp;
-      case "boost": return +r.e.boost || 0; case "v": return r.v;
-      case "rg": return r.x.c; case "act": return r.x.act; case "min": case "pts": case "reb": case "ast": case "tpm": case "stl": case "blk": case "tov": return r.p[k];
+      case "sal": return S.contest === "Tiers" ? -(+String(r.tier || "T9").slice(1)) : r.sal; case "p": return r.pj; case "exp": return r.e.exp == null || r.e.exp === "" ? -1 : +r.e.exp;
+      case "boost": return +r.e.boost || 0; case "v": return r.v; case "opt": return r.opt;
+      case "rg": return r.x.c; case "act": return r.act; case "min": case "pts": case "reb": case "ast": case "tpm": case "stl": case "blk": case "tov": return r.p[k];
     }
   }
   function render() {
     var rows = rowData().filter(function (r) {
       if (S.pos === "*") { if (!edited(r.e)) return false; }
       else if (S.pos && r.pos.split("/").indexOf(S.pos) < 0) return false;
+      if (S.team && r.tm !== S.team) return false;
       if (S.q && r.n.toLowerCase().indexOf(S.q) < 0 && r.tm.toLowerCase() !== S.q) return false;
       return true;
     });
@@ -903,28 +1442,33 @@ var T7Opt = (function () {
       if (typeof x === "string") return S.dir * x.localeCompare(y);
       return S.dir * ((x == null ? -1e9 : x) - (y == null ? -1e9 : y)) || b.pj - a.pj;
     });
-    var gx = S.set[S.site].exposure;
+    var gx = SET().exposure;
+    document.body.classList.toggle("has-opt", slateHasOpt());
+    showUpbar();
+    var hs = document.querySelector('table.pool th button[data-sort="sal"]'), hp = document.querySelector('table.pool th button[data-sort="p"]');
+    hs.textContent = S.contest === "Tiers" ? "Tier" : "Salary"; hp.textContent = S.contest === "TotalPoints" ? "Points" : "Proj";
     $("rows").innerHTML = rows.length ? rows.map(function (r) {
       var e = r.e, b = +e.boost || 0, p = r.p;
       var badge = r.inj && /^(out|o)$/i.test(r.inj) ? ' <span class="badge b-out">OUT</span>' : r.inj && /^(q|gtd|questionable|doubtful|d)/i.test(r.inj) ? ' <span class="badge b-q">' + esc(r.inj.slice(0, 3).toUpperCase()) + "</span>" : "";
       return '<tr data-k="' + esc(r.key) + '"' + (e.out ? ' class="is-out"' : "") + ">" +
         '<td><button type="button" class="tg lk" data-a="lock" aria-pressed="' + !!e.lock + '" aria-label="Lock ' + esc(r.n) + '">' + LOCK + '</button></td>' +
         '<td><button type="button" class="tg ex" data-a="out" aria-pressed="' + !!e.out + '" aria-label="Leave out ' + esc(r.n) + '">\u2715</button></td>' +
-        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + teamDot(r.tm) + esc(r.pos) + " \u00b7 " + esc(r.tm) + " " + (r.home ? "vs" : "@") + " " + esc(r.opp) + '<span class="msal"> \u00b7 ' + money(r.sal) + "</span>" + (S.night ? '<span class="mact"> \u00b7 ' + (r.x.act == null ? "\u2013" : f1(r.x.act)) + " actual</span>" : "") + "</span>" +
+        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + teamDot(r.tm) + esc(r.pos) + " \u00b7 " + esc(r.tm) + " " + (r.home ? "vs" : "@") + " " + esc(r.opp) + '<span class="msal"> \u00b7 ' + (S.contest === "Tiers" ? esc(r.tier || "") : S.contest === "TotalPoints" ? "" : money(r.sal)) + "</span>" + (r.opt != null ? '<span class="mopt"> \u00b7 opt ' + Math.round(100 * r.opt) + "%</span>" : "") + (S.night ? '<span class="mact"> \u00b7 ' + (r.act == null ? "\u2013" : f1(r.act)) + " actual</span>" : "") + "</span>" +
           "</td>" +
-        '<td class="num sal">' + money(r.sal) + "</td>" +
-        '<td><input class="ctl num' + (e.proj != null && e.proj !== "" ? " set" : "") + '" data-a="proj" type="number" step="0.5" min="0" inputmode="decimal" placeholder="' + f1(r.base) + '" value="' + (e.proj == null ? "" : esc(e.proj)) + '" aria-label="Projection for ' + esc(r.n) + '"></td>' +
-        '<td class="act num">' + (r.x.act == null ? "\u2013" : f1(r.x.act)) + "</td>" +
+        '<td class="num sal">' + (S.contest === "Tiers" ? esc(r.tier || "") : S.contest === "TotalPoints" ? "\u2013" : money(r.sal) + (r.csal ? '<span class="pm">CPT ' + money(r.csal) + "</span>" : "")) + "</td>" +
+        '<td><input class="ctl num' + (e.proj != null && e.proj !== "" ? " set" : r.up ? " up" : "") + '" data-a="proj" type="number" step="0.5" min="0" inputmode="decimal" placeholder="' + f1(r.base) + '" value="' + (e.proj == null ? "" : esc(e.proj)) + '" aria-label="Projection for ' + esc(r.n) + '"></td>' +
+        '<td class="act num">' + (r.act == null ? "\u2013" : f1(r.act)) + "</td>" +
         '<td><input class="ctl num' + (e.exp != null && e.exp !== "" ? " set" : "") + '" data-a="exp" type="number" step="5" min="0" max="100" inputmode="numeric" placeholder="' + gx + '" value="' + (e.exp == null ? "" : esc(e.exp)) + '" aria-label="Exposure for ' + esc(r.n) + '"></td>' +
         '<td><select class="ctl bsel' + (b > 0 ? " up" : b < 0 ? " dn" : "") + '" data-a="boost" aria-label="Boost or suppress ' + esc(r.n) + '">' +
           BOOSTS.map(function (v) { return '<option value="' + v + '"' + (v === b ? " selected" : "") + ">" + (v > 0 ? "+" + v + "%" : v < 0 ? "\u2212" + (-v) + "%" : "\u2013") + "</option>"; }).join("") + "</select></td>" +
         '<td class="wide num">' + (r.v == null ? "" : r.v.toFixed(2) + "x") + "</td>" +
+        '<td class="optc num">' + (r.opt == null ? "\u2013" : Math.round(100 * r.opt) + "%") + "</td>" +
         '<td class="stat">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + "</td>" +
         ["min", "pts", "reb", "ast", "tpm", "stl", "blk", "tov"].map(function (c) { return '<td class="stat num">' + (c === "min" ? (p.min == null ? "" : Math.round(p.min)) : f1(p[c])) + "</td>"; }).join("") +
         "</tr>" +
-        '<tr class="srow"><td colspan="18">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + " range \u00b7 " + (p.min == null ? "" : Math.round(p.min) + " min \u00b7 ") +
+        '<tr class="srow"><td colspan="19">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + " range \u00b7 " + (p.min == null ? "" : Math.round(p.min) + " min \u00b7 ") +
           f1(p.pts) + " pts \u00b7 " + f1(p.reb) + " reb \u00b7 " + f1(p.ast) + " ast \u00b7 " + f1(p.tpm) + " 3pm \u00b7 " + f1(p.stl) + " stl \u00b7 " + f1(p.blk) + " blk \u00b7 " + f1(p.tov) + " to</td></tr>";
-    }).join("") : '<tr><td colspan="18" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
+    }).join("") : '<tr><td colspan="19" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
     var all = rowData(), nE = all.filter(function (r) { return edited(r.e); }).length;
     $("count").textContent = rows.length + " of " + all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "");
     $("sum-pool").textContent = all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "");
@@ -969,28 +1513,181 @@ var T7Opt = (function () {
     render();
   });
   $("q").addEventListener("input", function () { S.q = this.value.trim().toLowerCase(); render(); });
+  $("pteam").addEventListener("change", function () { S.team = this.value; render(); });
+  // ---------- [UPLOAD] my projections, template, table download ----------
+  function csvCell(x) { x = x == null ? "" : String(x); return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }
+  function saveCsv(name, lines) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([lines.map(function (r) { return r.map(csvCell).join(","); }).join("\n") + "\n"], { type: "text/csv" }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+  function siteIdsOf(p) {   // every site ID this player has on the current slate (DK Showdown: CPT and UTIL)
+    var x = p[S.site];
+    if (!isX()) return x.id && x.id[S.slate] ? [String(x.id[S.slate])] : [];
+    var z = x.xs[S.contest + "|" + S.slate]; return [z.u && z.u[0], z.c && z.c[0]].filter(Boolean).map(String);
+  }
+  function fileTag() { return (S.site === "dk" ? "draftkings" : "fanduel") + "_" + S.contest.toLowerCase() + "_" + String(S.slate).replace(/[^A-Za-z0-9]+/g, "-") + "_" + D.date; }
+  $("tpl").addEventListener("click", function () {
+    var ps = players().slice().sort(function (a, b) { return (baseProj(b) || 0) - (baseProj(a) || 0); });
+    saveCsv("three7_nba_template_" + fileTag() + ".csv", [["ID", "Name", "Team", "Pos", "Salary", "Three7 Proj", "My Proj"]].concat(ps.map(function (p) {
+      var en = entry(p); return [siteIdsOf(p)[0] || "", p.n, p.tm, p[S.site].pos, en.sal == null ? "" : en.sal, f1(baseProj(p)), U && U.rows && U.rows[keyOf(p)] != null ? U.rows[keyOf(p)] : ""];
+    })));
+  });
+  $("upl").addEventListener("click", function () { $("uplf").value = ""; $("uplf").click(); });
+  $("uplf").addEventListener("change", function () {
+    var file = this.files && this.files[0]; if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { msg("That file is too big (2 MB max). Use the template.", true); return; }
+    file.text().then(function (text) {
+      var raw = T7LS.parseCsv(text).filter(function (r) { return r.some(function (c) { return String(c).trim(); }); });
+      if (raw.length < 2) throw new Error("That file has no rows.");
+      var hd = raw[0].map(function (h) { return String(h).trim().toLowerCase().replace(/\s+/g, " "); });
+      var pc = ["my proj", "my_proj", "myproj", "my projection", "my projections"].map(function (h) { return hd.indexOf(h); }).filter(function (i) { return i >= 0; })[0];
+      if (pc == null) throw new Error('Couldn\'t find a "My Proj" column. Start from the template.');
+      var ic = hd.indexOf("id"), nc = ["name", "player", "player name"].map(function (h) { return hd.indexOf(h); }).filter(function (i) { return i >= 0; })[0];
+      if (ic < 0 && nc == null) throw new Error("The file needs an ID or Name column. Start from the template.");
+      var byId = {}, byName = {}, nameN = {};
+      players().forEach(function (p) {
+        siteIdsOf(p).forEach(function (id) { byId[id] = keyOf(p); });
+        var nn = p.n.toLowerCase().replace(/\s+/g, " ").trim(); nameN[nn] = (nameN[nn] || 0) + 1; byName[nn] = keyOf(p);
+      });
+      var rows = {}, ok = 0, nf = 0, amb = 0, bad = 0;
+      raw.slice(1).forEach(function (r) {
+        var v = String(r[pc] == null ? "" : r[pc]).trim(); if (!v) return;     // left empty: keep ours
+        var my = parseFloat(v.replace(/[,$ ]/g, ""));
+        if (isNaN(my) || my < -50 || my > 500) { bad++; return; }
+        var k = ic >= 0 ? byId[String(r[ic]).trim()] : null;
+        if (!k && nc != null) { var nn = String(r[nc]).toLowerCase().replace(/\s+/g, " ").trim(); if (nameN[nn] > 1) { amb++; return; } k = byName[nn]; }
+        if (!k) { nf++; return; }
+        if (rows[k] == null) ok++;
+        rows[k] = my;
+      });
+      if (!ok) throw new Error("None of those players are on this slate. Start from this slate's template.");
+      var parts = ["Applied " + ok + " projection" + (ok === 1 ? "" : "s")];
+      if (nf) parts.push(nf + " skipped (not on this slate)");
+      if (amb) parts.push(amb + " skipped (name matches more than one player, add the ID)");
+      if (bad) parts.push(bad + " skipped (not a number)");
+      U = { rows: rows, w: U ? U.w : 1, note: parts.join(" \u00b7 ") };
+      saveSlate(); render(); msg(U.note);
+    }).catch(function (err) { msg(err.message || String(err), true); });
+  });
+  function showUpbar() {
+    $("upbar").hidden = !U;
+    if (!U) return;
+    $("upnote").textContent = "Your projections: " + U.note + ".";
+    $("upw").value = Math.round(U.w * 100); $("upwv").textContent = Math.round(U.w * 100) + "%";
+  }
+  $("upw").addEventListener("input", function () { if (!U) return; U.w = +this.value / 100; $("upwv").textContent = this.value + "%"; });
+  $("upw").addEventListener("change", function () { if (!U) return; saveSlate(); render(); });
+  $("upx").addEventListener("click", function () { U = null; saveSlate(); render(); });
+  $("dlt").addEventListener("click", function () {
+    var rows = rowData().sort(function (a, b) { return b.pj - a.pj; }), tp = S.contest === "TotalPoints";
+    saveCsv("three7_nba_projections_" + fileTag() + ".csv", [["ID", "Name", "Team", "Opp", "Pos", S.contest === "Tiers" ? "Tier" : "Salary", tp ? "Points" : "Proj", "Floor", "Ceiling", "Value",
+      "Opt %", "Minutes", "Pts", "Reb", "Ast", "3PM", "Stl", "Blk", "TO"]].concat(rows.map(function (r) {
+      var p = r.p;
+      return [siteIdsOf(p)[0] || "", r.n, r.tm, r.opp, r.pos, S.contest === "Tiers" ? r.tier : r.sal, f1(r.pj), tp ? "" : f1(r.x.f), tp ? "" : f1(r.x.c),
+              r.v == null ? "" : r.v.toFixed(2), r.opt == null ? "" : Math.round(100 * r.opt), p.min == null ? "" : Math.round(p.min),
+              f1(p.pts), f1(p.reb), f1(p.ast), f1(p.tpm), f1(p.stl), f1(p.blk), f1(p.tov)];
+    })));
+    track("download_projections", { sport: "nba", site: S.site, contest: S.contest });
+  });
+
+  // ---------- [LATE SWAP] DraftKings Classic ----------
+  var LS = { dk: null, res: null };
+  function lsMsg(t, err) { $("lsmsg").textContent = t || ""; $("lsmsg").className = "msg" + (err ? " err" : ""); }
+  $("lsf").addEventListener("change", function () {
+    var file = this.files && this.files[0]; LS.dk = null; LS.res = null; $("lsres").hidden = true; $("lsdl").hidden = true; $("lsgo").disabled = true;
+    if (!file) return;
+    file.text().then(function (t) {
+      LS.dk = T7LS.read(t);
+      var fmt = function (d) { return d.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" }); };
+      $("lslock").innerHTML = '<option value="now">Right now</option>' + LS.dk.kicks.map(function (k) { return '<option value="' + (+k) + '">As if it\'s ' + esc(fmt(k)) + " (those games tipped)</option>"; }).join("");
+      $("lsgo").disabled = false;
+      lsMsg(LS.dk.entries.length + " entr" + (LS.dk.entries.length === 1 ? "y" : "ies") + " found. Press Late swap.");
+    }).catch(function (err) { lsMsg(err.message || String(err), true); });
+  });
+  function lsProj() {   // our projection by DraftKings ID, from every DK Classic slate tonight (edits and uploads applied)
+    var out = {}, byName = {}, dup = {}, src = TONIGHT || D;
+    var EE = (S.site === "dk" && S.contest === "Classic" && D === src) ? effEdits() : {};
+    src.players.forEach(function (p) {
+      var x = p.dk; if (!x || x.p == null) return;
+      var e = EE[keyOf(p)], pj = e && e.proj != null && e.proj !== "" ? +e.proj : x.p;
+      if (e && e.out) pj = 0;
+      if (e && e.boost) pj = pj * (1 + e.boost / 100);
+      Object.keys(x.id || {}).forEach(function (sl) { if (x.id[sl]) out[String(x.id[sl])] = pj; });
+      var nn = p.n.toLowerCase(); if (byName[nn] != null) dup[nn] = 1; byName[nn] = pj;
+    });
+    return { byId: out, byName: byName, dup: dup };
+  }
+  $("lsgo").addEventListener("click", function () {
+    if (!LS.dk || busy) return;
+    var P = lsProj(), proj = {};
+    LS.dk.pool.forEach(function (p) { var v = P.byId[p.id]; if (v == null && !P.dup[p.name.toLowerCase()]) v = P.byName[p.name.toLowerCase()]; if (v != null) proj[p.id] = v; });
+    if (!Object.keys(proj).length) { lsMsg("None of the players in this file match tonight's projections. Is it tonight's NBA Classic file?", true); return; }
+    var v = $("lslock").value, lockAt = v === "now" ? new Date() : new Date(+v);
+    var gain = Math.max(0, +$("lsgain").value || 0), share = Math.min(1, Math.max(0.05, (+$("lsshare").value || 100) / 100));
+    busy = true; $("lsgo").disabled = true; lsMsg("Loading the optimizer\u2026");
+    getSolver().then(function (g) {
+      return T7LS.run(T7Opt.glpkSolver(g), LS.dk, proj, lockAt, gain, share, function (i, n) { lsMsg("Entry " + i + " of " + n + "\u2026"); return new Promise(function (r) { setTimeout(r, 0); }); });
+    }).then(function (res) {
+      LS.res = res;
+      var sw = res.rows.filter(function (r) { return r.status === "Swap"; });
+      lsMsg(sw.length + " of " + res.rows.length + " entries changed \u00b7 " + res.nLockedGames + " game" + (res.nLockedGames === 1 ? "" : "s") + " locked \u00b7 +" +
+        f1(sw.reduce(function (a, r) { return a + r.after - r.before; }, 0)) + " projected points in total" + (sw.length ? "" : " \u00b7 every entry is already best"));
+      $("lsrows").innerHTML = res.rows.slice().sort(function (a, b) { return (b.after - b.before) - (a.after - a.before); }).map(function (r) {
+        var g = r.after - r.before;
+        return '<tr><td class="l">' + esc(r.entry.entry_id) + '<span class="pm">' + esc(r.entry.contest) + '</span></td><td class="l">' + esc(r.out.join(", ")) + '</td><td class="l">' + esc(r.in.join(", ")) +
+          '</td><td class="num">' + r.locked + '</td><td class="num">' + f1(r.before) + '</td><td class="num">' + f1(r.after) + '</td><td class="num' + (g > 0 && r.status === "Swap" ? " st-swap" : "") + '">' +
+          (r.status === "Swap" ? (g >= 0 ? "+" : "") + f1(g) : "") + '</td><td class="' + (r.status === "Swap" ? "st-swap" : r.status === "No valid lineup" ? "st-bad" : "") + '">' + esc(r.status) + "</td></tr>";
+      }).join("");
+      $("lsres").hidden = false; $("lsdl").hidden = !sw.length;
+      track("late_swap", { sport: "nba", entries: res.rows.length, changed: sw.length });
+    }).catch(function (err) { lsMsg(err.message || String(err), true); })
+      .then(function () { busy = false; $("lsgo").disabled = !LS.dk; });
+  });
+  $("lsdl").addEventListener("click", function () {
+    if (!LS.res) return;
+    var a = document.createElement("a"), d = new Date().toLocaleString("sv-SE", { timeZone: "America/New_York" }).replace(/[^0-9]/g, "").slice(0, 12);
+    a.href = URL.createObjectURL(new Blob([T7LS.uploadCsv(LS.res)], { type: "text/csv" }));
+    a.download = "DKEntries_lateswap_" + d + ".csv"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  });
+
+  function fillTeamFilter() {
+    var teams = slateTeams();
+    if (teams.indexOf(S.team) < 0) S.team = "";
+    $("pteam").innerHTML = '<option value="">All teams</option>' + teams.map(function (t) { return '<option value="' + esc(t) + '"' + (t === S.team ? " selected" : "") + ">" + esc(t) + "</option>"; }).join("");
+  }
   $("reset").addEventListener("click", function () {
-    if (!Object.keys(E).length && !Object.keys(T.mode).length && !T.sg.length && !T.st.length) return;
-    if (!window.confirm("Clear every lock, exclusion, boost, projection and exposure change for this slate?")) return;
-    E = {}; T = { mode: {}, sg: [], st: [] }; saveSlate(); drawTeams(); render();
+    if (!Object.keys(E).length && !Object.keys(T.mode).length && !T.sg.length && !T.st.length && !U) return;
+    if (!window.confirm("Clear every lock, exclusion, boost, projection and exposure change (and any uploaded projections) for this slate?")) return;
+    E = {}; T = { mode: {}, sg: [], st: [] }; U = null; saveSlate(); drawTeams(); render();
   });
 
   // ---------- site / slate ----------
   function fillSlates() {
+    var cs = contests();
+    if (cs.indexOf(S.contest) < 0) S.contest = cs[0] || "Classic";
+    $("contest").innerHTML = cs.map(function (c) { return '<button type="button" data-contest="' + c + '" aria-pressed="' + (c === S.contest) + '">' + CNAME[S.site][c] + "</button>"; }).join("");
+    $("contest").hidden = cs.length < 2;
     var list = slates();
     $("slate").innerHTML = list.map(function (s) { return '<option value="' + esc(s.key) + '">' + esc(s.label) + "</option>"; }).join("");
     if (!list.some(function (s) { return s.key === S.slate; })) S.slate = list.length ? list[0].key : null;
     $("slate").value = S.slate || "";
     document.querySelectorAll("#site button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.site === S.site)); });
-    loadSlate(); showSettings(); drawTeams(); render();
+    loadSlate(); showSettings(); drawTeams(); fillTeamFilter(); render();
     $("go").disabled = !S.slate;
-    if (result && (result.site !== S.site || result.slate !== S.slate)) { result = null; $("results").hidden = true; }
+    if (result && (result.site !== S.site || result.slate !== S.slate || result.contest !== S.contest)) { result = null; $("results").hidden = true; }
   }
   $("site").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b || busy) return;
     S.site = b.dataset.site; saveSet(); fillSlates();
   });
   $("slate").addEventListener("change", function () { if (busy) return; S.slate = this.value; fillSlates(); });
+  $("contest").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || busy) return;
+    S.contest = b.getAttribute("data-contest"); S.slate = null; saveSet(); fillSlates();
+  });
 
   // ---------- build ----------
   function msg(t, err) { $("msg").textContent = t || ""; $("msg").className = "msg" + (err ? " err" : ""); }
@@ -1007,22 +1704,59 @@ var T7Opt = (function () {
               minSal: st.minSal, maxSal: st.maxSal, maxTeam: st.maxTeam, keepTeams: keep, removeTeams: remove,
               stack: st.stack === "game" ? { type: "game", games: T.sg.slice(), size: st.gsize, each: st.geach }
                    : st.stack === "team" ? { type: "team", teams: T.st.slice(), size: st.tsize } : { type: "none" } };
-    var pool = T7Opt.prepare(D.players, S.site, S.slate, s, E);
+    if (isX()) {
+      s.stack = st.xteam ? { team: st.xteam, size: st.xsize } : null;
+      s.captain = st.cmode === "team" ? { team: st.cteam } : st.cmode === "pos" ? { pos: st.cpos.slice() } : st.cmode === "player" ? { keys: st.ckeys.slice() } : {};
+      s.flex = st.flex;
+      var bad = FLEX_POS.filter(function (q) { return st.flex[q][0] > st.flex[q][1]; });
+      if (bad.length) { msg("Util limits: Min is above Max for " + bad.join(", ") + ".", true); return; }
+    }
+    var X = isX(), contest = S.contest, EE = effEdits();
+    var useOpt = !!st.useOpt && slateHasOpt();
+    function poolFor(cushion) {   // cushion = null: Global Exposure; else Optimal % + cushion
+      var ed = EE;
+      if (cushion != null) {
+        ed = {}; Object.keys(EE).forEach(function (k) { ed[k] = Object.assign({}, EE[k]); });
+        players().forEach(function (p) {
+          var k = keyOf(p), e = ed[k] || (ed[k] = {});
+          if (e.exp == null || e.exp === "") e.exp = String(100 * Math.min(1, Math.max((optOf(p) || 0) + cushion, 1 / s.n)));
+        });
+      }
+      return X ? T7Opt.prepareX(D.players, S.site, contest, S.slate, s, ed) : T7Opt.prepare(D.players, S.site, S.slate, s, ed);
+    }
+    var pool = poolFor(useOpt ? 0.10 : null);
     busy = true; $("go").disabled = true; $("bar").hidden = false; $("bar").firstChild.style.width = "0";
     msg(glpk ? "Building\u2026" : "Loading the optimizer\u2026");
     var t0 = Date.now();
+    var note = "";
     getSolver().then(function (g) {
-      return T7Opt.run(T7Opt.glpkSolver(g), pool, S.site, s, { onProgress: function (i, L) {
+      var once = function (pl) {
+        return (X ? T7Opt.runX(T7Opt.glpkSolver(g), pl, S.site, contest, s, opts) : T7Opt.run(T7Opt.glpkSolver(g), pl, S.site, s, opts))
+          .catch(function (err) { if (useOpt) return { lineups: [], stopped: true, err: err }; throw err; });
+      };
+      var opts = { onProgress: function (i, L) {
         $("bar").firstChild.style.width = (100 * i / L) + "%";
         msg("Building lineup " + i + " of " + L + "\u2026");
         return new Promise(function (r) { setTimeout(r, 0); });   // let the page repaint
-      } });
+      } };
+      if (!useOpt) return once(pool);
+      // [OPT %] like the app: Optimal % + 10; if that can't build them all, +20, +30, then Global Exposure
+      var best = null, tries = [0.10, 0.20, 0.30, null];
+      var step = function (k) {
+        var c = tries[k];
+        return once(k === 0 ? pool : poolFor(c)).then(function (r) {
+          if (!best || r.lineups.length > best.lineups.length) { best = r; note = c == null ? "Optimal % caps were too tight, so Global Exposure was used." : c > 0.10 ? "Used Optimal % + " + Math.round(c * 100) + " to build them all." : ""; }
+          if (r.lineups.length >= s.n || k === tries.length - 1) { if (!best.lineups.length) throw best.err || new Error("No valid lineup found."); return best; }
+          return step(k + 1);
+        });
+      };
+      return step(0);
     }).then(function (r) {
-      result = { lineups: r.lineups, site: S.site, slate: S.slate, n: s.n, rewind: !!S.night, best: null };
+      result = { lineups: r.lineups, site: S.site, slate: S.slate, contest: contest, n: s.n, rewind: !!S.night, best: null };
       showAll = false; F = [];
       msg(r.stopped ? "Built " + r.lineups.length + " of " + s.n + " lineups: the settings didn't allow more (try raising exposure or loosening locks and stacks)."
-                    : "Built " + r.lineups.length + " lineup" + (r.lineups.length === 1 ? "" : "s") + " in " + ((Date.now() - t0) / 1000).toFixed(1) + "s.");
-      track("build_lineups", { sport: "nba", site: S.site, lineups: r.lineups.length, rewind: !!S.night });
+                    : "Built " + r.lineups.length + " lineup" + (r.lineups.length === 1 ? "" : "s") + " in " + ((Date.now() - t0) / 1000).toFixed(1) + "s." + (note ? " " + note : ""));
+      track("build_lineups", { sport: "nba", site: S.site, contest: contest, lineups: r.lineups.length, rewind: !!S.night });
       if (S.night) return bestPossible().then(function (bl) { result.best = bl; return r; });
       return r;
     }).then(function (r) {
@@ -1038,16 +1772,19 @@ var T7Opt = (function () {
   // [REWIND] the best lineup anyone could have built that night: everyone at his actual score, site rules only
   function bestPossible() {
     var ed = {}, base = {};
-    players().forEach(function (p) { var a = p[S.site].act; ed[keyOf(p)] = { proj: a == null ? 0 : Math.max(0, a) }; base[keyOf(p)] = p[S.site].p; });
-    var s = { n: 1, exposure: 1, minProj: -1, random: 0, minUnique: 1, minSal: 0, maxSal: T7Opt.CAP[S.site], maxTeam: S.site === "dk" ? 8 : 4, stack: { type: "none" } };
-    var pool = T7Opt.prepare(D.players, S.site, S.slate, s, ed);
-    return T7Opt.run(T7Opt.glpkSolver(glpk), pool, S.site, s).then(function (r) {
-      return r.lineups[0].map(function (x) { x.proj = base[x.key]; return x; });   // show our projection next to the actual
+    if (!players().some(function (p) { return actOf(p) != null; })) return Promise.resolve(null);   // no final scores saved
+    players().forEach(function (p) { var a = actOf(p); ed[keyOf(p)] = { proj: a == null ? 0 : Math.max(0, a) }; base[keyOf(p)] = baseProj(p); });
+    var X = isX(), spec = X ? T7Opt.xspec(S.site, S.contest) : null;
+    var s = { n: 1, exposure: 1, minProj: -1, random: 0, minUnique: 1, minSal: 0, maxSal: X ? spec.cap : T7Opt.CAP[S.site], maxTeam: S.site === "dk" ? 8 : 4, stack: X ? null : { type: "none" } };
+    var pool = X ? T7Opt.prepareX(D.players, S.site, S.contest, S.slate, s, ed) : T7Opt.prepare(D.players, S.site, S.slate, s, ed);
+    return (X ? T7Opt.runX(T7Opt.glpkSolver(glpk), pool, S.site, S.contest, s) : T7Opt.run(T7Opt.glpkSolver(glpk), pool, S.site, s)).then(function (r) {
+      return r.lineups[0].map(function (x) { var m = X ? (spec.mult[x.slot] || 1) : 1; x.proj = base[x.key] == null ? null : Math.round(base[x.key] * m * 10) / 10; return x; });   // our projection next to the actual
     }).catch(function () { return null; });
   }
 
   // ---------- results ----------
   function tot(lu, f) { return lu.reduce(function (a, x) { return a + (x[f] == null ? 0 : +x[f]); }, 0); }
+  function anyAct(lu) { return lu.some(function (x) { return x.act != null && !Array.isArray(x.act); }); }
   function hasAll(lu, f) { return lu.every(function (x) { return x[f] != null && !Array.isArray(x[f]); }); }
   var LSORT = "build";
   function sortIdx(idx) {
@@ -1059,14 +1796,15 @@ var T7Opt = (function () {
     var rw = !!result.rewind;
     var line2 = [hasAll(lu, "floor") ? "Floor <b>" + f1(tot(lu, "floor")) + "</b>" : "", hasAll(lu, "ceil") ? "Ceiling <b>" + f1(tot(lu, "ceil")) + "</b>" : "",
                  hasAll(lu, "avg") ? "Avg <b>" + f1(tot(lu, "avg")) + "</b>" : ""].filter(Boolean).join(" \u00b7 ");
-    return '<div class="card lu' + (cls ? " " + cls : "") + '"><div class="card-bar"><span class="card-title">' + title + '</span><span class="card-note num">' +
-      f1(tot(lu, "proj")) + " proj" + (rw ? ' \u00b7 <span class="actv">' + f1(tot(lu, "act")) + " actual</span>" : "") + " \u00b7 " + money(tot(lu, "salary")) + "</span>" +
+    var nosal = result.contest === "Tiers" || result.contest === "TotalPoints";
+    return '<div class="card lu' + (cls ? " " + cls : "") + (nosal ? " nosal" : "") + '"><div class="card-bar"><span class="card-title">' + title + '</span><span class="card-note num">' +
+      f1(tot(lu, "proj")) + " proj" + (rw ? ' \u00b7 <span class="actv">' + (anyAct(lu) ? f1(tot(lu, "act")) : "\u2013") + " actual</span>" : "") + (nosal ? "" : " \u00b7 " + money(tot(lu, "salary"))) + "</span>" +
       (line2 ? '<span class="tots" title="Each total adds up the players\u2019 own numbers (floor = everyone has a bad night). Best for comparing lineups.">' + line2 + "</span>" : "") +
       "</div><table>" +
       lu.map(function (x) {
         var out = E[x.key] && E[x.key].out;
         return '<tr' + (out ? ' class="gone"' : "") + '><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) + '">' + esc(x.name) +
-          '</td><td class="tm">' + teamTag(x.team) + '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + (rw ? f1(x.act == null ? 0 : x.act) : f1(x.proj)) +
+          '</td><td class="tm">' + teamTag(x.team) + '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + (rw ? (x.act == null ? "\u2013" : f1(x.act)) : f1(x.proj)) +
           '</td><td class="x"><button type="button" class="rm" data-k="' + esc(x.key) + '" aria-pressed="' + !!out + '" title="' +
           (out ? "Put back for the next build" : "Leave out of the next build") + '" aria-label="' + (out ? "Put back " : "Leave out ") + esc(x.name) + '">\u2715</button></td></tr>';
       }).join("") + "</table></div>";
@@ -1101,9 +1839,10 @@ var T7Opt = (function () {
     var R = result; if (!R) return;
     var L = R.lineups, idx = shownIdx();
     var pts = L.map(function (lu) { return tot(lu, "proj"); });
-    var head = L.length + " lineup" + (L.length === 1 ? "" : "s") + " \u00b7 " + (R.site === "dk" ? "DraftKings" : "FanDuel") +
+    var head = L.length + " lineup" + (L.length === 1 ? "" : "s") + " \u00b7 " + (R.site === "dk" ? "DraftKings" : "FanDuel") + (R.contest && R.contest !== "Classic" ? " " + CNAME[R.site][R.contest] : "") +
       " \u00b7 " + f1(Math.max.apply(null, pts)) + (L.length > 1 ? " to " + f1(Math.min.apply(null, pts)) : "") + " proj";
-    if (R.rewind) { var ac = L.map(function (lu) { return tot(lu, "act"); }); head += " \u00b7 best actual " + f1(Math.max.apply(null, ac)) + (R.best ? " (best possible " + f1(tot(R.best, "act")) + ")" : ""); }
+    if (R.rewind && !L.some(anyAct)) head += " \u00b7 no final scores saved for this contest that night";
+    else if (R.rewind) { var ac = L.map(function (lu) { return tot(lu, "act"); }); head += " \u00b7 best actual " + f1(Math.max.apply(null, ac)) + (R.best ? " (best possible " + f1(tot(R.best, "act")) + ")" : ""); }
     $("sum-res").textContent = head;
     document.querySelectorAll("#rtab button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.tab === rtab)); });
     // filters
@@ -1169,10 +1908,10 @@ var T7Opt = (function () {
   });
   $("outnote").addEventListener("click", function (e) { if (e.target.closest("#rebuild")) build(); });
   function download(list, tag) {
-    var csv = T7Opt.uploadCsv(list, result.site);
+    var csv = result.contest && result.contest !== "Classic" ? T7Opt.uploadCsvX(list, result.site, result.contest) : T7Opt.uploadCsv(list, result.site);
     var a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    a.download = "three7_nba_" + (result.site === "dk" ? "draftkings" : "fanduel") + "_" + D.date + (tag ? "_" + tag : "") + ".csv";
+    a.download = "three7_nba_" + (result.site === "dk" ? "draftkings" : "fanduel") + "_" + (result.contest || "Classic").toLowerCase() + "_" + D.date + (tag ? "_" + tag : "") + ".csv";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
     track("download_lineups", { sport: "nba", site: result.site, lineups: list.length });
@@ -1235,7 +1974,7 @@ var T7Opt = (function () {
     });
   }).catch(function () {
     $("meta").textContent = "Couldn't load tonight's projections. Refresh to try again.";
-    $("rows").innerHTML = '<tr><td colspan="18" class="empty">No projections loaded.</td></tr>';
+    $("rows").innerHTML = '<tr><td colspan="19" class="empty">No projections loaded.</td></tr>';
   });
 })();
 </script>
