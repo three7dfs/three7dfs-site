@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NBA Lineup Optimizer (Beta) | Three7 DFS</title>
+<meta name="description" content="Build NBA DFS lineups for DraftKings and FanDuel from Three7 projections: locks, exposures, stacks and custom projections, right in your browser.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.png">
+<style>
+
+@font-face { font-family: "Barlow"; font-weight: 400; font-display: swap; src: url("/barlow-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 500; font-display: swap; src: url("/barlow-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 600; font-display: swap; src: url("/barlow-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("/barlow-condensed-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 800; font-display: swap; src: url("/barlow-condensed-latin-800-normal.woff2") format("woff2"); }
+
+/* Same palette as the site (styles.scss) */
+:root {
+  --field: #121925; --navy: #1A2332; --steel: #3E5C84; --line: #2A3649;
+  --chalk: #F3F5F9; --soft: #C9D2DF; --muted: #9AA8BD; --sky: #B0DAFA; --mint: #8CF0B9;
+  --warn: #F5C46B; --out: #F28B82;
+  --wrap: 1180px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--field); color: var(--chalk);
+  font-family: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 17px; line-height: 1.55;
+}
+a { color: var(--sky); }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, th button:focus-visible {
+  outline: 2px solid var(--mint); outline-offset: 2px;
+}
+h1, h2, h3 { font-family: "Barlow Condensed", "Barlow", sans-serif; font-weight: 800; line-height: 1; margin: 0; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Navbar ---------- */
+.nav { border-bottom: 1px solid var(--line); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 16px; }
+.nav-logo img { display: block; max-height: 54px; border-radius: 6px; }
+.nav-links { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.nav-links a { display: block; padding: 8px 14px; color: var(--chalk); text-decoration: none; font-weight: 500; }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--mint); }
+.nav-menu { display: none; }
+/* by-sport dropdowns */
+.dd { position: relative; }
+.dd summary { list-style: none; cursor: pointer; padding: 8px 14px; font-weight: 500; color: var(--chalk); }
+.dd summary::-webkit-details-marker { display: none; }
+.dd summary::after { content: ""; display: inline-block; margin-left: 7px; border: 4px solid transparent; border-top-color: currentColor; transform: translateY(2px); }
+.dd summary:hover, .dd summary.on, .dd[open] summary { color: var(--mint); }
+.dd ul { position: absolute; right: 0; top: 100%; list-style: none; margin: 6px 0 0; padding: 6px; min-width: 190px; background: var(--navy); border: 1px solid var(--line); border-radius: 8px; z-index: 6; }
+.dd ul a { display: block; padding: 8px 12px; border-radius: 6px; }
+.dd ul a:hover { background: var(--field); }
+.nav-menu .grp { color: var(--muted); font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 10px 14px 2px; }
+.nav-menu summary { list-style: none; cursor: pointer; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; font-weight: 500; }
+.nav-menu summary::-webkit-details-marker { display: none; }
+
+/* ---------- Page head ---------- */
+.head { padding: 44px 0 28px; }
+.eyebrow { color: var(--mint); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: .82rem; margin: 0 0 10px; }
+.head h1 { font-size: clamp(2.6rem, 6vw, 4.4rem); letter-spacing: -.01em; }
+.head-meta { color: var(--muted); margin: 14px 0 0; font-size: .98rem; }
+.head-meta strong { color: var(--chalk); font-weight: 600; }
+.head-lede { color: var(--soft); max-width: 46rem; margin: 14px 0 22px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { display: inline-block; font: 600 1rem "Barlow", sans-serif; padding: 12px 20px; border-radius: 6px; text-decoration: none; cursor: pointer; }
+.btn-solid { background: var(--chalk); color: var(--field); border: 1px solid var(--chalk); }
+.btn-solid:hover { background: var(--mint); border-color: var(--mint); }
+.btn-line { background: transparent; color: var(--chalk); border: 1px solid var(--steel); }
+.btn-line:hover { border-color: var(--chalk); }
+
+/* ---------- Toolbar ---------- */
+.tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { font: 600 .95rem "Barlow", sans-serif; color: var(--muted); background: transparent; border: 0; padding: 9px 16px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--navy); color: var(--chalk); box-shadow: inset 0 -2px 0 var(--mint); }
+.ctl { font: 500 .95rem "Barlow", sans-serif; color: var(--chalk); background: var(--navy); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; min-height: 42px; }
+select.ctl { padding-right: 30px; max-width: 100%; }
+.search { flex: 1 1 200px; min-width: 160px; }
+.search::placeholder { color: var(--muted); }
+.pos { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.pos button { font: 600 .9rem "Barlow", sans-serif; color: var(--soft); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; cursor: pointer; min-height: 38px; }
+.pos button[aria-pressed="true"] { color: var(--field); background: var(--chalk); border-color: var(--chalk); }
+
+/* ---------- Table ---------- */
+.card { background: var(--navy); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.card-bar { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.card-title { font: 700 1.25rem "Barlow Condensed", sans-serif; }
+.card-note { color: var(--muted); font-size: .88rem; }
+.scroll { overflow-x: auto; }
+table.proj { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.proj th { font-weight: 500; font-size: .84rem; color: var(--muted); padding: 0; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; position: sticky; top: 0; background: var(--navy); z-index: 1; }
+table.proj th button { all: unset; display: block; padding: 10px 10px; cursor: pointer; }
+table.proj th button:hover { color: var(--chalk); }
+table.proj th[aria-sort] button { color: var(--chalk); }
+table.proj th[aria-sort="descending"] button::after { content: " \2193"; }
+table.proj th[aria-sort="ascending"] button::after { content: " \2191"; }
+table.proj td { text-align: center; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+table.proj tbody tr:last-child td { border-bottom: 0; }
+table.proj .l { text-align: left; }
+table.proj th.l button { text-align: left; }
+.pn { display: block; font-weight: 600; line-height: 1.2; }
+.pm { display: block; font-size: .8rem; color: var(--muted); }
+.badge { display: inline-block; font-size: .72rem; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: 1px; }
+.b-out { color: var(--field); background: var(--out); }
+.b-q { color: var(--field); background: var(--warn); }
+.b-st { color: var(--soft); border: 1px solid var(--line); }
+td.pj { font-weight: 600; color: var(--field); border-left: 1px solid var(--line); border-right: 1px solid var(--line); min-width: 4.6rem; }
+td.rg { color: var(--soft); }
+td.vl { color: var(--soft); }
+td.st { color: var(--soft); }
+.pline { display: none; }
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+.count { color: var(--muted); font-size: .88rem; padding: 10px 2px 0; }
+
+/* ---------- Optimizer ---------- */
+.beta { display: inline-block; font: 700 .72rem "Barlow", sans-serif; letter-spacing: .06em; color: var(--field); background: var(--mint); border-radius: 4px; padding: 2px 7px; margin-left: 8px; vertical-align: 4px; }
+.sec { padding: 8px 0 28px; }
+.sec h2 { font-size: 1.7rem; margin: 0 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 14px; }
+.fld { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.fld label, .lbl { color: var(--muted); font-size: .84rem; font-weight: 500; }
+.fld .ctl { width: 100%; }
+input.ctl[type="number"] { -moz-appearance: textfield; }
+.panel { background: var(--navy); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.panel + .panel { margin-top: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 600 .88rem "Barlow", sans-serif; color: var(--soft); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; min-height: 36px; }
+.chip[aria-pressed="true"], .chip.keep { color: var(--field); background: var(--mint); border-color: var(--mint); }
+.chip.remove { color: var(--field); background: var(--out); border-color: var(--out); text-decoration: line-through; }
+.hint { color: var(--muted); font-size: .84rem; margin: 8px 0 0; }
+.row2 { display: flex; flex-wrap: wrap; gap: 12px 14px; align-items: flex-end; margin-top: 12px; }
+.row2 .fld { width: 150px; }
+[hidden] { display: none !important; }
+
+/* player pool */
+table.pool td { padding: 6px 8px; }
+table.pool td.l { min-width: 11rem; }
+table.pool input.ctl { width: 5.2rem; min-height: 36px; padding: 6px 8px; text-align: center; }
+table.pool input.ctl::placeholder { color: var(--muted); }
+table.pool input.ctl.set { border-color: var(--mint); }
+.tg { font: 600 .9rem "Barlow", sans-serif; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; padding: 0; }
+.tg[aria-pressed="true"].lk { background: var(--mint); border-color: var(--mint); color: var(--field); }
+.tg[aria-pressed="true"].ex { background: var(--out); border-color: var(--out); color: var(--field); }
+.tg.bs { width: 44px; }
+.tg.bs.up { background: var(--mint); border-color: var(--mint); color: var(--field); }
+.tg.bs.dn { background: var(--warn); border-color: var(--warn); color: var(--field); }
+.msal { display: none; }
+tr.is-out td { opacity: .45; }
+tr.is-out td:first-child, tr.is-out td:nth-child(2) { opacity: 1; }
+
+/* build */
+.build { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 6px 0 4px; }
+.btn[disabled] { opacity: .6; cursor: default; }
+.bar { flex: 1 1 220px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--mint); transition: width .2s; }
+.msg { color: var(--soft); font-size: .95rem; margin: 8px 0 0; }
+.msg.err { color: var(--out); }
+
+/* results */
+.res-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.lus { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.pool-scroll { max-height: min(70vh, 640px); overflow: auto; }
+.pool-scroll table.proj th { top: 0; }
+.lu .card-bar { padding: 10px 14px; }
+.lu table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .92rem; table-layout: fixed; }
+.lu td { padding: 5px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.lu td:first-child { padding-left: 14px; }
+.lu td:last-child { padding-right: 14px; }
+.lu tr:last-child td { border-bottom: 0; }
+.lu td.sl { color: var(--muted); width: 3.4rem; font-size: .82rem; }
+.lu td.nm { overflow: hidden; text-overflow: ellipsis; }
+.lu td.tm { color: var(--muted); font-size: .82rem; width: 2.9rem; }
+.lu td.sa { width: 4.3rem; }
+.lu td.pp { width: 3.9rem; }
+.lu td.r { text-align: right; }
+table.exp { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.exp th { color: var(--muted); font-weight: 500; font-size: .84rem; text-align: right; padding: 9px 14px; border-bottom: 1px solid var(--line); }
+table.exp td { text-align: right; padding: 8px 14px; border-bottom: 1px solid var(--line); }
+table.exp .l { text-align: left; }
+table.exp td.barc { width: 40%; }
+.xb { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.xb i { display: block; height: 100%; background: var(--sky); }
+.more { margin-top: 14px; }
+@media (max-width: 760px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .row2 .fld { width: calc(50% - 7px); }
+  .lus { grid-template-columns: minmax(0, 1fr); }
+  table.pool .wide, table.pool .sal { display: none; }
+  table.proj.pool td, table.proj.pool th button { padding-left: 3px; padding-right: 3px; }
+  table.proj.pool td.l { min-width: 0; }
+  table.pool td.l { min-width: 0; white-space: normal; }
+  table.pool .pn { font-size: .92rem; }
+  table.pool input.ctl { width: 3.5rem; padding: 6px 4px; }
+  .tg { width: 32px; height: 34px; }
+  .tg.bs { width: 38px; }
+  .msal { display: inline !important; }
+}
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .wrap { padding: 0 16px; }
+  .nav-links { display: none; }
+  .nav-menu { display: block; position: relative; }
+  .nav-menu .nav-links { display: block; position: absolute; right: 0; top: 46px; background: var(--navy); border: 1px solid var(--line); border-radius: 8px; padding: 6px; min-width: 220px; z-index: 5; }
+  .head { padding: 28px 0 20px; }
+  .tools { gap: 10px; }
+  .tools .seg, .tools select.ctl, .tools .search { flex: 1 1 100%; }
+  .seg button { flex: 1; }
+  table.proj .wide { display: none; }
+  table.proj td, table.proj th button { padding-left: 8px; padding-right: 8px; }
+  tr.row { cursor: pointer; }
+  table.proj td.l { white-space: normal; min-width: 9.5rem; }
+  .b-st { display: none; }
+  tr.row.open .pline { display: block; color: var(--soft); font-size: .82rem; margin-top: 4px; white-space: normal; }
+  .tile-v { font-size: 2rem; }
+}
+@media (prefers-reduced-motion: no-preference) { .btn, .seg button, .pos button { transition: background-color .15s, border-color .15s, color .15s; } }
+</style>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3T435K36YH"></script>
+<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag("js", new Date()); gtag("config", "G-3T435K36YH");</script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="nav-logo" href="/"><img src="/logo-small.png" alt="Three7 DFS home" width="54" height="54"></a>
+    <ul class="nav-links">
+      <li><a href="/#method">How it works</a></li>
+      <li><a href="/#pricing">Pricing</a></li>
+      <li><details class="dd"><summary>NFL</summary>
+        <ul><li><a href="/nfl/">NFL Projections</a></li><li><a rel="nofollow" href="https://nfl.three7dfs.com">NFL Optimizer</a></li></ul></details></li>
+      <li><details class="dd"><summary class="on">NBA</summary>
+        <ul><li><a href="/nba/">NBA Projections</a></li><li><a rel="nofollow" href="https://thirtyseven.shinyapps.io/NBA_Preds/">NBA Optimizer</a></li></ul></details></li>
+      <li><details class="dd"><summary>MLB</summary>
+        <ul><li><a href="https://mlb.three7dfs.com">MLB Optimizer</a></li></ul></details></li>
+    </ul>
+    <details class="nav-menu">
+      <summary>Menu</summary>
+      <ul class="nav-links">
+        <li><a href="/#method">How it works</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li class="grp">NFL</li><li><a href="/nfl/">NFL Projections</a></li><li><a rel="nofollow" href="https://nfl.three7dfs.com">NFL Optimizer</a></li>
+        <li class="grp">NBA</li><li><a href="/nba/">NBA Projections</a></li><li><a rel="nofollow" href="https://thirtyseven.shinyapps.io/NBA_Preds/">NBA Optimizer</a></li>
+        <li class="grp">MLB</li><li><a href="https://mlb.three7dfs.com">MLB Optimizer</a></li>
+      </ul>
+    </details>
+  </div>
+</header>
+
+<main>
+  <section class="head wrap" aria-labelledby="page-h">
+    <p class="eyebrow">Three7 DFS <span class="beta">BETA</span></p>
+    <h1 id="page-h">NBA lineup optimizer</h1>
+    <p class="head-meta" id="meta">Loading tonight's projections…</p>
+    <p class="head-lede">Our projections, your settings: lock, exclude, boost or edit any player, set exposures and stacks, and build up to 150 lineups. It all runs in your browser.</p>
+  </section>
+
+  <section class="wrap sec" aria-label="Site and slate">
+    <div class="tools">
+      <div class="seg" id="site" role="group" aria-label="Site">
+        <button type="button" data-site="dk" aria-pressed="true">DraftKings</button>
+        <button type="button" data-site="fd" aria-pressed="false">FanDuel</button>
+      </div>
+      <select class="ctl" id="slate" aria-label="Slate"></select>
+    </div>
+  </section>
+
+  <section class="wrap sec" aria-labelledby="set-h">
+    <h2 id="set-h">Settings</h2>
+    <div class="panel">
+      <div class="grid">
+        <div class="fld"><label for="n">Lineups</label><input class="ctl num" id="n" type="number" min="1" max="150" step="1" value="5"></div>
+        <div class="fld"><label for="exposure">Global exposure %</label><input class="ctl num" id="exposure" type="number" min="1" max="100" step="5" value="60"></div>
+        <div class="fld"><label for="minProj">Min proj</label><input class="ctl num" id="minProj" type="number" min="0" max="30" step="0.5" value="1"></div>
+        <div class="fld"><label for="random">Randomness %</label><input class="ctl num" id="random" type="number" min="0" max="30" step="5" value="0"></div>
+        <div class="fld"><label for="minUnique">Min unique players</label><input class="ctl num" id="minUnique" type="number" min="1" max="5" step="1" value="1"></div>
+        <div class="fld"><label for="minSal">Min salary</label><input class="ctl num" id="minSal" type="number" min="0" step="100" value="0"></div>
+        <div class="fld"><label for="maxSal">Max salary</label><input class="ctl num" id="maxSal" type="number" step="100" value="50000"></div>
+        <div class="fld"><label for="maxTeam">Max per team</label><input class="ctl num" id="maxTeam" type="number" min="2" step="1" value="8"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <p class="lbl" style="margin:0 0 8px">Teams <span style="font-weight:400">· tap once to keep only those teams, twice to remove a team</span></p>
+      <div class="chips" id="teams"></div>
+    </div>
+    <div class="panel">
+      <div class="row2" style="margin-top:0">
+        <div class="fld"><label for="stack">Stack</label>
+          <select class="ctl" id="stack"><option value="none">No</option><option value="game">Game</option><option value="team">Team</option></select></div>
+        <div class="fld" data-stack="game"><label for="gsize">Players from game</label><input class="ctl num" id="gsize" type="number" min="2" max="7" step="1" value="4"></div>
+        <div class="fld" data-stack="game"><label for="geach">Min each team</label><input class="ctl num" id="geach" type="number" min="0" max="4" step="1" value="1"></div>
+        <div class="fld" data-stack="team"><label for="tsize">Players from team</label><input class="ctl num" id="tsize" type="number" min="2" max="7" step="1" value="3"></div>
+      </div>
+      <div data-stack="game" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Games to stack <span style="font-weight:400">· none picked = any game</span></p><div class="chips" id="sgames"></div></div>
+      <div data-stack="team" style="margin-top:12px"><p class="lbl" style="margin:0 0 8px">Teams to stack <span style="font-weight:400">· none picked = any team</span></p><div class="chips" id="steams"></div></div>
+    </div>
+  </section>
+
+  <section class="wrap sec" aria-labelledby="pool-h">
+    <h2 id="pool-h">Players</h2>
+    <div class="tools" style="border-top:0;padding-top:0">
+      <div class="pos" id="pos" role="group" aria-label="Position">
+        <button type="button" data-pos="" aria-pressed="true">All</button>
+        <button type="button" data-pos="PG" aria-pressed="false">PG</button>
+        <button type="button" data-pos="SG" aria-pressed="false">SG</button>
+        <button type="button" data-pos="SF" aria-pressed="false">SF</button>
+        <button type="button" data-pos="PF" aria-pressed="false">PF</button>
+        <button type="button" data-pos="C" aria-pressed="false">C</button>
+        <button type="button" data-pos="*" aria-pressed="false">Changed</button>
+      </div>
+      <input class="ctl search" id="q" type="search" placeholder="Search players" autocomplete="off">
+      <button type="button" class="btn btn-line" id="reset" style="padding:9px 14px">Reset changes</button>
+    </div>
+    <div class="card">
+      <div class="card-bar"><span class="card-title">Player pool</span><span class="card-note">Proj and Exp % are yours to change · blank = ours</span></div>
+      <div class="scroll pool-scroll">
+        <table class="proj pool">
+          <thead><tr>
+            <th title="Lock in every lineup"><button type="button" data-sort="lock">Lock</button></th>
+            <th title="Leave out"><button type="button" data-sort="out">Out</button></th>
+            <th class="l"><button type="button" data-sort="n">Player</button></th>
+            <th class="sal"><button type="button" data-sort="sal">Salary</button></th>
+            <th><button type="button" data-sort="p">Proj</button></th>
+            <th><button type="button" data-sort="exp">Exp %</button></th>
+            <th title="Boost +25% / suppress -25%"><button type="button" data-sort="boost">Boost</button></th>
+            <th class="wide"><button type="button" data-sort="v">Value</button></th>
+          </tr></thead>
+          <tbody id="rows"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="count" id="count"></p>
+  </section>
+
+  <section class="wrap sec" aria-label="Build lineups">
+    <div class="build">
+      <button type="button" class="btn btn-solid" id="go" disabled>Build lineups</button>
+      <div class="bar" id="bar" hidden><i></i></div>
+    </div>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="wrap sec" id="results" hidden aria-labelledby="res-h">
+    <div class="res-head">
+      <h2 id="res-h" style="margin:0">Lineups</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <div class="seg" id="rtab" role="group" aria-label="Show">
+          <button type="button" data-tab="lu" aria-pressed="true">Lineups</button>
+          <button type="button" data-tab="pl" aria-pressed="false">Players</button>
+          <button type="button" data-tab="tm" aria-pressed="false">Teams</button>
+          <button type="button" data-tab="gm" aria-pressed="false">Games</button>
+        </div>
+        <button type="button" class="btn btn-solid" id="dl" style="padding:9px 16px">Download for upload</button>
+      </div>
+    </div>
+    <p class="msg" id="rsum" style="margin:0 0 12px"></p>
+    <div id="rbody"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p style="margin:0">© 2026 Three7 DFS · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a> · <a href="mailto:support@three7dfs.com">support@three7dfs.com</a></p>
+    <p style="margin:0">Not affiliated with DraftKings or FanDuel. 18+ only.</p>
+  </div>
+</footer>
+
+<script>
+/* Three7 NBA optimizer core: the same rules as the NBA app's Classic optimizer
+   (run_optimizer_once + nba_rule_rows + fast_optimize_generic), in the browser.
+   One yes/no per player; the roster spots are kept fillable with Hall's rule (for every
+   group of spots, enough picked players can play one of them), then players are seated. */
+var T7Opt = (function () {
+  var SLOTS = {
+    dk: ["PG", "SG", "SF", "PF", "C", "G", "F", "UTIL"],
+    fd: ["PG", "SG", "SF", "PF", "C", "GF", "FC", "UTIL", "UTIL"]
+  };
+  var LABEL = { GF: "G/F", FC: "F/C" };
+  var CAP = { dk: 50000, fd: 60000 };
+  var POOL_MAX = 90;                       // best projected players kept (locks and edits always kept)
+
+  // spots a player can fill, from the site's position ("PG/SG")
+  function eligible(pos, site) {
+    var base = String(pos || "").split("/").map(function (s) { return s.trim(); })
+      .filter(function (s) { return ["PG", "SG", "SF", "PF", "C"].indexOf(s) >= 0; });
+    var has = function (l) { return base.some(function (b) { return l.indexOf(b) >= 0; }); };
+    var out = base.slice();
+    if (site === "dk") { if (has(["PG", "SG"])) out.push("G"); if (has(["SF", "PF"])) out.push("F"); }
+    else { if (has(["PG", "SG", "SF", "PF"])) out.push("GF"); if (has(["SF", "PF", "C"])) out.push("FC"); }
+    if (base.length) out.push("UTIL");
+    return out;
+  }
+  function gameKey(a, b) { return [a, b].sort().join("@"); }
+
+  // The player pool for one site + slate. edits[key] = {lock, out, boost (+1/-1), proj, exp (%)}
+  function prepare(players, site, slate, s, edits) {
+    edits = edits || {};
+    var all = [];
+    players.forEach(function (p) {
+      var x = p[site];
+      if (!x || !x.sl || !(slate in x.sl) || x.sl[slate] == null) return;
+      var key = p.n + "|" + p.tm, e = edits[key] || {};
+      var proj = e.proj != null && e.proj !== "" && !isNaN(+e.proj) ? +e.proj : x.p;
+      if (proj == null || isNaN(proj)) return;
+      all.push({ key: key, name: p.n, team: p.tm, opp: p.opp, game: gameKey(p.tm, p.opp), pos: x.pos,
+                 id: x.id ? x.id[slate] : null, salary: +x.sl[slate], proj: Math.round(proj * 10) / 10,
+                 lock: !!e.lock, out: !!e.out, boost: e.boost || 0,
+                 exp: e.exp != null && e.exp !== "" && !isNaN(+e.exp) ? Math.max(0, Math.min(1, +e.exp / 100)) : null });
+    });
+    var keep = s.keepTeams || [], remove = s.removeTeams || [];
+    var pool = all.filter(function (r) {
+      if (r.out && !r.lock) return false;                                     // Exclude
+      if (!r.lock && !(r.proj > s.minProj)) return false;                     // Min Proj (locks always in)
+      if (keep.length && keep.indexOf(r.team) < 0 && !r.lock) return false;   // Keep Teams
+      if (remove.indexOf(r.team) >= 0) return false;                          // Remove Teams
+      return eligible(r.pos, site).length > 0;
+    });
+    pool.forEach(function (r) {
+      r.fpts = r.proj * (r.boost > 0 ? 1.25 : 1) * (r.boost < 0 ? 0.75 : 1);   // Boost / Suppress
+      r.cap = r.lock ? 1 : (r.exp != null ? r.exp : s.exposure);
+      r.slots = eligible(r.pos, site);
+    });
+    pool.sort(function (a, b) { return b.fpts - a.fpts; });
+    var kept = 0;
+    pool = pool.filter(function (r) { if (r.lock || r.exp != null) return true; kept++; return kept <= POOL_MAX; });
+    return pool;
+  }
+
+  function gauss(rnd) { var u = 1 - rnd(), v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+  // seat the picked players (indices into pool) into the site's spots; null if impossible
+  function seat(picked, pool, slots) {
+    var owner = new Array(slots.length).fill(-1);
+    function tryP(p, seen) {
+      for (var j = 0; j < slots.length; j++) {
+        if (seen[j] || pool[p].slots.indexOf(slots[j]) < 0) continue;
+        seen[j] = 1;
+        if (owner[j] < 0 || tryP(owner[j], seen)) { owner[j] = p; return true; }
+      }
+      return false;
+    }
+    // most restricted players first, so a PG/SG/G/UTIL player doesn't take a pure C's spot
+    var order = picked.slice().sort(function (a, b) { return pool[a].slots.length - pool[b].slots.length; });
+    for (var i = 0; i < order.length; i++) if (!tryP(order[i], {})) return null;
+    return owner;
+  }
+
+  // Builds lineups. solver(model) -> {ok, x: {name: value}} (HiGHS or GLPK adapter).
+  async function run(solver, pool, site, s, opts) {
+    opts = opts || {};
+    var rnd = opts.random || Math.random, slots = SLOTS[site], R = slots.length;
+    var cap = Math.min(CAP[site], s.maxSal || CAP[site]);
+    var maxTeam = site === "dk" ? Math.min(s.maxTeam || 8, 8) : Math.min(s.maxTeam || 4, 4);
+    if (s.minSal > cap) throw new Error("Min Salary is higher than Max Salary.");
+    var n = pool.length;
+    if (!n) throw new Error("No players left in the pool. Loosen Min Proj, kept or removed teams, or exclusions.");
+    var games = [], teams = [];
+    pool.forEach(function (r) { if (games.indexOf(r.game) < 0) games.push(r.game); if (teams.indexOf(r.team) < 0) teams.push(r.team); });
+    var st = s.stack || { type: "none" };
+    var pickG = (st.games || []).filter(function (g) { return games.indexOf(g) >= 0; });
+    var pickT = (st.teams || []).filter(function (t) { return teams.indexOf(t) >= 0; });
+    var sGames = st.type === "game" ? (pickG.length ? pickG : games) : [];
+    var sTeams = st.type === "team" ? (pickT.length ? pickT : teams) : [];
+
+    var X = pool.map(function (r, p) { return "x" + p; });
+    var all = function (pred, coef) { var c = {}; pool.forEach(function (r, p) { if (pred(r, p)) c[X[p]] = coef ? coef(r) : 1; }); return c; };
+    var rows = [], aux = [];
+    function row(c, op, rhs) { if (Object.keys(c).length) rows.push({ c: c, op: op, rhs: rhs }); }
+    row(all(function () { return true; }), "=", R);                                              // roster size
+    // Hall's rule: every group of spots (UTIL aside, anyone can play it) has enough players for it
+    var named = []; slots.forEach(function (sl) { if (sl !== "UTIL" && named.indexOf(sl) < 0) named.push(sl); });
+    for (var m = 1; m < (1 << named.length); m++) {
+      var grp = named.filter(function (x, i) { return m & (1 << i); });
+      var need = slots.filter(function (sl) { return grp.indexOf(sl) >= 0; }).length;
+      row(all(function (r) { return r.slots.some(function (x) { return grp.indexOf(x) >= 0; }); }), ">=", need);
+    }
+    row(all(function () { return true; }, function (r) { return r.salary; }), "<=", cap);           // salary cap
+    if (s.minSal > 0) row(all(function () { return true; }, function (r) { return r.salary; }), ">=", s.minSal);
+    teams.forEach(function (t) { row(all(function (r) { return r.team === t; }), "<=", maxTeam); });
+    if (site === "dk") games.forEach(function (g) { row(all(function (r) { return r.game === g; }), "<=", R - 1); });
+    pool.forEach(function (r, p) { if (r.lock) { var c = {}; c[X[p]] = 1; row(c, ">=", 1); } });
+    if (sGames.length) {   // Game stack: at least `size` players from one of the games, `each` from both teams
+      var cy = {}; sGames.forEach(function (g, j) { cy["y" + j] = 1; aux.push("y" + j); }); row(cy, ">=", 1);
+      sGames.forEach(function (g, j) {
+        var c = all(function (r) { return r.game === g; }); c["y" + j] = -st.size; row(c, ">=", 0);
+        if (st.each > 0) g.split("@").forEach(function (t) {
+          var c2 = all(function (r) { return r.game === g && r.team === t; }); c2["y" + j] = -st.each; row(c2, ">=", 0);
+        });
+      });
+    }
+    if (sTeams.length) {   // Team stack: at least `size` players from one of the teams
+      var cz = {}; sTeams.forEach(function (t, j) { cz["z" + j] = 1; aux.push("z" + j); }); row(cz, ">=", 1);
+      sTeams.forEach(function (t, j) { var c = all(function (r) { return r.team === t; }); c["z" + j] = -st.size; row(c, ">=", 0); });
+    }
+
+    var L = s.n, used = new Array(n).fill(0), banned = [], lineups = [], cuts = [];
+    var capCount = pool.map(function (r) { return r.cap > 0 ? Math.max(1, Math.floor(r.cap * L + 1e-9)) : 0; });
+    var minUnique = Math.max(1, Math.min(s.minUnique || 1, R));
+
+    async function solve(ban, fpts) {
+      var obj = {}; pool.forEach(function (r, p) { obj[X[p]] = Math.round(fpts[p] * 1e4) / 1e4; });
+      var ub = {}; Object.keys(ban).forEach(function (p) { ub[X[p]] = 0; });
+      var res = await solver({ obj: obj, rows: rows.concat(cuts), bins: X.concat(aux), ub: ub });
+      if (!res.ok) return null;
+      var picked = []; pool.forEach(function (r, p) { if (res.x[X[p]] > 0.5) picked.push(p); });
+      return picked.length === R ? picked : null;
+    }
+
+    for (var i = 1; i <= L; i++) {
+      var fpts = pool.map(function (r) { return s.random > 0 ? r.fpts * Math.max(1 + gauss(rnd) * s.random / 100, 0) : r.fpts; });
+      var banSet = {}; banned.forEach(function (p) { banSet[p] = 1; });
+      var picked = await solve(banSet, fpts);
+      // coach's rolling rule can leave nothing (lineup 1 = 100% of 1 lineup); fall back to the plain cap
+      if (!picked) {
+        var atCap = {}, diff = false;
+        used.forEach(function (u, p) { if (u >= capCount[p]) atCap[p] = 1; });
+        Object.keys(atCap).forEach(function (p) { if (!banSet[p]) diff = true; });
+        banned.forEach(function (p) { if (!atCap[p]) diff = true; });
+        if (diff) picked = await solve(atCap, fpts);
+      }
+      if (!picked) {
+        if (!lineups.length) throw new Error("No valid lineup found. Try raising exposure or loosening locks, stacks or lineup rules.");
+        return { lineups: lineups, stopped: true };
+      }
+      var owner = seat(picked, pool, slots);
+      if (!owner) throw new Error("Couldn't seat a lineup (please report this).");
+      lineups.push(owner.map(function (p, j) {
+        var r = pool[p];
+        return { slot: LABEL[slots[j]] || slots[j], key: r.key, name: r.name, id: r.id, team: r.team, opp: r.opp,
+                 game: r.game, salary: r.salary, proj: r.proj, pos: r.pos };
+      }));
+      if (opts.onProgress) await opts.onProgress(i, L);
+      // later lineups need at least minUnique players not in this one
+      var cu = {}; picked.forEach(function (p) { cu[X[p]] = 1; }); cuts.push({ c: cu, op: "<=", rhs: R - minUnique });
+      picked.forEach(function (p) { used[p]++; });
+      banned = [];
+      used.forEach(function (u, p) { if (u / i > pool[p].cap || u >= capCount[p]) banned.push(p); });
+    }
+    return { lineups: lineups, stopped: false };
+  }
+
+  // ---- solver adapters ----
+  function highsSolver(highs) {
+    return function (M) {
+      var t = function (c) { return Object.keys(c).map(function (v) { return (c[v] >= 0 ? " + " : " - ") + Math.abs(c[v]) + " " + v; }).join(""); };
+      var wrap = function (s) { return s.replace(/((?: [+-] \S+ \S+){12})/g, "$1\n"); };
+      var lp = "Maximize\n obj:" + wrap(t(M.obj)) + "\nSubject To\n" +
+        M.rows.map(function (r, i) { return " r" + i + ":" + wrap(t(r.c)) + " " + r.op + " " + r.rhs; }).join("\n") + "\n" +
+        "Bounds\n" + Object.keys(M.ub).map(function (v) { return " " + v + " = 0"; }).join("\n") + (Object.keys(M.ub).length ? "\n" : "") +
+        "Binary\n" + M.bins.map(function (v, i) { return (i % 20 ? " " : "\n ") + v; }).join("") + "\nEnd\n";
+      var res = highs.solve(lp, { mip_rel_gap: 0 });
+      if (res.Status !== "Optimal") return { ok: false };
+      var x = {}; Object.keys(res.Columns).forEach(function (k) { x[k] = res.Columns[k].Primal; });
+      return { ok: true, x: x };
+    };
+  }
+  function glpkSolver(glpk) {
+    return async function (M) {
+      var vars = function (c) { return Object.keys(c).map(function (v) { return { name: v, coef: c[v] }; }); };
+      var type = { "<=": glpk.GLP_UP, ">=": glpk.GLP_LO, "=": glpk.GLP_FX };
+      var model = {
+        name: "lineup", objective: { direction: glpk.GLP_MAX, name: "obj", vars: vars(M.obj) },
+        subjectTo: M.rows.map(function (r, i) { return { name: "r" + i, vars: vars(r.c), bnds: { type: type[r.op], ub: r.rhs, lb: r.rhs } }; })
+          .concat(Object.keys(M.ub).map(function (v, i) { return { name: "b" + i, vars: [{ name: v, coef: 1 }], bnds: { type: glpk.GLP_FX, ub: 0, lb: 0 } }; })),
+        binaries: M.bins
+      };
+      var res = await glpk.solve(model, { msglev: glpk.GLP_MSG_OFF, presol: true });
+      if (!res || !res.result || (res.result.status !== glpk.GLP_OPT)) return { ok: false };
+      return { ok: true, x: res.result.vars };
+    };
+  }
+
+  // Upload file (header + one row per lineup) in the site's template order
+  function uploadCsv(lineups, site) {
+    var head = SLOTS[site].map(function (s) { return LABEL[s] || s; });
+    return [head.join(",")].concat(lineups.map(function (lu) { return lu.map(function (x) { return x.id; }).join(","); })).join("\n") + "\n";
+  }
+
+  return { SLOTS: SLOTS, LABEL: LABEL, CAP: CAP, eligible: eligible, gameKey: gameKey, prepare: prepare, run: run,
+           seat: seat, highsSolver: highsSolver, glpkSolver: glpkSolver, uploadCsv: uploadCsv };
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  var GLPK_URL = "https://cdn.jsdelivr.net/npm/glpk.js@5.0.0/dist/index.js";
+  var MAX_LINEUPS = 150;
+  var LOCK = '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align:-2px"><path fill="currentColor" d="M4 7V5a4 4 0 0 1 8 0v2h.5A1.5 1.5 0 0 1 14 8.5v5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5v-5A1.5 1.5 0 0 1 3.5 7H4zm2 0h4V5a2 2 0 0 0-4 0v2z"/></svg>';
+  var D = null, glpk = null, busy = false, result = null, showAll = false, rtab = "lu";
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function f1(x) { return x == null || isNaN(x) ? "" : (Math.round(x * 10) / 10).toFixed(1); }
+  function money(x) { return x == null ? "" : "$" + Number(x).toLocaleString("en-US"); }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function load(k, d) { try { var v = JSON.parse(store(k)); return v == null ? d : v; } catch (e) { return d; } }
+  function track(name, params) { try { if (typeof window.gtag === "function") window.gtag("event", name, params || {}); } catch (e) {} }
+
+  // ---------- state ----------
+  var DEF = {
+    dk: { n: 5, exposure: 60, minProj: 1, random: 0, minUnique: 1, minSal: 0, maxSal: 50000, maxTeam: 8, stack: "none", gsize: 4, geach: 1, tsize: 3 },
+    fd: { n: 5, exposure: 60, minProj: 1, random: 0, minUnique: 1, minSal: 0, maxSal: 60000, maxTeam: 4, stack: "none", gsize: 4, geach: 1, tsize: 3 }
+  };
+  var LIM = { dk: { maxSal: [40000, 50000], maxTeam: [2, 8], gsize: [2, 7], geach: [0, 4], tsize: [2, 7] },
+              fd: { maxSal: [40000, 60000], maxTeam: [2, 4], gsize: [2, 8], geach: [0, 4], tsize: [2, 4] } };
+  var S = { site: store("t7opt.site") === "fd" ? "fd" : "dk", slate: null, pos: "", q: "", sort: "p", dir: -1,
+            set: load("t7opt.settings", {}) };
+  ["dk", "fd"].forEach(function (s) { S.set[s] = Object.assign({}, DEF[s], S.set[s] || {}); });
+  var E = {}, T = {};            // player edits and team picks for the current site + slate
+  function slateKey() { return "t7opt." + D.date + "." + S.site + "." + S.slate; }
+  function loadSlate() { var v = load(slateKey(), {}); E = v.E || {}; T = v.T || { mode: {}, sg: [], st: [] }; }
+  function saveSlate() { store(slateKey(), JSON.stringify({ E: E, T: T })); }
+  function saveSet() { store("t7opt.settings", JSON.stringify(S.set)); store("t7opt.site", S.site); }
+
+  // ---------- data: the projections page carries tonight's numbers ----------
+  function getData() {
+    return fetch("/nba/?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    }).then(function (html) {
+      var m = html.match(/<script id="t7-data" type="application\/json">([\s\S]*?)<\/script>/);
+      if (!m) throw new Error("no data");
+      return JSON.parse(m[1]);
+    });
+  }
+
+  function slates() { return D.slates.filter(function (s) { return s.site === S.site; }); }
+  function players() {   // everyone on the current site + slate
+    return D.players.filter(function (p) { var x = p[S.site]; return x && x.sl && S.slate in x.sl && x.sl[S.slate] != null; });
+  }
+  function keyOf(p) { return p.n + "|" + p.tm; }
+  function gameOf(p) { return T7Opt.gameKey(p.tm, p.opp); }
+  function gameLabel(g, list) {   // "BOS @ NYK" from a home team on the slate
+    var ps = list.filter(function (p) { return gameOf(p) === g; });
+    var h = ps.filter(function (p) { return p.home; })[0];
+    return h ? h.opp + " @ " + h.tm : g.replace("@", " vs ");
+  }
+
+  // ---------- settings ----------
+  var FIELDS = ["n", "exposure", "minProj", "random", "minUnique", "minSal", "maxSal", "maxTeam", "gsize", "geach", "tsize"];
+  function showSettings() {
+    var st = S.set[S.site], lim = LIM[S.site];
+    FIELDS.forEach(function (f) {
+      var el = $(f); el.value = st[f];
+      if (lim[f]) { el.min = lim[f][0]; el.max = lim[f][1]; }
+    });
+    $("stack").value = st.stack;
+    document.querySelectorAll("[data-stack]").forEach(function (el) { el.hidden = el.dataset.stack !== st.stack; });
+  }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+  function readSettings() {
+    var st = S.set[S.site], lim = LIM[S.site];
+    FIELDS.forEach(function (f) {
+      var v = parseFloat($(f).value);
+      if (isNaN(v)) v = DEF[S.site][f];
+      if (lim[f]) v = clamp(v, lim[f][0], lim[f][1]);
+      st[f] = v;
+    });
+    st.n = clamp(Math.round(st.n), 1, MAX_LINEUPS); st.exposure = clamp(st.exposure, 1, 100);
+    st.random = clamp(st.random, 0, 50); st.minUnique = clamp(Math.round(st.minUnique), 1, 5);
+    st.stack = $("stack").value;
+    saveSet();
+    return st;
+  }
+  FIELDS.forEach(function (f) { $(f).addEventListener("change", function () { readSettings(); showSettings(); }); });
+  $("stack").addEventListener("change", function () { readSettings(); showSettings(); });
+
+  // team chips: neutral -> keep -> remove
+  function drawTeams() {
+    var list = players(), teams = {}, games = {};
+    list.forEach(function (p) { teams[p.tm] = 1; games[gameOf(p)] = 1; });
+    $("teams").innerHTML = Object.keys(teams).sort().map(function (t) {
+      var m = T.mode[t] || "";
+      return '<button type="button" class="chip ' + m + '" data-t="' + esc(t) + '" aria-label="' + esc(t) + (m ? " (" + m + ")" : "") + '">' + esc(t) + "</button>";
+    }).join("");
+    $("sgames").innerHTML = Object.keys(games).sort().map(function (g) {
+      return '<button type="button" class="chip" data-g="' + esc(g) + '" aria-pressed="' + (T.sg.indexOf(g) >= 0) + '">' + esc(gameLabel(g, list)) + "</button>";
+    }).join("");
+    $("steams").innerHTML = Object.keys(teams).sort().map(function (t) {
+      return '<button type="button" class="chip" data-t="' + esc(t) + '" aria-pressed="' + (T.st.indexOf(t) >= 0) + '">' + esc(t) + "</button>";
+    }).join("");
+  }
+  $("teams").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var t = b.dataset.t, m = T.mode[t] || "";
+    T.mode[t] = m === "" ? "keep" : m === "keep" ? "remove" : "";
+    if (!T.mode[t]) delete T.mode[t];
+    saveSlate(); drawTeams();
+  });
+  function toggleIn(arr, v) { var i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
+  $("sgames").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; toggleIn(T.sg, b.dataset.g); saveSlate(); drawTeams(); });
+  $("steams").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; toggleIn(T.st, b.dataset.t); saveSlate(); drawTeams(); });
+
+  // ---------- player pool ----------
+  function edited(e) { return e && (e.lock || e.out || e.boost || (e.proj != null && e.proj !== "") || (e.exp != null && e.exp !== "")); }
+  function rowData() {
+    return players().map(function (p) {
+      var x = p[S.site], e = E[keyOf(p)] || {}, sal = +x.sl[S.slate];
+      var pj = e.proj != null && e.proj !== "" ? +e.proj : x.p;
+      return { p: p, key: keyOf(p), n: p.n, pos: x.pos, tm: p.tm, opp: p.opp, home: p.home, inj: p.inj, sal: sal, base: x.p, pj: pj, e: e,
+               v: sal ? pj / (sal / 1000) : null };
+    });
+  }
+  function sortVal(r, k) {
+    switch (k) {
+      case "lock": return r.e.lock ? 1 : 0; case "out": return r.e.out ? 1 : 0; case "n": return r.n;
+      case "sal": return r.sal; case "p": return r.pj; case "exp": return r.e.exp == null || r.e.exp === "" ? -1 : +r.e.exp;
+      case "boost": return r.e.boost || 0; case "v": return r.v;
+    }
+  }
+  function render() {
+    var rows = rowData().filter(function (r) {
+      if (S.pos === "*") { if (!edited(r.e)) return false; }
+      else if (S.pos && r.pos.split("/").indexOf(S.pos) < 0) return false;
+      if (S.q && r.n.toLowerCase().indexOf(S.q) < 0 && r.tm.toLowerCase() !== S.q) return false;
+      return true;
+    });
+    rows.sort(function (a, b) {
+      var x = sortVal(a, S.sort), y = sortVal(b, S.sort);
+      if (typeof x === "string") return S.dir * x.localeCompare(y);
+      return S.dir * ((x == null ? -1e9 : x) - (y == null ? -1e9 : y)) || b.pj - a.pj;
+    });
+    var gx = S.set[S.site].exposure;
+    $("rows").innerHTML = rows.length ? rows.map(function (r) {
+      var e = r.e, b = e.boost || 0;
+      var badge = r.inj && /^(out|o)$/i.test(r.inj) ? ' <span class="badge b-out">OUT</span>' : r.inj && /^(q|gtd|questionable|doubtful|d)/i.test(r.inj) ? ' <span class="badge b-q">' + esc(r.inj.slice(0, 3).toUpperCase()) + "</span>" : "";
+      return '<tr data-k="' + esc(r.key) + '"' + (e.out ? ' class="is-out"' : "") + ">" +
+        '<td><button type="button" class="tg lk" data-a="lock" aria-pressed="' + !!e.lock + '" aria-label="Lock ' + esc(r.n) + '">' + LOCK + '</button></td>' +
+        '<td><button type="button" class="tg ex" data-a="out" aria-pressed="' + !!e.out + '" aria-label="Leave out ' + esc(r.n) + '">✕</button></td>' +
+        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + esc(r.pos) + " · " + esc(r.tm) + " " + (r.home ? "vs" : "@") + " " + esc(r.opp) + '<span class="msal"> \u00b7 ' + money(r.sal) + "</span></span></td>" +
+        '<td class="num sal">' + money(r.sal) + "</td>" +
+        '<td><input class="ctl num' + (e.proj != null && e.proj !== "" ? " set" : "") + '" data-a="proj" type="number" step="0.5" min="0" inputmode="decimal" placeholder="' + f1(r.base) + '" value="' + (e.proj == null ? "" : esc(e.proj)) + '" aria-label="Projection for ' + esc(r.n) + '"></td>' +
+        '<td><input class="ctl num' + (e.exp != null && e.exp !== "" ? " set" : "") + '" data-a="exp" type="number" step="5" min="0" max="100" inputmode="numeric" placeholder="' + gx + '" value="' + (e.exp == null ? "" : esc(e.exp)) + '" aria-label="Exposure for ' + esc(r.n) + '"></td>' +
+        '<td><button type="button" class="tg bs' + (b > 0 ? " up" : b < 0 ? " dn" : "") + '" data-a="boost" aria-label="Boost for ' + esc(r.n) + ': ' + (b > 0 ? "+25%" : b < 0 ? "-25%" : "none") + '">' + (b > 0 ? "+25" : b < 0 ? "−25" : "–") + "</button></td>" +
+        '<td class="wide num">' + (r.v == null ? "" : r.v.toFixed(2) + "x") + "</td></tr>";
+    }).join("") : '<tr><td colspan="8" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
+    var all = rowData(), nE = all.filter(function (r) { return edited(r.e); }).length;
+    $("count").textContent = rows.length + " of " + all.length + " players" + (nE ? " · " + nE + " changed" : "");
+    document.querySelectorAll("table.pool th").forEach(function (th) {
+      var b = th.querySelector("button");
+      if (b && b.dataset.sort === S.sort) th.setAttribute("aria-sort", S.dir < 0 ? "descending" : "ascending"); else th.removeAttribute("aria-sort");
+    });
+  }
+  function setEdit(key, field, val) {
+    var e = E[key] || (E[key] = {});
+    if (val === "" || val == null || val === false || val === 0) delete e[field]; else e[field] = val;
+    if (!edited(e)) delete E[key];
+    saveSlate();
+  }
+  $("rows").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-a]"); if (!b) return;
+    var k = b.closest("tr").dataset.k, cur = E[k] || {};
+    if (b.dataset.a === "lock") { setEdit(k, "lock", !cur.lock); if (!cur.lock) setEdit(k, "out", false); }
+    if (b.dataset.a === "out") { setEdit(k, "out", !cur.out); if (!cur.out) setEdit(k, "lock", false); }
+    if (b.dataset.a === "boost") setEdit(k, "boost", cur.boost > 0 ? -1 : cur.boost < 0 ? 0 : 1);
+    render();
+  });
+  $("rows").addEventListener("change", function (e) {
+    var i = e.target.closest("input[data-a]"); if (!i) return;
+    var k = i.closest("tr").dataset.k, v = i.value.trim();
+    if (v !== "" && isNaN(+v)) v = "";
+    if (i.dataset.a === "exp" && v !== "") v = String(clamp(+v, 0, 100));
+    if (i.dataset.a === "proj" && v !== "") v = String(Math.max(0, +v));
+    setEdit(k, i.dataset.a, v);
+    render();
+  });
+  document.querySelector("table.pool thead").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-sort]"); if (!b) return;
+    var k = b.dataset.sort;
+    if (S.sort === k) S.dir = -S.dir; else { S.sort = k; S.dir = k === "n" ? 1 : -1; }
+    render();
+  });
+  $("pos").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    S.pos = b.dataset.pos;
+    this.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+    render();
+  });
+  $("q").addEventListener("input", function () { S.q = this.value.trim().toLowerCase(); render(); });
+  $("reset").addEventListener("click", function () {
+    if (!Object.keys(E).length && !Object.keys(T.mode).length && !T.sg.length && !T.st.length) return;
+    if (!window.confirm("Clear every lock, exclusion, boost, projection and exposure change for this slate?")) return;
+    E = {}; T = { mode: {}, sg: [], st: [] }; saveSlate(); drawTeams(); render();
+  });
+
+  // ---------- site / slate ----------
+  function fillSlates() {
+    var list = slates();
+    $("slate").innerHTML = list.map(function (s) { return '<option value="' + esc(s.key) + '">' + esc(s.label) + "</option>"; }).join("");
+    if (!list.some(function (s) { return s.key === S.slate; })) S.slate = list.length ? list[0].key : null;
+    $("slate").value = S.slate || "";
+    document.querySelectorAll("#site button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.site === S.site)); });
+    loadSlate(); showSettings(); drawTeams(); render();
+    $("go").disabled = !S.slate;
+  }
+  $("site").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || busy) return;
+    S.site = b.dataset.site; saveSet(); fillSlates();
+  });
+  $("slate").addEventListener("change", function () { if (busy) return; S.slate = this.value; fillSlates(); });
+
+  // ---------- build ----------
+  function msg(t, err) { $("msg").textContent = t || ""; $("msg").className = "msg" + (err ? " err" : ""); }
+  function getSolver() {
+    if (glpk) return Promise.resolve(glpk);
+    return import(GLPK_URL).then(function (m) { return m.default(); }).then(function (g) { glpk = g; return g; });
+  }
+  $("go").addEventListener("click", function () {
+    if (busy || !S.slate) return;
+    var st = readSettings(); showSettings();
+    var keep = [], remove = [];
+    Object.keys(T.mode).forEach(function (t) { (T.mode[t] === "keep" ? keep : remove).push(t); });
+    var s = { n: st.n, exposure: st.exposure / 100, minProj: st.minProj, random: st.random, minUnique: st.minUnique,
+              minSal: st.minSal, maxSal: st.maxSal, maxTeam: st.maxTeam, keepTeams: keep, removeTeams: remove,
+              stack: st.stack === "game" ? { type: "game", games: T.sg.slice(), size: st.gsize, each: st.geach }
+                   : st.stack === "team" ? { type: "team", teams: T.st.slice(), size: st.tsize } : { type: "none" } };
+    var pool = T7Opt.prepare(D.players, S.site, S.slate, s, E);
+    busy = true; $("go").disabled = true; $("bar").hidden = false; $("bar").firstChild.style.width = "0";
+    msg(glpk ? "Building…" : "Loading the optimizer…");
+    var t0 = Date.now();
+    getSolver().then(function (g) {
+      return T7Opt.run(T7Opt.glpkSolver(g), pool, S.site, s, { onProgress: function (i, L) {
+        $("bar").firstChild.style.width = (100 * i / L) + "%";
+        msg("Building lineup " + i + " of " + L + "…");
+        return new Promise(function (r) { setTimeout(r, 0); });   // let the page repaint
+      } });
+    }).then(function (r) {
+      result = { lineups: r.lineups, site: S.site, slate: S.slate, pool: pool, n: s.n, at: new Date() };
+      showAll = false;
+      msg(r.stopped ? "Built " + r.lineups.length + " of " + s.n + " lineups: the settings didn't allow more (try raising exposure or loosening locks and stacks)."
+                    : "Built " + r.lineups.length + " lineup" + (r.lineups.length === 1 ? "" : "s") + " in " + ((Date.now() - t0) / 1000).toFixed(1) + "s.");
+      track("build_lineups", { sport: "nba", site: S.site, lineups: r.lineups.length });
+      drawResults();
+      $("results").hidden = false;
+      $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+    }).catch(function (err) {
+      var m = err && err.message ? err.message : String(err);
+      msg(/import|fetch|module|load/i.test(m) && !glpk ? "Couldn't load the optimizer. Check your connection and try again." : m, true);
+    }).then(function () { busy = false; $("go").disabled = false; $("bar").hidden = true; });
+  });
+
+  // ---------- results ----------
+  function drawResults() {
+    var R = result; if (!R) return;
+    var L = R.lineups, tot = function (lu, f) { return lu.reduce(function (a, x) { return a + x[f]; }, 0); };
+    var pts = L.map(function (lu) { return tot(lu, "proj"); });
+    $("rsum").textContent = L.length + " lineup" + (L.length === 1 ? "" : "s") + " · " + (R.site === "dk" ? "DraftKings" : "FanDuel") +
+      " · projected " + f1(Math.max.apply(null, pts)) + (L.length > 1 ? " to " + f1(Math.min.apply(null, pts)) : "") + " points";
+    document.querySelectorAll("#rtab button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.tab === rtab)); });
+    var html = "";
+    if (rtab === "lu") {
+      var shown = showAll ? L : L.slice(0, 24);
+      html = '<div class="lus">' + shown.map(function (lu, i) {
+        return '<div class="card lu"><div class="card-bar"><span class="card-title">#' + (i + 1) + '</span><span class="card-note num">' +
+          f1(tot(lu, "proj")) + " pts · " + money(tot(lu, "salary")) + "</span></div><table>" +
+          lu.map(function (x) {
+            return '<tr><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) + '">' + esc(x.name) + '</td><td class="tm">' + esc(x.team) +
+              '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + f1(x.proj) + "</td></tr>";
+          }).join("") + "</table></div>";
+      }).join("") + "</div>" + (L.length > shown.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + L.length + " lineups</button>" : "");
+    } else {
+      var by = {}, label = {};
+      L.forEach(function (lu) {
+        var seen = {};
+        lu.forEach(function (x) {
+          var k = rtab === "pl" ? x.key : rtab === "tm" ? x.team : x.game;
+          if (seen[k] && rtab === "pl") return;
+          if (rtab === "pl") { seen[k] = 1; by[k] = (by[k] || 0) + 1; label[k] = esc(x.name) + ' <span class="pm" style="display:inline">' + esc(x.team) + "</span>"; }
+          else { by[k] = (by[k] || 0) + 1; label[k] = esc(rtab === "tm" ? x.team : x.game.replace("@", " / ")); }
+        });
+      });
+      var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; });
+      var head = rtab === "pl" ? "Player" : rtab === "tm" ? "Team" : "Game";
+      var unit = rtab === "pl" ? "Lineups" : "Players";
+      html = '<div class="card"><div class="scroll"><table class="exp"><thead><tr><th class="l">' + head + "</th><th>" + unit + "</th><th>" +
+        (rtab === "pl" ? "Exposure" : "Per lineup") + '</th><th class="l"></th></tr></thead><tbody>' +
+        keys.map(function (k) {
+          var v = by[k], share = rtab === "pl" ? v / L.length : v / L.length;
+          return '<tr><td class="l">' + label[k] + "</td><td class=\"num\">" + v +
+            '</td><td class="num">' + (rtab === "pl" ? Math.round(100 * share) + "%" : share.toFixed(1)) + '</td><td class="barc"><div class="xb"><i style="width:' +
+            (rtab === "pl" ? 100 * share : 100 * share / (R.site === "dk" ? 8 : 9)) + '%"></i></div></td></tr>';
+        }).join("") + "</tbody></table></div></div>";
+    }
+    $("rbody").innerHTML = html;
+    var mb = $("more"); if (mb) mb.addEventListener("click", function () { showAll = true; drawResults(); });
+  }
+  $("rtab").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; rtab = b.dataset.tab; drawResults(); });
+  $("dl").addEventListener("click", function () {
+    if (!result) return;
+    var csv = T7Opt.uploadCsv(result.lineups, result.site);
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = "three7_nba_" + (result.site === "dk" ? "draftkings" : "fanduel") + "_" + D.date + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    track("download_lineups", { sport: "nba", site: result.site, lineups: result.lineups.length });
+  });
+
+  // ---------- start ----------
+  getData().then(function (data) {
+    D = data;
+    var day = new Date(D.date + "T12:00:00");
+    $("meta").innerHTML = "<strong>" + day.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) +
+      "</strong> · projections from <a href=\"/nba/\">tonight's NBA projections</a>";
+    if (!D.slates.some(function (s) { return s.site === S.site; })) S.site = S.site === "dk" ? "fd" : "dk";
+    fillSlates();
+  }).catch(function () {
+    $("meta").textContent = "Couldn't load tonight's projections. Refresh to try again.";
+    $("rows").innerHTML = '<tr><td colspan="8" class="empty">No projections loaded.</td></tr>';
+  });
+})();
+</script>
+</body>
+</html>
