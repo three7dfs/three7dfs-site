@@ -245,6 +245,26 @@ table.exp tbody tr.sel td { background: rgba(176, 218, 250, .14); }
 table.exp tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--sky); }
 .dl-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 
+/* team colors */
+.tt { display: inline-block; min-width: 2.5rem; text-align: center; font: 700 .72rem "Barlow", sans-serif; letter-spacing: .03em; padding: 2px 5px; border-radius: 5px; line-height: 1.35; }
+.td { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+.lu td.tm { width: 3.3rem; }
+.lu .card-bar { flex-wrap: wrap; row-gap: 2px; }
+.lu .tots { flex: 1 1 100%; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.lu .tots b { color: var(--soft); font-weight: 600; }
+.lu .actv { color: var(--mint); font-weight: 600; }
+.lu.best { border-color: var(--mint); }
+.lu.best .card-title { color: var(--mint); }
+/* rewind */
+table.pool .act { display: none; }
+body.rewind table.pool .act { display: table-cell; }
+table.pool td.act { font-weight: 600; color: var(--mint); }
+.mact { display: none; color: var(--mint); font-weight: 600; }
+.rewind-note { margin: 4px 0 0; color: var(--warn); font-size: .95rem; }
+select.lsort { min-width: 0; }
+#lsort option[data-rw] { display: none; }
+body.rewind #lsort option[data-rw] { display: block; }
+
 @media (max-width: 760px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .row2 .fld { width: calc(50% - 7px); }
@@ -268,6 +288,19 @@ table.exp tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--sky); }
   .res-head .seg { flex: 1 1 100%; }
   .res-head .seg button { flex: 1; padding: 9px 6px; }
   .dl-btns { flex: 1 1 100%; }
+  select.lsort { flex: 1 1 100%; }
+  .lu td { padding-left: 4px; padding-right: 4px; }
+  .lu td:first-child { padding-left: 10px; }
+  .lu td.sl { width: 2.6rem; }
+  .lu td.tm { width: 2.7rem; }
+  .lu td.sa { width: 3.7rem; }
+  .lu td.pp { width: 2.6rem; }
+  .lu td.x { width: 28px; padding-right: 6px; }
+  .lu .tt { min-width: 2.1rem; font-size: .66rem; padding: 2px 3px; }
+  .lu table { font-size: .88rem; }
+  body.rewind table.pool .act { display: none; }
+  .mact { display: inline; }
+  .tools #night { flex: 1 1 100%; }
   .dl-btns .btn { flex: 1; }
 }
 
@@ -332,12 +365,14 @@ table.exp tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--sky); }
 
   <section class="wrap sec" aria-label="Site and slate">
     <div class="tools">
+      <select class="ctl" id="night" aria-label="Night" hidden><option value="">Tonight</option></select>
       <div class="seg" id="site" role="group" aria-label="Site">
         <button type="button" data-site="dk" aria-pressed="true">DraftKings</button>
         <button type="button" data-site="fd" aria-pressed="false">FanDuel</button>
       </div>
       <select class="ctl" id="slate" aria-label="Slate"></select>
     </div>
+    <p class="rewind-note" id="rewind" hidden></p>
   </section>
 
   <section class="wrap sec">
@@ -403,6 +438,7 @@ table.exp tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--sky); }
                 <th class="l"><button type="button" data-sort="n">Player</button></th>
                 <th class="sal"><button type="button" data-sort="sal">Salary</button></th>
                 <th><button type="button" data-sort="p">Proj</button></th>
+                <th class="act"><button type="button" data-sort="act">Actual</button></th>
                 <th><button type="button" data-sort="exp">Exp %</button></th>
                 <th title="Boost or suppress our projection"><button type="button" data-sort="boost">Boost</button></th>
                 <th class="wide"><button type="button" data-sort="v">Value</button></th>
@@ -416,7 +452,7 @@ table.exp tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--sky); }
                 <th class="stat"><button type="button" data-sort="blk">Blk</button></th>
                 <th class="stat"><button type="button" data-sort="tov">TO</button></th>
               </tr></thead>
-              <tbody id="rows"><tr><td colspan="17" class="empty">Loading…</td></tr></tbody>
+              <tbody id="rows"><tr><td colspan="18" class="empty">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -436,6 +472,11 @@ table.exp tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--sky); }
             <button type="button" data-tab="tm" aria-pressed="false">Teams</button>
             <button type="button" data-tab="gm" aria-pressed="false">Games</button>
           </div>
+          <select class="ctl lsort" id="lsort" aria-label="Sort lineups">
+            <option value="build">Sort: build order</option><option value="proj">Sort: projection</option>
+            <option value="ceil">Sort: ceiling</option><option value="floor">Sort: floor</option><option value="avg">Sort: average</option>
+            <option value="act" data-rw>Sort: actual</option>
+          </select>
           <div class="dl-btns">
             <button type="button" class="btn btn-line slim" id="dlf" hidden>Download these</button>
             <button type="button" class="btn btn-solid slim" id="dl">Download all</button>
@@ -505,6 +546,7 @@ var T7Opt = (function () {
       if (proj == null || isNaN(proj)) return;
       all.push({ key: key, name: p.n, team: p.tm, opp: p.opp, game: gameKey(p.tm, p.opp), pos: x.pos,
                  id: x.id ? x.id[slate] : null, salary: +x.sl[slate], proj: Math.round(proj * 10) / 10,
+                 floor: x.f, ceil: x.c, avg: x.a, act: x.act,
                  lock: !!e.lock, out: !!e.out, boost: Math.max(-90, Math.min(100, +e.boost || 0)),
                  exp: e.exp != null && e.exp !== "" && !isNaN(+e.exp) ? Math.max(0, Math.min(1, +e.exp / 100)) : null });
     });
@@ -628,7 +670,7 @@ var T7Opt = (function () {
       lineups.push(owner.map(function (p, j) {
         var r = pool[p];
         return { slot: LABEL[slots[j]] || slots[j], key: r.key, name: r.name, id: r.id, team: r.team, opp: r.opp,
-                 game: r.game, salary: r.salary, proj: r.proj, pos: r.pos };
+                 game: r.game, salary: r.salary, proj: r.proj, pos: r.pos, floor: r.floor, ceil: r.ceil, avg: r.avg, act: r.act };
       }));
       if (opts.onProgress) await opts.onProgress(i, L);
       // later lineups need at least minUnique players not in this one
@@ -719,6 +761,15 @@ var T7Opt = (function () {
   function saveSet() { store("t7opt.settings", JSON.stringify(S.set)); store("t7opt.site", S.site); }
 
   // ---------- data: the projections page carries tonight's numbers ----------
+  var TONIGHT = null, NIGHTS = {};
+  function getNight(date) {   // [REWIND] a finished night: /nba/nights/YYYY-MM-DD.json
+    if (NIGHTS[date]) return Promise.resolve(NIGHTS[date]);
+    return fetch("/nba/nights/" + date + ".json").then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (d) { NIGHTS[date] = d; return d; });
+  }
+  function getIndex() {
+    return fetch("/nba/nights/index.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+  }
   function getData() {
     return fetch("/nba/?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
@@ -735,6 +786,27 @@ var T7Opt = (function () {
     return D.players.filter(function (p) { var x = p[S.site]; return x && x.sl && S.slate in x.sl && x.sl[S.slate] != null; });
   }
   function keyOf(p) { return p.n + "|" + p.tm; }
+
+  // ---------- team colors (each team's main color; abbreviations as the site files spell them) ----------
+  var TC = { ATL: "#E03A3E", BOS: "#007A33", BKN: "#000000", BRK: "#000000", CHA: "#1D1160", CHI: "#CE1141", CLE: "#860038",
+    DAL: "#00538C", DEN: "#0E2240", DET: "#C8102E", GS: "#1D428A", GSW: "#1D428A", HOU: "#CE1141", IND: "#002D62",
+    LAC: "#C8102E", LAL: "#552583", MEM: "#5D76A9", MIA: "#98002E", MIL: "#00471B", MIN: "#0C2340", NO: "#0C2340", NOP: "#0C2340",
+    NY: "#006BB6", NYK: "#006BB6", OKC: "#007AC1", ORL: "#0077C0", PHI: "#006BB6", PHX: "#1D1160", PHO: "#1D1160", POR: "#E03A3E",
+    SAC: "#5A2D81", SA: "#000000", SAS: "#000000", TOR: "#CE1141", UTA: "#002B5C", UTAH: "#002B5C", WAS: "#002B5C", WSH: "#002B5C" };
+  function lum(h) {
+    var c = [1, 3, 5].map(function (i) { var v = parseInt(h.substr(i, 2), 16) / 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+    return .2126 * c[0] + .7152 * c[1] + .0722 * c[2];
+  }
+  function teamTag(t) {
+    var c = TC[t];
+    if (!c) return '<span class="tt" style="color:var(--soft);box-shadow:inset 0 0 0 1px var(--line)">' + esc(t) + "</span>";
+    var L = lum(c);
+    return '<span class="tt" style="background:' + c + ";color:" + (L > .35 ? "#121925" : "#fff") + (L < .03 ? ";box-shadow:inset 0 0 0 1px #9AA8BD" : "") + '">' + esc(t) + "</span>";
+  }
+  function teamDot(t) {
+    var c = TC[t]; if (!c) return "";
+    return '<span class="td" style="background:' + c + (lum(c) < .03 ? ";box-shadow:0 0 0 1px #9AA8BD" : "") + '" aria-hidden="true"></span>';
+  }
   function gameOf(p) { return T7Opt.gameKey(p.tm, p.opp); }
   function gameLabel(g, list) {   // "BOS @ NYK" from a home team on the slate
     var ps = list.filter(function (p) { return gameOf(p) === g; });
@@ -816,7 +888,7 @@ var T7Opt = (function () {
       case "lock": return r.e.lock ? 1 : 0; case "out": return r.e.out ? 1 : 0; case "n": return r.n;
       case "sal": return r.sal; case "p": return r.pj; case "exp": return r.e.exp == null || r.e.exp === "" ? -1 : +r.e.exp;
       case "boost": return +r.e.boost || 0; case "v": return r.v;
-      case "rg": return r.x.c; case "min": case "pts": case "reb": case "ast": case "tpm": case "stl": case "blk": case "tov": return r.p[k];
+      case "rg": return r.x.c; case "act": return r.x.act; case "min": case "pts": case "reb": case "ast": case "tpm": case "stl": case "blk": case "tov": return r.p[k];
     }
   }
   function render() {
@@ -837,11 +909,12 @@ var T7Opt = (function () {
       var badge = r.inj && /^(out|o)$/i.test(r.inj) ? ' <span class="badge b-out">OUT</span>' : r.inj && /^(q|gtd|questionable|doubtful|d)/i.test(r.inj) ? ' <span class="badge b-q">' + esc(r.inj.slice(0, 3).toUpperCase()) + "</span>" : "";
       return '<tr data-k="' + esc(r.key) + '"' + (e.out ? ' class="is-out"' : "") + ">" +
         '<td><button type="button" class="tg lk" data-a="lock" aria-pressed="' + !!e.lock + '" aria-label="Lock ' + esc(r.n) + '">' + LOCK + '</button></td>' +
-        '<td><button type="button" class="tg ex" data-a="out" aria-pressed="' + !!e.out + '" aria-label="Leave out ' + esc(r.n) + '">✕</button></td>' +
-        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + esc(r.pos) + " · " + esc(r.tm) + " " + (r.home ? "vs" : "@") + " " + esc(r.opp) + '<span class="msal"> \u00b7 ' + money(r.sal) + "</span></span>" +
+        '<td><button type="button" class="tg ex" data-a="out" aria-pressed="' + !!e.out + '" aria-label="Leave out ' + esc(r.n) + '">\u2715</button></td>' +
+        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + teamDot(r.tm) + esc(r.pos) + " \u00b7 " + esc(r.tm) + " " + (r.home ? "vs" : "@") + " " + esc(r.opp) + '<span class="msal"> \u00b7 ' + money(r.sal) + "</span>" + (S.night ? '<span class="mact"> \u00b7 ' + (r.x.act == null ? "\u2013" : f1(r.x.act)) + " actual</span>" : "") + "</span>" +
           "</td>" +
         '<td class="num sal">' + money(r.sal) + "</td>" +
         '<td><input class="ctl num' + (e.proj != null && e.proj !== "" ? " set" : "") + '" data-a="proj" type="number" step="0.5" min="0" inputmode="decimal" placeholder="' + f1(r.base) + '" value="' + (e.proj == null ? "" : esc(e.proj)) + '" aria-label="Projection for ' + esc(r.n) + '"></td>' +
+        '<td class="act num">' + (r.x.act == null ? "\u2013" : f1(r.x.act)) + "</td>" +
         '<td><input class="ctl num' + (e.exp != null && e.exp !== "" ? " set" : "") + '" data-a="exp" type="number" step="5" min="0" max="100" inputmode="numeric" placeholder="' + gx + '" value="' + (e.exp == null ? "" : esc(e.exp)) + '" aria-label="Exposure for ' + esc(r.n) + '"></td>' +
         '<td><select class="ctl bsel' + (b > 0 ? " up" : b < 0 ? " dn" : "") + '" data-a="boost" aria-label="Boost or suppress ' + esc(r.n) + '">' +
           BOOSTS.map(function (v) { return '<option value="' + v + '"' + (v === b ? " selected" : "") + ">" + (v > 0 ? "+" + v + "%" : v < 0 ? "\u2212" + (-v) + "%" : "\u2013") + "</option>"; }).join("") + "</select></td>" +
@@ -849,11 +922,11 @@ var T7Opt = (function () {
         '<td class="stat">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + "</td>" +
         ["min", "pts", "reb", "ast", "tpm", "stl", "blk", "tov"].map(function (c) { return '<td class="stat num">' + (c === "min" ? (p.min == null ? "" : Math.round(p.min)) : f1(p[c])) + "</td>"; }).join("") +
         "</tr>" +
-        '<tr class="srow"><td colspan="17">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + " range \u00b7 " + (p.min == null ? "" : Math.round(p.min) + " min \u00b7 ") +
+        '<tr class="srow"><td colspan="18">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + " range \u00b7 " + (p.min == null ? "" : Math.round(p.min) + " min \u00b7 ") +
           f1(p.pts) + " pts \u00b7 " + f1(p.reb) + " reb \u00b7 " + f1(p.ast) + " ast \u00b7 " + f1(p.tpm) + " 3pm \u00b7 " + f1(p.stl) + " stl \u00b7 " + f1(p.blk) + " blk \u00b7 " + f1(p.tov) + " to</td></tr>";
-    }).join("") : '<tr><td colspan="17" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
+    }).join("") : '<tr><td colspan="18" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
     var all = rowData(), nE = all.filter(function (r) { return edited(r.e); }).length;
-    $("count").textContent = rows.length + " of " + all.length + " players" + (nE ? " · " + nE + " changed" : "");
+    $("count").textContent = rows.length + " of " + all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "");
     $("sum-pool").textContent = all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "");
     document.querySelectorAll("table.pool th").forEach(function (th) {
       var b = th.querySelector("button");
@@ -936,20 +1009,23 @@ var T7Opt = (function () {
                    : st.stack === "team" ? { type: "team", teams: T.st.slice(), size: st.tsize } : { type: "none" } };
     var pool = T7Opt.prepare(D.players, S.site, S.slate, s, E);
     busy = true; $("go").disabled = true; $("bar").hidden = false; $("bar").firstChild.style.width = "0";
-    msg(glpk ? "Building…" : "Loading the optimizer…");
+    msg(glpk ? "Building\u2026" : "Loading the optimizer\u2026");
     var t0 = Date.now();
     getSolver().then(function (g) {
       return T7Opt.run(T7Opt.glpkSolver(g), pool, S.site, s, { onProgress: function (i, L) {
         $("bar").firstChild.style.width = (100 * i / L) + "%";
-        msg("Building lineup " + i + " of " + L + "…");
+        msg("Building lineup " + i + " of " + L + "\u2026");
         return new Promise(function (r) { setTimeout(r, 0); });   // let the page repaint
       } });
     }).then(function (r) {
-      result = { lineups: r.lineups, site: S.site, slate: S.slate, n: s.n };
+      result = { lineups: r.lineups, site: S.site, slate: S.slate, n: s.n, rewind: !!S.night, best: null };
       showAll = false; F = [];
       msg(r.stopped ? "Built " + r.lineups.length + " of " + s.n + " lineups: the settings didn't allow more (try raising exposure or loosening locks and stacks)."
                     : "Built " + r.lineups.length + " lineup" + (r.lineups.length === 1 ? "" : "s") + " in " + ((Date.now() - t0) / 1000).toFixed(1) + "s.");
-      track("build_lineups", { sport: "nba", site: S.site, lineups: r.lineups.length });
+      track("build_lineups", { sport: "nba", site: S.site, lineups: r.lineups.length, rewind: !!S.night });
+      if (S.night) return bestPossible().then(function (bl) { result.best = bl; return r; });
+      return r;
+    }).then(function (r) {
       $("results").hidden = false; $("fold-res").open = true;
       drawResults();
       $("results").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -959,9 +1035,42 @@ var T7Opt = (function () {
     }).then(function () { busy = false; $("go").disabled = false; $("bar").hidden = true; });
   }
   $("go").addEventListener("click", build);
+  // [REWIND] the best lineup anyone could have built that night: everyone at his actual score, site rules only
+  function bestPossible() {
+    var ed = {}, base = {};
+    players().forEach(function (p) { var a = p[S.site].act; ed[keyOf(p)] = { proj: a == null ? 0 : Math.max(0, a) }; base[keyOf(p)] = p[S.site].p; });
+    var s = { n: 1, exposure: 1, minProj: -1, random: 0, minUnique: 1, minSal: 0, maxSal: T7Opt.CAP[S.site], maxTeam: S.site === "dk" ? 8 : 4, stack: { type: "none" } };
+    var pool = T7Opt.prepare(D.players, S.site, S.slate, s, ed);
+    return T7Opt.run(T7Opt.glpkSolver(glpk), pool, S.site, s).then(function (r) {
+      return r.lineups[0].map(function (x) { x.proj = base[x.key]; return x; });   // show our projection next to the actual
+    }).catch(function () { return null; });
+  }
 
   // ---------- results ----------
-  function tot(lu, f) { return lu.reduce(function (a, x) { return a + x[f]; }, 0); }
+  function tot(lu, f) { return lu.reduce(function (a, x) { return a + (x[f] == null ? 0 : +x[f]); }, 0); }
+  function hasAll(lu, f) { return lu.every(function (x) { return x[f] != null && !Array.isArray(x[f]); }); }
+  var LSORT = "build";
+  function sortIdx(idx) {
+    if (LSORT === "build") return idx;
+    var L = result.lineups;
+    return idx.slice().sort(function (a, b) { return tot(L[b], LSORT) - tot(L[a], LSORT) || a - b; });
+  }
+  function card(lu, title, cls) {
+    var rw = !!result.rewind;
+    var line2 = [hasAll(lu, "floor") ? "Floor <b>" + f1(tot(lu, "floor")) + "</b>" : "", hasAll(lu, "ceil") ? "Ceiling <b>" + f1(tot(lu, "ceil")) + "</b>" : "",
+                 hasAll(lu, "avg") ? "Avg <b>" + f1(tot(lu, "avg")) + "</b>" : ""].filter(Boolean).join(" \u00b7 ");
+    return '<div class="card lu' + (cls ? " " + cls : "") + '"><div class="card-bar"><span class="card-title">' + title + '</span><span class="card-note num">' +
+      f1(tot(lu, "proj")) + " proj" + (rw ? ' \u00b7 <span class="actv">' + f1(tot(lu, "act")) + " actual</span>" : "") + " \u00b7 " + money(tot(lu, "salary")) + "</span>" +
+      (line2 ? '<span class="tots" title="Each total adds up the players\u2019 own numbers (floor = everyone has a bad night). Best for comparing lineups.">' + line2 + "</span>" : "") +
+      "</div><table>" +
+      lu.map(function (x) {
+        var out = E[x.key] && E[x.key].out;
+        return '<tr' + (out ? ' class="gone"' : "") + '><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) + '">' + esc(x.name) +
+          '</td><td class="tm">' + teamTag(x.team) + '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + (rw ? f1(x.act == null ? 0 : x.act) : f1(x.proj)) +
+          '</td><td class="x"><button type="button" class="rm" data-k="' + esc(x.key) + '" aria-pressed="' + !!out + '" title="' +
+          (out ? "Put back for the next build" : "Leave out of the next build") + '" aria-label="' + (out ? "Put back " : "Leave out ") + esc(x.name) + '">\u2715</button></td></tr>';
+      }).join("") + "</table></div>";
+  }
   function hasItem(lu, f) {
     return lu.some(function (x) { return f.t === "pl" ? x.key === f.k : f.t === "tm" ? x.team === f.k : x.game === f.k; });
   }
@@ -992,14 +1101,15 @@ var T7Opt = (function () {
     var R = result; if (!R) return;
     var L = R.lineups, idx = shownIdx();
     var pts = L.map(function (lu) { return tot(lu, "proj"); });
-    var head = L.length + " lineup" + (L.length === 1 ? "" : "s") + " · " + (R.site === "dk" ? "DraftKings" : "FanDuel") +
-      " · " + f1(Math.max.apply(null, pts)) + (L.length > 1 ? " to " + f1(Math.min.apply(null, pts)) : "") + " pts";
+    var head = L.length + " lineup" + (L.length === 1 ? "" : "s") + " \u00b7 " + (R.site === "dk" ? "DraftKings" : "FanDuel") +
+      " \u00b7 " + f1(Math.max.apply(null, pts)) + (L.length > 1 ? " to " + f1(Math.min.apply(null, pts)) : "") + " proj";
+    if (R.rewind) { var ac = L.map(function (lu) { return tot(lu, "act"); }); head += " \u00b7 best actual " + f1(Math.max.apply(null, ac)) + (R.best ? " (best possible " + f1(tot(R.best, "act")) + ")" : ""); }
     $("sum-res").textContent = head;
     document.querySelectorAll("#rtab button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.tab === rtab)); });
     // filters
     $("filt").hidden = !F.length;
     $("filt").innerHTML = F.length ? "Showing " + idx.length + " of " + L.length + " lineups with " +
-      F.map(function (f, j) { return '<button type="button" class="chip" data-j="' + j + '" aria-label="Remove filter ' + esc(f.label) + '">' + esc(f.label) + " ✕</button>"; }).join(" ") +
+      F.map(function (f, j) { return '<button type="button" class="chip" data-j="' + j + '" aria-label="Remove filter ' + esc(f.label) + '">' + esc(f.label) + " \u2715</button>"; }).join(" ") +
       ' <button type="button" class="clear" data-j="all">Clear</button>' : "";
     $("dlf").hidden = !F.length || !idx.length;
     $("dlf").textContent = "Download these " + idx.length;
@@ -1009,19 +1119,10 @@ var T7Opt = (function () {
     $("outnote").innerHTML = gone.length ? "Out next build: " + esc(gone.join(", ")) + ' <button type="button" class="btn btn-line slim" id="rebuild">Build again</button>' : "";
     var html = "";
     if (rtab === "lu") {
-      var list = showAll ? idx : idx.slice(0, 24);
-      html = idx.length ? '<div class="lus">' + list.map(function (i) {
-        var lu = L[i];
-        return '<div class="card lu"><div class="card-bar"><span class="card-title">#' + (i + 1) + '</span><span class="card-note num">' +
-          f1(tot(lu, "proj")) + " pts · " + money(tot(lu, "salary")) + "</span></div><table>" +
-          lu.map(function (x) {
-            var out = E[x.key] && E[x.key].out;
-            return '<tr' + (out ? ' class="gone"' : "") + '><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) + '">' + esc(x.name) +
-              '</td><td class="tm">' + esc(x.team) + '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + f1(x.proj) +
-              '</td><td class="x"><button type="button" class="rm" data-k="' + esc(x.key) + '" aria-pressed="' + !!out + '" title="' +
-              (out ? "Put back for the next build" : "Leave out of the next build") + '" aria-label="' + (out ? "Put back " : "Leave out ") + esc(x.name) + '">✕</button></td></tr>';
-          }).join("") + "</table></div>";
-      }).join("") + "</div>" + (idx.length > list.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + idx.length + " lineups</button>" : "")
+      var ord = sortIdx(idx), list = showAll ? ord : ord.slice(0, 24);
+      html = idx.length ? '<div class="lus">' + (R.best && !F.length ? card(R.best, "Best possible", "best") : "") +
+        list.map(function (i) { return card(L[i], "#" + (i + 1)); }).join("") + "</div>" +
+        (idx.length > list.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + idx.length + " lineups</button>" : "")
         : '<p class="msg">No lineup has all of those. Remove a filter.</p>';
     } else {
       var rows = expRows(idx.map(function (i) { return L[i]; })), xs = XS[rtab], n = idx.length || 1;
@@ -1076,8 +1177,14 @@ var T7Opt = (function () {
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
     track("download_lineups", { sport: "nba", site: result.site, lineups: list.length });
   }
-  $("dl").addEventListener("click", function () { if (result) download(result.lineups, ""); });
-  $("dlf").addEventListener("click", function () { if (result) download(shownIdx().map(function (i) { return result.lineups[i]; }), "filtered"); });
+  $("dl").addEventListener("click", function () { if (result) download(sortIdx(result.lineups.map(function (x, i) { return i; })).map(function (i) { return result.lineups[i]; }), ""); });
+  $("dlf").addEventListener("click", function () { if (result) download(sortIdx(shownIdx()).map(function (i) { return result.lineups[i]; }), "filtered"); });
+  $("lsort").addEventListener("change", function () { LSORT = this.value; showAll = false; drawResults(); });
+  function sortOptions() {   // "Sort: actual" only when looking back at a finished night
+    var o = $("lsort").querySelector("option[data-rw]");
+    if (S.night) { if (!o) { o = document.createElement("option"); o.value = "act"; o.textContent = "Sort: actual"; o.setAttribute("data-rw", ""); $("lsort").appendChild(o); } }
+    else if (o) { o.remove(); if (LSORT === "act") { LSORT = "build"; $("lsort").value = "build"; } }
+  }
 
   // ---------- collapsible sections + stats toggle (remembered per visitor) ----------
   var FOLD = load("t7opt.folds", {});
@@ -1094,17 +1201,41 @@ var T7Opt = (function () {
   setStats(store("t7opt.stats") === "1");
   $("stats").addEventListener("click", function () { setStats(!document.body.classList.contains("stats-on")); });
 
+  // ---------- night (tonight or a finished night) ----------
+  function showMeta() {
+    var day = new Date(D.date + "T12:00:00"), lbl = day.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+    $("meta").innerHTML = S.night ? "<strong>Rewind \u00b7 " + esc(lbl) + "</strong> \u00b7 our projections at tip, and how everyone actually scored"
+      : "<strong>" + esc(lbl) + "</strong> \u00b7 projections from <a href=\"/nba/\">tonight's NBA projections</a>";
+    $("rewind").hidden = !S.night;
+    $("rewind").textContent = S.night ? "Looking back at a finished night: build lineups as you would have, then see what they actually scored." : "";
+    document.body.classList.toggle("rewind", !!S.night);
+    sortOptions();
+  }
+  $("night").addEventListener("change", function () {
+    if (busy) return;
+    var v = this.value;
+    (v ? getNight(v) : Promise.resolve(TONIGHT)).then(function (d) {
+      S.night = v; D = d; result = null; $("results").hidden = true; F = [];
+      if (!S.night && S.sort === "act") S.sort = "p";
+      showMeta(); fillSlates();
+    }).catch(function () { msg("Couldn't load that night. Try again.", true); $("night").value = S.night || ""; });
+  });
+
   // ---------- start ----------
   getData().then(function (data) {
-    D = data;
-    var day = new Date(D.date + "T12:00:00");
-    $("meta").innerHTML = "<strong>" + day.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) +
-      "</strong> · projections from <a href=\"/nba/\">tonight's NBA projections</a>";
+    D = TONIGHT = data; S.night = "";
+    showMeta();
     if (!D.slates.some(function (s) { return s.site === S.site; })) S.site = S.site === "dk" ? "fd" : "dk";
     fillSlates();
+    getIndex().then(function (idx) {
+      idx = (idx || []).filter(function (n) { return n.date !== D.date; });
+      if (!idx.length) return;
+      $("night").innerHTML = '<option value="">Tonight</option>' + idx.map(function (n) { return '<option value="' + esc(n.date) + '">Rewind: ' + esc(n.label) + "</option>"; }).join("");
+      $("night").hidden = false;
+    });
   }).catch(function () {
     $("meta").textContent = "Couldn't load tonight's projections. Refresh to try again.";
-    $("rows").innerHTML = '<tr><td colspan="8" class="empty">No projections loaded.</td></tr>';
+    $("rows").innerHTML = '<tr><td colspan="18" class="empty">No projections loaded.</td></tr>';
   });
 })();
 </script>
