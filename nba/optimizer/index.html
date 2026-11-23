@@ -274,6 +274,8 @@ body.rewind #lsort option[data-rw] { display: block; }
 .row2 .fld.wide2 { width: 320px; max-width: 100%; }
 .lu.nosal td.sa { display: none; }
 
+.b-st.cf { color: var(--field); background: var(--mint); border-color: var(--mint); }
+.upd { color: var(--mint); }
 /* optimal %, uploads, late swap */
 .chk { display: flex; align-items: center; gap: 8px; min-height: 42px; color: var(--chalk); font-size: .95rem; cursor: pointer; }
 .chk input { width: 18px; height: 18px; accent-color: var(--mint); }
@@ -319,6 +321,7 @@ table.exp.ls tbody tr { cursor: default; }
   .dl-btns { flex: 1 1 100%; }
   select.lsort { flex: 1 1 100%; }
   .tool-more { flex: 1 1 100%; }
+  table.pool .b-st { display: inline-block; padding: 1px 4px; }
   body.has-opt table.pool .optc { display: none; }
   .mopt { display: inline; }
   .tool-more .btn { flex: 1 1 auto; }
@@ -796,8 +799,8 @@ var T7Opt = (function () {
   // =====================================================================================
   var XC = {
     "dk|Captain":     { slots: ["CPT", "UTIL", "UTIL", "UTIL", "UTIL", "UTIL"], mult: { CPT: 1.5 }, cap: 50000, captain: "CPT" },
-    // FanDuel's current single game (its salary file says "MVP - 1.5X Points/UTIL"): MVP at 1.5x + 5 UTIL, same salary in every spot
-    "fd|Captain":     { slots: ["MVP", "UTIL", "UTIL", "UTIL", "UTIL", "UTIL"], mult: { MVP: 1.5 }, cap: 60000, captain: "MVP",
+    // FanDuel's current single game (its salary file: "MVP - 1.5X Points/UTIL" and an "MVP 1.5x Salary" column): MVP scores 1.5x and costs 1.5x, + 5 UTIL
+    "fd|Captain":     { slots: ["MVP", "UTIL", "UTIL", "UTIL", "UTIL", "UTIL"], mult: { MVP: 1.5 }, cap: 60000, captain: "MVP", capSal: 1.5,
                         head: ["MVP - 1.5X Points", "UTIL", "UTIL", "UTIL", "UTIL", "UTIL"] },
     "dk|Tiers":       { slots: ["T1", "T2", "T3", "T4", "T5", "T6"], mult: {}, cap: 0 },
     "dk|TotalPoints": { slots: ["UTIL", "UTIL", "UTIL"], mult: {}, cap: 0, maxTeam: 2 }
@@ -818,7 +821,8 @@ var T7Opt = (function () {
       var proj = e.proj != null && e.proj !== "" && !isNaN(+e.proj) ? +e.proj : base;
       if (proj == null || isNaN(proj)) return;
       out.push({ key: key, name: p.n, team: p.tm, opp: p.opp, game: gameKey(p.tm, p.opp), pos: x.pos, tier: z.t || null,
-                 ids: { u: z.u ? z.u[0] : null, c: z.c ? z.c[0] : null }, sal: { u: z.u ? +z.u[1] || 0 : 0, c: z.c ? +z.c[1] || 0 : 0 },
+                 ids: { u: z.u ? z.u[0] : null, c: z.c ? z.c[0] : (spec.capSal && z.u ? z.u[0] : null) },
+                 sal: { u: z.u ? +z.u[1] || 0 : 0, c: z.c ? +z.c[1] || 0 : (spec.capSal && z.u ? Math.round((+z.u[1] || 0) * spec.capSal) : 0) },
                  salary: z.u ? +z.u[1] || 0 : 0, proj: Math.round(proj * 10) / 10,
                  floor: tp ? null : x.f, ceil: tp ? null : x.c, avg: tp ? p.pavg : x.a, act: tp ? p.apts : x.act,
                  lock: !!e.lock, out: !!e.out, boost: Math.max(-90, Math.min(100, +e.boost || 0)),
@@ -863,7 +867,7 @@ var T7Opt = (function () {
           if (cl.keys && cl.keys.length && cl.keys.indexOf(r.key) < 0) return;
         }
         vars.push({ p: p, t: t, name: "x" + vars.length,
-                    sal: t === "CPT" ? r.sal.c : r.sal.u, id: t === "CPT" ? r.ids.c : r.ids.u, m: multOf(spec, t) });
+                    sal: t === C && r.ids.c ? r.sal.c : r.sal.u, id: t === C && r.ids.c ? r.ids.c : r.ids.u, m: multOf(spec, t) });
       });
     });
     var rows = [];
@@ -1225,7 +1229,8 @@ var T7LS = (function () {
     if (!isX()) return x.sl && S.slate in x.sl && x.sl[S.slate] != null ? { sal: +x.sl[S.slate] } : null;
     var z = x.xs && x.xs[S.contest + "|" + S.slate]; if (!z) return null;
     var nosal = S.contest === "Tiers" || S.contest === "TotalPoints";
-    return { sal: nosal ? null : (z.u ? +z.u[1] : null), csal: z.c ? +z.c[1] : null, tier: z.t || null };
+    var sp = T7Opt.xspec(S.site, S.contest);
+    return { sal: nosal ? null : (z.u ? +z.u[1] : null), csal: z.c ? +z.c[1] : (sp && sp.capSal && z.u ? Math.round(+z.u[1] * sp.capSal) : null), tier: z.t || null };
   }
   function players() { return D.players.filter(function (p) { return entry(p) !== null; }); }
   // [OPT %] the pipeline's optimal % for this slate (Showdown: the bigger of the CPT and FLEX numbers)
@@ -1449,13 +1454,16 @@ var T7LS = (function () {
     hs.textContent = S.contest === "Tiers" ? "Tier" : "Salary"; hp.textContent = S.contest === "TotalPoints" ? "Points" : "Proj";
     $("rows").innerHTML = rows.length ? rows.map(function (r) {
       var e = r.e, b = +e.boost || 0, p = r.p;
-      var badge = r.inj && /^(out|o)$/i.test(r.inj) ? ' <span class="badge b-out">OUT</span>' : r.inj && /^(q|gtd|questionable|doubtful|d)/i.test(r.inj) ? ' <span class="badge b-q">' + esc(r.inj.slice(0, 3).toUpperCase()) + "</span>" : "";
+      var inj = String(r.inj || "").toLowerCase();
+      var badge = (/^out|^o$/.test(inj) ? ' <span class="badge b-out">OUT</span>' :
+                   /quest|doubt|gtd|game.time|probable|^q$|^d$/.test(inj) ? ' <span class="badge b-q">' + esc(String(r.inj).replace("Game Time Decision", "GTD")) + "</span>" : "") +
+                  (r.p.st ? ' <span class="badge b-st' + (r.p.cf ? ' cf" title="Confirmed starter' : '" title="Expected starter (lineup not confirmed yet)') + '">Starter</span>' : "");
       return '<tr data-k="' + esc(r.key) + '"' + (e.out ? ' class="is-out"' : "") + ">" +
         '<td><button type="button" class="tg lk" data-a="lock" aria-pressed="' + !!e.lock + '" aria-label="Lock ' + esc(r.n) + '">' + LOCK + '</button></td>' +
         '<td><button type="button" class="tg ex" data-a="out" aria-pressed="' + !!e.out + '" aria-label="Leave out ' + esc(r.n) + '">\u2715</button></td>' +
         '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + teamDot(r.tm) + esc(r.pos) + " \u00b7 " + esc(r.tm) + " " + (r.home ? "vs" : "@") + " " + esc(r.opp) + '<span class="msal"> \u00b7 ' + (S.contest === "Tiers" ? esc(r.tier || "") : S.contest === "TotalPoints" ? "" : money(r.sal)) + "</span>" + (r.opt != null ? '<span class="mopt"> \u00b7 opt ' + Math.round(100 * r.opt) + "%</span>" : "") + (S.night ? '<span class="mact"> \u00b7 ' + (r.act == null ? "\u2013" : f1(r.act)) + " actual</span>" : "") + "</span>" +
           "</td>" +
-        '<td class="num sal">' + (S.contest === "Tiers" ? esc(r.tier || "") : S.contest === "TotalPoints" ? "\u2013" : money(r.sal) + (r.csal ? '<span class="pm">CPT ' + money(r.csal) + "</span>" : "")) + "</td>" +
+        '<td class="num sal">' + (S.contest === "Tiers" ? esc(r.tier || "") : S.contest === "TotalPoints" ? "\u2013" : money(r.sal) + (r.csal ? '<span class="pm">' + (S.site === "dk" ? "CPT " : "MVP ") + money(r.csal) + "</span>" : "")) + "</td>" +
         '<td><input class="ctl num' + (e.proj != null && e.proj !== "" ? " set" : r.up ? " up" : "") + '" data-a="proj" type="number" step="0.5" min="0" inputmode="decimal" placeholder="' + f1(r.base) + '" value="' + (e.proj == null ? "" : esc(e.proj)) + '" aria-label="Projection for ' + esc(r.n) + '"></td>' +
         '<td class="act num">' + (r.act == null ? "\u2013" : f1(r.act)) + "</td>" +
         '<td><input class="ctl num' + (e.exp != null && e.exp !== "" ? " set" : "") + '" data-a="exp" type="number" step="5" min="0" max="100" inputmode="numeric" placeholder="' + gx + '" value="' + (e.exp == null ? "" : esc(e.exp)) + '" aria-label="Exposure for ' + esc(r.n) + '"></td>' +
@@ -1471,7 +1479,7 @@ var T7LS = (function () {
     }).join("") : '<tr><td colspan="19" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
     var all = rowData(), nE = all.filter(function (r) { return edited(r.e); }).length;
     $("count").textContent = rows.length + " of " + all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "");
-    $("sum-pool").textContent = all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "");
+    $("sum-pool").textContent = all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "") + (ago() ? " \u00b7 " + ago() : "");
     document.querySelectorAll("table.pool th").forEach(function (th) {
       var b = th.querySelector("button");
       if (b && b.dataset.sort === S.sort) th.setAttribute("aria-sort", S.dir < 0 ? "descending" : "ascending"); else th.removeAttribute("aria-sort");
@@ -1941,10 +1949,22 @@ var T7LS = (function () {
   $("stats").addEventListener("click", function () { setStats(!document.body.classList.contains("stats-on")); });
 
   // ---------- night (tonight or a finished night) ----------
+  function ago() {   // "updated 12 min ago" from when these projections were published
+    if (!D || !D.updated || S.night) return "";
+    var t = Date.parse(String(D.updated).replace(/([+-]\d{2})(\d{2})$/, "$1:$2")); if (isNaN(t)) return "";
+    var m = (Date.now() - t) / 60000;
+    return m < 1 ? "updated just now" : m < 60 ? "updated " + Math.floor(m) + " min ago" : m < 1440 ? "updated " + Math.floor(m / 60) + " hr ago" :
+      "updated " + new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  setInterval(function () {   // tick the "updated" time without redrawing the table (someone may be typing in it)
+    if (!D) return;
+    var u = document.querySelector("#meta .upd"); if (u) u.textContent = ago();
+    $("sum-pool").textContent = $("sum-pool").textContent.replace(/ \u00b7 updated .*$/, "") + (ago() ? " \u00b7 " + ago() : "");
+  }, 60000);
   function showMeta() {
     var day = new Date(D.date + "T12:00:00"), lbl = day.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
     $("meta").innerHTML = S.night ? "<strong>Rewind \u00b7 " + esc(lbl) + "</strong> \u00b7 our projections at tip, and how everyone actually scored"
-      : "<strong>" + esc(lbl) + "</strong> \u00b7 projections from <a href=\"/nba/\">tonight's NBA projections</a>";
+      : "<strong>" + esc(lbl) + "</strong> \u00b7 projections from <a href=\"/nba/\">tonight's NBA projections</a>" + (ago() ? ' \u00b7 <span class="upd">' + ago() + "</span>" : "");
     $("rewind").hidden = !S.night;
     $("rewind").textContent = S.night ? "Looking back at a finished night: build lineups as you would have, then see what they actually scored." : "";
     document.body.classList.toggle("rewind", !!S.night);
