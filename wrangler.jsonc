@@ -13,6 +13,11 @@
   "vars": {
     // "off" = beta: everyone gets every feature. "on" = free accounts get 1 lineup etc.
     "PAYWALL": "on",
+    // Free week: everyone gets everything, no sign-in, between these two times (Eastern, -05:00).
+    // It turns itself on and off; outside these dates PAYWALL above decides. To end early, change FREE_UNTIL.
+    "FREE_FROM": "2026-11-24T12:00:00-05:00",
+    "FREE_UNTIL": "2026-12-01T00:00:00-05:00",
+    "FREE_NOTE": "Free Thanksgiving week",
     "SUPABASE_URL": "https://kalkggzuornbztjnmteh.supabase.co",
     "SUPABASE_ANON_KEY": "sb_publishable_WPS4DKU0oi3C4POq0YeJQg_S1tzYUgB",
     "STRIPE_PAYMENT_LINK": "https://buy.stripe.com/cNi28kbnQ2sm388fHB0Fi00",
