@@ -873,7 +873,8 @@ var T7Opt = (function () {
                  ids: { u: z.u ? z.u[0] : null, c: z.c ? z.c[0] : (spec.capSal && z.u ? z.u[0] : null) },
                  sal: { u: z.u ? +z.u[1] || 0 : 0, c: z.c ? +z.c[1] || 0 : (spec.capSal && z.u ? Math.round((+z.u[1] || 0) * spec.capSal) : 0) },
                  salary: z.u ? +z.u[1] || 0 : 0, proj: Math.round(proj * (st && spec.stat === "tds" ? 100 : 10)) / (st && spec.stat === "tds" ? 100 : 10),
-                 floor: st ? null : x.f, ceil: st ? null : x.c, avg: st ? null : x.a, act: st ? null : x.act,
+                 floor: st ? null : x.f, ceil: st ? null : x.c, avg: st ? null : x.a,
+                 act: st ? (spec.stat === "yds" ? p.ayds : p.atds) : x.act,   // Total Yards / Touchdowns: real yards / TDs
                  lock: !!e.lock, out: !!e.out, boost: Math.max(-90, Math.min(100, +e.boost || 0)),
                  exp: num(e.exp) != null ? Math.max(0, Math.min(1, +e.exp / 100)) : null });
     });
@@ -1600,7 +1601,7 @@ var T7New = (function () {
     return out;
   }
   function baseProj(p) { return isX() ? T7Opt.baseOf(p, S.site, S.contest) : p[S.site].p; }   // Total Yards / Touchdowns score the stat
-  function actOf(p) { return STATC[S.contest] ? null : p[S.site].act; }                         // no final yards / TDs saved
+  function actOf(p) { var v = !STATC[S.contest] ? p[S.site].act : S.contest === "TotalYards" ? p.ayds : p.atds; return v == null ? null : v; }   // Total Yards / Touchdowns: real yards / TDs
   function keyOf(p) { return p.n + "|" + p.tm; }
 
   // ---------- team colors (each team's main color; abbreviations as the site files spell them) ----------
@@ -1839,7 +1840,7 @@ var T7New = (function () {
       return '<tr data-k="' + esc(r.key) + '"' + (e.out ? ' class="is-out"' : "") + ">" +
         '<td><button type="button" class="tg lk" data-a="lock" aria-pressed="' + !!e.lock + '" aria-label="Lock ' + esc(r.n) + '">' + LOCK + '</button></td>' +
         '<td><button type="button" class="tg ex" data-a="out" aria-pressed="' + !!e.out + '" aria-label="Leave out ' + esc(r.n) + '">\u2715</button></td>' +
-        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + teamDot(r.tm) + esc(r.pos) + " \u00b7 " + esc(r.tm) + " vs " + esc(r.opp) + '<span class="msal"> \u00b7 ' + (S.contest === "Tiers" ? esc(r.tier || "") : STATC[S.contest] ? "" : money(r.sal)) + "</span>" + (r.opt != null ? '<span class="mopt"> \u00b7 opt ' + Math.round(100 * r.opt) + "%</span>" : "") + (S.night && !STATC[S.contest] ? '<span class="mact"> \u00b7 ' + (r.act == null ? "\u2013" : f1(r.act)) + " actual</span>" : "") + "</span>" +
+        '<td class="l"><span class="pn">' + esc(r.n) + badge + '</span><span class="pm">' + teamDot(r.tm) + esc(r.pos) + " \u00b7 " + esc(r.tm) + " vs " + esc(r.opp) + '<span class="msal"> \u00b7 ' + (S.contest === "Tiers" ? esc(r.tier || "") : STATC[S.contest] ? "" : money(r.sal)) + "</span>" + (r.opt != null ? '<span class="mopt"> \u00b7 opt ' + Math.round(100 * r.opt) + "%</span>" : "") + (S.night ? '<span class="mact"> \u00b7 ' + (r.act == null ? "\u2013" : f1(r.act)) + " actual</span>" : "") + "</span>" +
           "</td>" +
         '<td class="num sal">' + (S.contest === "Tiers" ? esc(r.tier || "") : STATC[S.contest] ? "\u2013" : money(r.sal) + (r.csal ? '<span class="pm">' + (S.site === "dk" ? "CPT " : "MVP ") + money(r.csal) + "</span>" : "")) + "</td>" +
         '<td><input class="ctl num' + (e.proj != null && e.proj !== "" ? " set" : r.up ? " up" : "") + '" data-a="proj" type="number" step="' + (S.contest === "Touchdowns" ? "0.05" : S.contest === "TotalYards" ? "1" : "0.5") + '" min="0" inputmode="decimal" placeholder="' + fmtP(r.base) + '" value="' + (e.proj == null ? "" : esc(e.proj)) + '" aria-label="Projection for ' + esc(r.n) + '"></td>' +
