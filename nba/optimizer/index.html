@@ -427,7 +427,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
 
 <main>
   <section class="head wrap" aria-labelledby="page-h">
-    <p class="eyebrow">Three7 DFS <span class="beta">BETA</span></p>
+    <p class="eyebrow">Three7 DFS</p>
     <h1 id="page-h">NBA lineup optimizer</h1>
     <p class="head-meta" id="meta">Loading tonight's projections…</p>
     <p class="head-lede">Our projections, your settings: lock, exclude, boost or edit any player, set exposures and stacks, and build up to 150 lineups. It all runs in your browser.</p>
@@ -1235,7 +1235,13 @@ var T7Acct = (function () {
       me.paywall = pw === "1" || test; me.signedIn = !!s; me.email = s ? s.email : "";
       me.premium = !!(p && s && p.email === s.email && Date.now() - p.at < 864e5);
       me.offline = true;
-    }).then(function () { ready = true; draw(); subs.forEach(function (f) { f(); }); });
+    }).then(function () {
+      ready = true;
+      // "Sign in" links from the rest of the site (?signin) open the sign-in box
+      if (/[?&]signin\b/.test(location.search) && !me.signedIn && me.paywall && !box.opened) { box.opened = box.open = true; }
+      draw(); subs.forEach(function (f) { f(); });
+      if (box.open && /[?&]signin\b/.test(location.search)) { var i = document.getElementById("acct-email"); if (i) i.focus(); }
+    });
   }
 
   // ---- the account bar (and the "Go Premium" box) ----
