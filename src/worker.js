@@ -84,7 +84,8 @@ async function me(request, env, ctx, url) {
   } catch (e) {
     out.error = "Couldn't reach Stripe"; return json(out, 502);
   }
-  ctx.waitUntil(cache.put(key, new Response(out.premium ? "1" : "0", { headers: { "Cache-Control": "max-age=" + CACHE_SECS } })));
+  // only Premium is remembered: someone who just paid is never shown an old "Free"
+  if (out.premium) ctx.waitUntil(cache.put(key, new Response("1", { headers: { "Cache-Control": "max-age=" + CACHE_SECS } })));
   return json(out);
 }
 
