@@ -1,0 +1,9 @@
+{
+  // Three7 DFS website: a static site served by Cloudflare (no server code)
+  "name": "three7dfs-site",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": ".",
+    "html_handling": "auto-trailing-slash"
+  }
+}

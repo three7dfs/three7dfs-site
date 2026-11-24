@@ -1,0 +1,15 @@
+# never published: git history, Cloudflare settings, the Quarto source files
+.git/
+.github/
+wrangler.jsonc
+.assetsignore
+*.qmd
+*.scss
+_quarto.yml
+README.md
+quarto_menu_block.txt
+CNAME*
+node_modules/
+package.json
+package-lock.json
+.wrangler/
