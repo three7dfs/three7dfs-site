@@ -1248,7 +1248,7 @@ var T7Acct = (function () {
     var h = "";
     if (me.signedIn && me.premium) {
       h = '<span class="acct-who">' + esc(me.email) + ' <b class="acct-pro">Premium</b></span>' +
-          (cfg.portal ? '<a class="acct-a" href="' + esc(cfg.portal) + '" target="_blank" rel="noopener">Manage subscription</a>' : "") +
+          '<button type="button" class="acct-a" data-acct="portal">Manage subscription</button>' +
           '<button type="button" class="acct-a" data-acct="out">Sign out</button>';
     } else if (me.signedIn) {
       h = '<span class="acct-who">' + esc(me.email) + ' <b class="acct-free">Free</b></span>' +
@@ -1310,6 +1310,18 @@ var T7Acct = (function () {
       sb("verify", { type: "email", email: box.email, token: code })
         .then(function (j) { save(j); box.open = false; box.sent = false; return check(true); }, function (err) { a.disabled = false; say(err.message); });
     } else if (act === "recheck") { a.disabled = true; check(true); }
+    else if (act === "portal") {
+      // straight into their own Stripe billing page (no second email check); the login link is the fallback
+      a.disabled = true; a.textContent = "Opening\u2026";
+      token().then(function (t) {
+        return fetch("/api/portal", { method: "POST", headers: { Authorization: "Bearer " + (t || "") } });
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        if (j.url) location.href = j.url; else throw new Error(j.error || "no link");
+      }).catch(function () {
+        a.disabled = false; a.textContent = "Manage subscription";
+        if (cfg && cfg.portal) location.href = cfg.portal;
+      });
+    }
     else if (act === "out") {
       var s = load(KEY);
       if (s && cfg) sb("logout", {}, s.access_token).catch(function () {});
