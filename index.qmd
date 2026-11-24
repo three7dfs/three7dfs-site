@@ -15,7 +15,7 @@ description: "Proprietary NFL and MLB DFS projections with projected stat lines,
       field won't have.
     </p>
     <div class="hero-actions">
-      <a class="btn btn-solid" href="https://nfl.three7dfs.com">Open the NFL tool</a>
+      <a class="btn btn-solid" href="/nfl/optimizer/">Open the NFL tool</a>
       <a class="btn btn-line" href="https://mlb.three7dfs.com">Open the MLB tool</a>
     </div>
     <p class="hero-note">NFL projections are free, no sign-up needed. NFL Premium is $10/month with a 7-day free trial. <a href="#pricing">See pricing</a></p>
@@ -108,7 +108,7 @@ description: "Proprietary NFL and MLB DFS projections with projected stat lines,
       <li>Projected stat lines for every player</li>
       <li>Premium: up to 150 lineups and upload-ready exports</li>
     </ul>
-    <a class="btn btn-solid" href="https://nfl.three7dfs.com">Open the NFL tool</a>
+    <a class="btn btn-solid" href="/nfl/optimizer/">Open the NFL tool</a>
   </article>
   <article class="sport">
     <h2>MLB</h2>
@@ -144,7 +144,7 @@ description: "Proprietary NFL and MLB DFS projections with projected stat lines,
         <li>Every DraftKings and FanDuel contest</li>
         <li>Build 1 lineup at a time</li>
       </ul>
-      <a class="btn btn-line" href="https://nfl.three7dfs.com">Open the NFL tool</a>
+      <a class="btn btn-line" href="/nfl/optimizer/">Open the NFL tool</a>
     </article>
     <article class="plan plan-pro">
       <p class="plan-flag">7-day free trial</p>
@@ -157,7 +157,7 @@ description: "Proprietary NFL and MLB DFS projections with projected stat lines,
         <li>Export lineups ready to upload to DraftKings and FanDuel</li>
         <li>Download the full projections table</li>
       </ul>
-      <a class="btn btn-solid" href="https://nfl.three7dfs.com">Start your free trial</a>
+      <a class="btn btn-solid" href="/nfl/optimizer/">Start your free trial</a>
       <p class="plan-how">In the NFL tool, tap <strong>Sign in</strong> (top right) with your email, then <strong>Go Premium</strong>. You won't be charged until the trial ends, and you can cancel anytime from <strong>Manage subscription</strong>.</p>
     </article>
   </div>

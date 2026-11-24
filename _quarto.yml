@@ -24,11 +24,11 @@ website:
       - text: "Pricing"
         href: index.qmd#pricing
       - text: "NFL tool"
-        href: https://nfl.three7dfs.com
+        href: /nfl/optimizer/
       - text: "MLB tool"
         href: https://mlb.three7dfs.com
       - text: "Sign in"
-        href: https://nfl.three7dfs.com
+        href: /nba/optimizer/
   page-footer:
     left: "© 2026 Three7 DFS · [Privacy](privacy.qmd) · [support@three7dfs.com](mailto:support@three7dfs.com)"
     right: "Not affiliated with DraftKings or FanDuel. 18+ only."
