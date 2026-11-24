@@ -28,7 +28,7 @@ website:
       - text: "MLB tool"
         href: https://mlb.three7dfs.com
       - text: "Sign in"
-        href: /nba/optimizer/
+        href: /nba/optimizer/?signin
   page-footer:
     left: "© 2026 Three7 DFS · [Privacy](privacy.qmd) · [support@three7dfs.com](mailto:support@three7dfs.com)"
     right: "Not affiliated with DraftKings or FanDuel. 18+ only."
