@@ -373,6 +373,8 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
 .newproj .np-t { flex: 1 1 auto; }
 .newproj .np-n { font-weight: 500; }
 @media (max-width: 560px) { .newproj { width: calc(100% - 32px); } .newproj .np-n { display: block; } }
+.acct-promo { color: var(--chalk); }
+.acct-promo .acct-pro { margin: 0 6px 0 0; }
 
 @media (max-width: 760px) {
   body { font-size: 16px; }
@@ -1179,10 +1181,12 @@ var T7LS = (function () {
    the browser never sees. Shared by the NBA and NFL optimizer pages. */
 var T7Acct = (function () {
   var KEY = "t7.session", PKEY = "t7.premium";
+  var justIn = false;                                              // signed in just now (link or code): for GA
   var cfg = null, me = { paywall: false, signedIn: false, premium: false, email: "" }, ready = false, subs = [];
   var test = /[?&]premium-test\b/.test(location.search);          // owner testing before the paywall goes live
   function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
   function load(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+  function track(name, params) { try { if (typeof window.gtag === "function") window.gtag("event", name, params || {}); } catch (e) {} }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function jwtEmail(t) { try { var p = JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))); return { email: p.email || "", exp: p.exp || 0 }; } catch (e) { return { email: "", exp: 0 }; } }
   function save(s) { if (!s || !s.access_token) { store(KEY, null); return null; } var j = jwtEmail(s.access_token);
@@ -1192,7 +1196,7 @@ var T7Acct = (function () {
   function fromLink() {
     var h = location.hash.replace(/^#/, ""); if (!/access_token=|error_description=/.test(h)) return false;
     var p = new URLSearchParams(h);
-    if (p.get("access_token")) save({ access_token: p.get("access_token"), refresh_token: p.get("refresh_token") });
+    if (p.get("access_token")) { save({ access_token: p.get("access_token"), refresh_token: p.get("refresh_token") }); justIn = true; }
     else if (p.get("error_description")) me.linkError = p.get("error_description").replace(/\+/g, " ");
     try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
     return true;
@@ -1224,7 +1228,10 @@ var T7Acct = (function () {
     }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (j) {
       cfg = cfg || {}; cfg.sb = j.sb || cfg.sb; cfg.anon = j.anon || cfg.anon; cfg.pay = j.pay || ""; cfg.portal = j.portal || "";
       var keep = me.linkError;
-      me = { paywall: !!j.paywall || test, signedIn: !!j.email, email: j.email || "", premium: !!j.premium, linkError: keep };
+      me = { paywall: !!j.paywall || test, signedIn: !!j.email, email: j.email || "", premium: !!j.premium, linkError: keep,
+             free: j.free && !test ? j.free : null };
+      if (justIn && j.signedIn) { justIn = false; track("sign_in", { premium: me.premium }); }
+      store("t7.free", me.free ? JSON.stringify({ until: me.free.until, after: j.paywallAfter ? "1" : "0" }) : null);
       if (sent && !j.signedIn) save(null);               // the saved sign-in is no longer valid
       store(PKEY, me.premium ? JSON.stringify({ email: me.email, at: Date.now() }) : null);
       store("t7.paywall", j.paywall ? "1" : "0");
@@ -1233,26 +1240,38 @@ var T7Acct = (function () {
       var p = load(PKEY), s = load(KEY);
       var pw = null; try { pw = localStorage.getItem("t7.paywall"); } catch (e) {}
       me.paywall = pw === "1" || test; me.signedIn = !!s; me.email = s ? s.email : "";
+      var fw = load("t7.free");                          // a free week seen earlier: still on, or over?
+      if (fw && Date.parse(fw.until) > Date.now()) me.free = fw; else if (fw) me.paywall = fw.after === "1" || test;
       me.premium = !!(p && s && p.email === s.email && Date.now() - p.at < 864e5);
       me.offline = true;
     }).then(function () {
       ready = true;
       // "Sign in" links from the rest of the site (?signin) open the sign-in box
       if (/[?&]signin\b/.test(location.search) && !me.signedIn && me.paywall && !box.opened) { box.opened = box.open = true; }
+      if (me.free && !promoSeen) { promoSeen = true; track("free_week_view", { until: me.free.until }); }
       draw(); subs.forEach(function (f) { f(); });
       if (box.open && /[?&]signin\b/.test(location.search)) { var i = document.getElementById("acct-email"); if (i) i.focus(); }
     });
   }
 
   // ---- the account bar (and the "Go Premium" box) ----
-  var box = { open: false, sent: false, why: "" };
+  var box = { open: false, sent: false, why: "" }, promoSeen = false;
+  function untilText(u) {      // "Mon, Nov 30": the last free day (the end time is midnight after it)
+    try { var d = new Date(Date.parse(u) - 1); return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/New_York" }); } catch (e) { return ""; }
+  }
   function upgradeUrl() { return cfg && cfg.pay ? cfg.pay + (me.email ? (cfg.pay.indexOf("?") < 0 ? "?" : "&") + "prefilled_email=" + encodeURIComponent(me.email) : "") : ""; }
   function draw() {
     var el = document.getElementById("acct"); if (!el) return;
-    el.hidden = !ready || !me.paywall;
+    el.hidden = !ready || (!me.paywall && !me.free);
     if (el.hidden) return;
     var h = "";
-    if (me.signedIn && me.premium) {
+    if (me.free && !me.premium) {          // free week: no sign-in, everything unlocked
+      var ut = untilText(me.free.until);
+      h = '<span class="acct-who acct-promo"><b class="acct-pro">' + esc(me.free.note) + '</b> Every feature, up to 150 lineups, no sign-up' +
+          (ut ? ". Free through " + esc(ut) + "." : ".") + '</span>' +
+          '<button type="button" class="acct-a" data-upgrade>Keep it after: Premium $10/mo</button>' +
+          (me.signedIn ? "" : '<button type="button" class="acct-a" data-acct="signin">Member sign in</button>');
+    } else if (me.signedIn && me.premium) {
       h = '<span class="acct-who">' + esc(me.email) + ' <b class="acct-pro">Premium</b></span>' +
           '<button type="button" class="acct-a" data-acct="portal">Manage subscription</button>' +
           '<button type="button" class="acct-a" data-acct="out">Sign out</button>';
@@ -1292,12 +1311,14 @@ var T7Acct = (function () {
   }
   document.addEventListener("click", function (e) {
     var u = e.target.closest("[data-upgrade]");
-    if (u) { e.preventDefault(); if (me.signedIn && upgradeUrl()) window.open(upgradeUrl(), "_blank", "noopener"); else open("Sign in first, then subscribe, so Premium is linked to your email."); return; }
+    if (u) { e.preventDefault(); track("go_premium_click", { signed_in: me.signedIn, free_week: !!me.free }); if (me.signedIn && upgradeUrl()) window.open(upgradeUrl(), "_blank", "noopener"); else open("Sign in first, then subscribe, so Premium is linked to your email."); return; }
     // Premium-only buttons: free users get the upgrade box instead
     var p = e.target.closest("[data-prem]");
-    if (p && ready && me.paywall && !me.premium) { e.preventDefault(); e.stopImmediatePropagation(); open(p.dataset.prem || "That's a Premium feature."); return; }
+    if (p && ready && me.paywall && !me.premium) { e.preventDefault(); e.stopImmediatePropagation();
+      track("premium_lock_tap", { feature: p.id || p.dataset.prem || "" }); open(p.dataset.prem || "That's a Premium feature."); return; }
     var a = e.target.closest("[data-acct]"); if (!a) return;
     var act = a.dataset.acct;
+    if (act === "pay") { track("go_premium_click", { signed_in: me.signedIn, from: "box" }); return; }   // the Subscribe link opens Stripe
     if (act === "signin") { box.open = !box.open; box.why = ""; draw(); var i = document.getElementById("acct-email"); if (i) i.focus(); }
     else if (act === "close") { box.open = false; me.linkError = ""; draw(); }
     else if (act === "again") { box.sent = false; draw(); }
@@ -1309,12 +1330,12 @@ var T7Acct = (function () {
         method: "POST", headers: { apikey: cfg.anon, "Content-Type": "application/json" },
         body: JSON.stringify({ email: em, create_user: true }) })
         .then(function (r) { if (!r.ok) return r.json().catch(function () { return {}; }).then(function (j) { throw new Error(j.msg || j.error_description || "Couldn't send the email (" + r.status + ")"); }); })
-        .then(function () { box.sent = true; draw(); }, function (err) { a.disabled = false; say(err.message); });
+        .then(function () { box.sent = true; track("sign_in_email_sent"); draw(); }, function (err) { a.disabled = false; say(err.message); });
     } else if (act === "code") {
       var code = (document.getElementById("acct-code").value || "").replace(/\s/g, "");
       if (!code) return; a.disabled = true; say("Checking…");
       sb("verify", { type: "email", email: box.email, token: code })
-        .then(function (j) { save(j); box.open = false; box.sent = false; return check(true); }, function (err) { a.disabled = false; say(err.message); });
+        .then(function (j) { save(j); justIn = true; box.open = false; box.sent = false; return check(true); }, function (err) { a.disabled = false; say(err.message); });
     } else if (act === "recheck") { a.disabled = true; check(true); }
     else if (act === "portal") {
       // straight into their own Stripe billing page (no second email check); the login link is the fallback
@@ -1340,7 +1361,8 @@ var T7Acct = (function () {
 
   return {
     start: function () { check(); },
-    paid: function () { return !me.paywall || me.premium; },       // paywall off (beta) = everyone gets everything
+    paid: function () { return !me.paywall || me.premium; },       // paywall off or free week = everyone gets everything
+    free: function () { return me.free; },
     gated: function () { return ready && me.paywall && !me.premium; },
     onChange: function (f) { subs.push(f); },
     upgrade: open
@@ -1467,9 +1489,24 @@ var T7New = (function () {
     });
   }
 
+  // [SLATE ORDER] slates listed by lock time (same time: the bigger slate first, as published);
+  // the one picked to start with is the next slate that hasn't locked yet. Lock times are Eastern clock times.
+  function etMs(s) {
+    var t = s ? Date.parse(String(s).slice(0, 19) + "Z") : NaN; if (isNaN(t)) return NaN;
+    var p = {}; try { new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+      .formatToParts(new Date(t)).forEach(function (x) { p[x.type] = x.value; }); } catch (e) { return t + 5 * 36e5; }
+    var off = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute) - Math.floor(t / 6e4) * 6e4;   // Eastern minus UTC
+    return t - off;
+  }
+  function byTime(list) {
+    return list.map(function (s, i) { return { s: s, i: i, t: etMs(s.lock) }; }).sort(function (a, b) {
+      var ta = isNaN(a.t) ? Infinity : a.t, tb = isNaN(b.t) ? Infinity : b.t; return (ta === tb ? 0 : ta - tb) || a.i - b.i;
+    }).map(function (x) { return x.s; });
+  }
+  function firstOpen(list) { var now = Date.now(); for (var i = 0; i < list.length; i++) if (etMs(list[i].lock) > now) return list[i].key; return list.length ? list[0].key : null; }
   function slates() {
-    if (!isX()) return D.slates.filter(function (s) { return s.site === S.site; });
-    return (D.xslates || []).filter(function (s) { return s.site === S.site && s.contest === S.contest; });
+    if (!isX()) return byTime(D.slates.filter(function (s) { return s.site === S.site; }));
+    return byTime((D.xslates || []).filter(function (s) { return s.site === S.site && s.contest === S.contest; }));
   }
   function contests() {   // contests this site has slates for tonight
     return Object.keys(CNAME[S.site]).filter(function (c) {
@@ -1935,7 +1972,7 @@ var T7New = (function () {
     $("contest").hidden = cs.length < 2;
     var list = slates();
     $("slate").innerHTML = list.map(function (s) { return '<option value="' + esc(s.key) + '">' + esc(s.label) + "</option>"; }).join("");
-    if (!list.some(function (s) { return s.key === S.slate; })) S.slate = list.length ? list[0].key : null;
+    if (!list.some(function (s) { return s.key === S.slate; })) S.slate = firstOpen(list);
     $("slate").value = S.slate || "";
     document.querySelectorAll("#site button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.site === S.site)); });
     loadSlate(); showSettings(); drawTeams(); fillTeamFilter(); render();
