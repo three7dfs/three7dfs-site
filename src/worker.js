@@ -1,4 +1,5 @@
-// Three7 DFS website: the files are served as they are; this code only answers /api/me,
+// Three7 DFS website: the files are served as they are; this code only answers /api/me
+// (and /api/portal),
 // the Premium check for the optimizer pages. It asks Supabase who the signed-in member is,
 // then asks Stripe whether that email has an active Premium subscription (the same rule
 // as the Shiny apps). The Stripe key is a Cloudflare secret (STRIPE_SECRET_KEY), so it
@@ -56,8 +57,18 @@ async function portal(request, env, url) {
   }
 }
 
+// Free week: between FREE_FROM and FREE_UNTIL (wrangler.jsonc, e.g. "2026-11-25T00:00:00-05:00")
+// everyone gets everything with no sign-in, and the pages show FREE_NOTE. Outside it, PAYWALL decides.
+function freeWeek(env) {
+  if (!env.FREE_UNTIL) return null;
+  const now = Date.now(), from = env.FREE_FROM ? Date.parse(env.FREE_FROM) : 0, until = Date.parse(env.FREE_UNTIL);
+  if (!(until > now) || !(now >= (from || 0))) return null;
+  return { until: env.FREE_UNTIL, note: env.FREE_NOTE || "Free this week" };
+}
+
 async function me(request, env, ctx, url) {
-  const out = { paywall: env.PAYWALL === "on", sb: env.SUPABASE_URL, anon: env.SUPABASE_ANON_KEY,
+  const free = freeWeek(env);
+  const out = { paywall: env.PAYWALL === "on" && !free, free, paywallAfter: env.PAYWALL === "on", sb: env.SUPABASE_URL, anon: env.SUPABASE_ANON_KEY,
                 pay: env.STRIPE_PAYMENT_LINK || "", portal: env.STRIPE_PORTAL_LINK || "", signedIn: false, premium: false };
   const auth = request.headers.get("Authorization") || "";
   const token = auth.replace(/^Bearer\s+/i, "");
