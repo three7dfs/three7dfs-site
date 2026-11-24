@@ -395,6 +395,60 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
   .tile-v { font-size: 2rem; }
 }
 @media (prefers-reduced-motion: no-preference) { .btn, .seg button, .pos button { transition: background-color .15s, border-color .15s, color .15s; } }
+
+/* ---------- [PHONE] roomier layout on phones ---------- */
+@media (max-width: 760px) {
+  .head { padding-left: 16px; padding-right: 16px; }              /* the title area had no side margin on phones */
+  .t7free { width: calc(100% - 32px); }
+  .head h1 { font-size: clamp(2.1rem, 9vw, 2.6rem); line-height: 1.05; }
+  .head-lede { font-size: .98rem; margin-bottom: 16px; }
+  /* position chips: one row you can swipe instead of two crowded rows */
+  .tools .pos { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; flex: 1 1 100%; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
+  .tools .pos::-webkit-scrollbar { display: none; }
+  .tools .pos button { flex: 0 0 auto; min-height: 36px; padding: 6px 13px; }
+  /* card titles: the note goes under the title instead of squeezing beside it */
+  .card:not(.lu) > .card-bar { flex-direction: column; align-items: flex-start; gap: 2px; }
+}
+@media (max-width: 560px) {
+  /* tool buttons: compact, two short rows */
+  .tools #stats, .tools #reset { flex: 1 1 calc(50% - 5px); padding: 8px 6px; font-size: .9rem; }
+  .tool-more { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .tool-more .btn { padding: 8px 4px; font-size: .84rem; line-height: 1.15; white-space: normal; min-height: 40px; }
+  /* player pool: each player is a small card - name and details on top, controls in one row under it */
+  table.pool, table.pool thead, table.pool tbody { display: block; }
+  table.pool thead { position: sticky; top: 0; z-index: 2; background: var(--navy); }
+  table.pool thead tr, table.pool tr[data-k] {
+    display: grid; grid-template-columns: 34px 34px minmax(0, 1fr) 3.4rem 3.4rem 3.9rem; column-gap: 6px; align-items: center; padding: 0 10px; }
+  table.pool thead th { position: static; border-bottom: 0; background: transparent; }
+  table.pool thead { border-bottom: 1px solid var(--line); }
+  table.pool thead th button { padding: 9px 0 !important; text-align: center; font-size: .78rem; }
+  table.pool thead th.l button { text-align: left; }
+  table.pool tr[data-k] { padding-top: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); row-gap: 8px; }
+  table.pool tr[data-k] td { padding: 0 !important; border-bottom: 0; }
+  table.pool tr[data-k] td.l { grid-column: 1 / -1; grid-row: 1; white-space: normal; }
+  table.pool tr[data-k] td:nth-child(1) { grid-column: 1; grid-row: 2; }
+  table.pool tr[data-k] td:nth-child(2) { grid-column: 2; grid-row: 2; }
+  table.pool tr[data-k] td:nth-child(5) { grid-column: 4; grid-row: 2; }
+  table.pool tr[data-k] td:nth-child(7) { grid-column: 5; grid-row: 2; }
+  table.pool tr[data-k] td:nth-child(8) { grid-column: 6; grid-row: 2; }
+  table.pool .pn { font-size: .98rem; overflow-wrap: normal; }
+  table.pool .pm { font-size: .84rem; }
+  table.pool input.ctl { width: 100%; box-sizing: border-box; padding: 7px 3px; }
+  table.pool select.bsel { width: 100%; box-sizing: border-box; }
+  .tg { width: 34px; height: 36px; }
+  body.stats-on table.pool tr.srow { display: block; border-bottom: 1px solid var(--line); }
+  body.stats-on table.pool tr.srow td { display: block; padding: 0 10px 10px !important; }
+  body.stats-on table.pool tr[data-k] { border-bottom: 0; padding-bottom: 6px; }
+  /* projections pages: narrower name column so Value fits */
+  table.proj:not(.pool) td.l { min-width: 7.6rem; }
+  table.proj:not(.pool) td, table.proj:not(.pool) th button { padding-left: 6px; padding-right: 6px; }
+}
+@media (max-width: 380px) {           /* small phones (iPhone SE / mini) */
+  table.pool thead tr, table.pool tr[data-k] { grid-template-columns: 30px 30px minmax(0, 1fr) 3.1rem 3.1rem 3.6rem; column-gap: 5px; padding-left: 8px; padding-right: 8px; }
+  table.pool thead th.l { visibility: hidden; }                       /* no room for a "Player" label there */
+  table.pool thead th button { font-size: .72rem; }
+  .tg { width: 30px; }
+}
 </style>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3T435K36YH"></script>
 <script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag("js", new Date()); gtag("config", "G-3T435K36YH");</script>
