@@ -12,7 +12,7 @@
   },
   "vars": {
     // "off" = beta: everyone gets every feature. "on" = free accounts get 1 lineup etc.
-    "PAYWALL": "off",
+    "PAYWALL": "on",
     "SUPABASE_URL": "https://kalkggzuornbztjnmteh.supabase.co",
     "SUPABASE_ANON_KEY": "sb_publishable_WPS4DKU0oi3C4POq0YeJQg_S1tzYUgB",
     "STRIPE_PAYMENT_LINK": "https://buy.stripe.com/cNi28kbnQ2sm388fHB0Fi00",
