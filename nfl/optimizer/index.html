@@ -344,6 +344,36 @@ table.exp.ls tbody tr { cursor: default; }
   .dl-btns .btn { flex: 1; }
 }
 
+/* ---------- [PREMIUM] account bar, upgrade box, locked features ---------- */
+.acct { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 16px 0 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--navy); position: relative; }
+.acct-who { color: var(--muted); font-size: .95rem; overflow-wrap: anywhere; }
+.acct-pro, .acct-free { font: 700 .72rem "Barlow", sans-serif; letter-spacing: .06em; text-transform: uppercase; border-radius: 4px; padding: 2px 7px; margin-left: 4px; vertical-align: 1px; }
+.acct-pro { color: var(--field); background: var(--mint); }
+.acct-free { color: var(--chalk); border: 1px solid var(--steel); margin: 0 6px 0 0; }
+.acct-a { background: none; border: 0; padding: 4px 2px; color: var(--sky); font: 500 .95rem "Barlow", sans-serif; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.acct-a:hover { color: var(--chalk); }
+.acct-box { flex: 1 1 100%; border-top: 1px solid var(--line); padding: 12px 28px 2px 0; }
+.acct-box p { margin: 0 0 10px; }
+.acct-why { color: var(--chalk); font-weight: 600; }
+.acct-lbl { color: var(--muted); font-size: .95rem; }
+.acct-lbl a { color: var(--sky); }
+.acct-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+.acct-row .ctl { flex: 1 1 220px; min-width: 0; }
+.acct-msg { color: var(--warn); font-size: .92rem; min-height: 0; }
+.acct-msg:empty { display: none; }
+.acct-x { position: absolute; top: 8px; right: 8px; background: none; border: 0; color: var(--muted); font-size: 1rem; cursor: pointer; padding: 4px 8px; }
+.prem-note { margin: 0 0 12px; padding: 9px 12px; border: 1px dashed var(--steel); border-radius: 8px; color: var(--muted); font-size: .93rem; }
+.prem-note button { background: none; border: 0; padding: 0; color: var(--sky); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+body.free [data-prem]::before { content: "\1F512\00A0"; font-size: .85em; }
+body.free .prem-off { opacity: .45; pointer-events: none; }
+/* new numbers published while the page is open */
+.newproj { position: fixed; left: 50%; transform: translateX(-50%); bottom: 88px; z-index: 60; display: flex; gap: 10px; align-items: center; background: var(--chalk); color: var(--field); border-radius: 10px; padding: 10px 12px 10px 16px; box-shadow: 0 6px 24px rgba(0,0,0,.35); font: 600 .95rem "Barlow", sans-serif; max-width: calc(100% - 32px); box-sizing: border-box; }
+.newproj button { font: 700 .9rem "Barlow", sans-serif; border-radius: 6px; padding: 7px 12px; cursor: pointer; border: 0; background: var(--field); color: var(--chalk); white-space: nowrap; }
+.newproj .np-x { background: none; color: var(--field); padding: 4px 6px; }
+.newproj .np-t { flex: 1 1 auto; }
+.newproj .np-n { font-weight: 500; }
+@media (max-width: 560px) { .newproj { width: calc(100% - 32px); } .newproj .np-n { display: block; } }
+
 @media (max-width: 760px) {
   body { font-size: 16px; }
   .wrap { padding: 0 16px; }
@@ -401,6 +431,7 @@ table.exp.ls tbody tr { cursor: default; }
     <h1 id="page-h">NFL lineup optimizer</h1>
     <p class="head-meta" id="meta">Loading this week's projections…</p>
     <p class="head-lede">Our projections, your settings: lock, exclude, boost or edit any player, set exposures and stacks, and build up to 150 lineups. It all runs in your browser.</p>
+    <div class="acct" id="acct" hidden></div>
   </section>
 
   <section class="wrap sec" aria-label="Site and slate">
@@ -417,8 +448,74 @@ table.exp.ls tbody tr { cursor: default; }
   </section>
 
   <section class="wrap sec">
+    <details class="fold" id="fold-pool" data-fold="pool" open>
+      <summary><h2>Players</h2><span class="fold-sum" id="sum-pool"></span></summary>
+      <div class="fold-body">
+        <div class="tools" style="border-top:0;padding-top:0">
+          <div class="pos" id="pos" role="group" aria-label="Position">
+            <button type="button" data-pos="" aria-pressed="true">All</button>
+            <button type="button" data-pos="QB" aria-pressed="false">QB</button>
+            <button type="button" data-pos="RB" aria-pressed="false">RB</button>
+            <button type="button" data-pos="WR" aria-pressed="false">WR</button>
+            <button type="button" data-pos="TE" aria-pressed="false">TE</button>
+            <button type="button" data-pos="DST" aria-pressed="false">DST</button>
+            <button type="button" data-pos="K" aria-pressed="false" id="pos-k">K</button>
+            <button type="button" data-pos="*" aria-pressed="false">Changed</button>
+          </div>
+          <select class="ctl" id="pteam" aria-label="Team"><option value="">All teams</option></select>
+          <input class="ctl search" id="q" type="search" placeholder="Search players" autocomplete="off">
+          <button type="button" class="btn btn-line slim" id="stats" aria-pressed="false">Show stats</button>
+          <button type="button" class="btn btn-line slim" id="reset">Reset changes</button>
+          <span class="tool-more">
+            <button type="button" class="btn btn-line slim" id="tpl" data-prem="Uploading your own projections is a Premium feature.">Template</button>
+            <button type="button" class="btn btn-line slim" id="upl" data-prem="Uploading your own projections is a Premium feature.">Upload my projections</button>
+            <button type="button" class="btn btn-line slim" id="dlt" data-prem="Downloading projections is a Premium feature.">Download table</button>
+            <input type="file" id="uplf" accept=".csv,text/csv" hidden>
+          </span>
+        </div>
+        <div class="upbar" id="upbar" hidden>
+          <span id="upnote"></span>
+          <label class="upw">Ours <input type="range" id="upw" min="0" max="100" step="5" value="100"> Mine <b id="upwv">100%</b></label>
+          <button type="button" class="clear" id="upx">Remove upload</button>
+        </div>
+        <div class="card">
+          <div class="card-bar"><span class="card-title">Player pool</span><span class="card-note">Proj and Exp % are yours to change · blank = ours</span></div>
+          <div class="scroll pool-scroll">
+            <table class="proj pool">
+              <thead><tr>
+                <th title="Lock in every lineup"><button type="button" data-sort="lock">Lock</button></th>
+                <th title="Leave out"><button type="button" data-sort="out">Out</button></th>
+                <th class="l"><button type="button" data-sort="n">Player</button></th>
+                <th class="sal"><button type="button" data-sort="sal">Salary</button></th>
+                <th><button type="button" data-sort="p">Proj</button></th>
+                <th class="act"><button type="button" data-sort="act">Actual</button></th>
+                <th><button type="button" data-sort="exp">Exp %</button></th>
+                <th title="Boost or suppress our projection"><button type="button" data-sort="boost">Boost</button></th>
+                <th class="wide"><button type="button" data-sort="v">Value</button></th>
+                <th class="optc"><button type="button" data-sort="opt">Opt %</button></th>
+                <th class="stat"><button type="button" data-sort="rg">Range</button></th>
+                <th class="stat"><button type="button" data-sort="py">Pass yds</button></th>
+                <th class="stat"><button type="button" data-sort="ptd">Pass TD</button></th>
+                <th class="stat"><button type="button" data-sort="int">INT</button></th>
+                <th class="stat"><button type="button" data-sort="ry">Rush yds</button></th>
+                <th class="stat"><button type="button" data-sort="rtd">Rush TD</button></th>
+                <th class="stat"><button type="button" data-sort="rec">Rec</button></th>
+                <th class="stat"><button type="button" data-sort="recy">Rec yds</button></th>
+                <th class="stat"><button type="button" data-sort="rectd">Rec TD</button></th>
+              </tr></thead>
+              <tbody id="rows"><tr><td colspan="19" class="empty">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <p class="count" id="count"></p>
+      </div>
+    </details>
+  </section>
+
+  <section class="wrap sec">
     <details class="fold" id="fold-set" data-fold="set">
       <summary><h2>Settings</h2><span class="fold-sum" id="sum-set"></span></summary>
+      <p class="prem-note prem-lock" hidden>Free plan: 1 lineup, no stacks or game scripts. <button type="button" data-upgrade>Go Premium</button> for up to 150 lineups, stacks, game scripts, downloads, projection uploads and late swap.</p>
       <div class="fold-body">
         <div class="panel">
           <div class="grid">
@@ -488,71 +585,6 @@ table.exp.ls tbody tr { cursor: default; }
     </details>
   </section>
 
-  <section class="wrap sec">
-    <details class="fold" id="fold-pool" data-fold="pool" open>
-      <summary><h2>Players</h2><span class="fold-sum" id="sum-pool"></span></summary>
-      <div class="fold-body">
-        <div class="tools" style="border-top:0;padding-top:0">
-          <div class="pos" id="pos" role="group" aria-label="Position">
-            <button type="button" data-pos="" aria-pressed="true">All</button>
-            <button type="button" data-pos="QB" aria-pressed="false">QB</button>
-            <button type="button" data-pos="RB" aria-pressed="false">RB</button>
-            <button type="button" data-pos="WR" aria-pressed="false">WR</button>
-            <button type="button" data-pos="TE" aria-pressed="false">TE</button>
-            <button type="button" data-pos="DST" aria-pressed="false">DST</button>
-            <button type="button" data-pos="K" aria-pressed="false" id="pos-k">K</button>
-            <button type="button" data-pos="*" aria-pressed="false">Changed</button>
-          </div>
-          <select class="ctl" id="pteam" aria-label="Team"><option value="">All teams</option></select>
-          <input class="ctl search" id="q" type="search" placeholder="Search players" autocomplete="off">
-          <button type="button" class="btn btn-line slim" id="stats" aria-pressed="false">Show stats</button>
-          <button type="button" class="btn btn-line slim" id="reset">Reset changes</button>
-          <span class="tool-more">
-            <button type="button" class="btn btn-line slim" id="tpl">Template</button>
-            <button type="button" class="btn btn-line slim" id="upl">Upload my projections</button>
-            <button type="button" class="btn btn-line slim" id="dlt">Download table</button>
-            <input type="file" id="uplf" accept=".csv,text/csv" hidden>
-          </span>
-        </div>
-        <div class="upbar" id="upbar" hidden>
-          <span id="upnote"></span>
-          <label class="upw">Ours <input type="range" id="upw" min="0" max="100" step="5" value="100"> Mine <b id="upwv">100%</b></label>
-          <button type="button" class="clear" id="upx">Remove upload</button>
-        </div>
-        <div class="card">
-          <div class="card-bar"><span class="card-title">Player pool</span><span class="card-note">Proj and Exp % are yours to change · blank = ours</span></div>
-          <div class="scroll pool-scroll">
-            <table class="proj pool">
-              <thead><tr>
-                <th title="Lock in every lineup"><button type="button" data-sort="lock">Lock</button></th>
-                <th title="Leave out"><button type="button" data-sort="out">Out</button></th>
-                <th class="l"><button type="button" data-sort="n">Player</button></th>
-                <th class="sal"><button type="button" data-sort="sal">Salary</button></th>
-                <th><button type="button" data-sort="p">Proj</button></th>
-                <th class="act"><button type="button" data-sort="act">Actual</button></th>
-                <th><button type="button" data-sort="exp">Exp %</button></th>
-                <th title="Boost or suppress our projection"><button type="button" data-sort="boost">Boost</button></th>
-                <th class="wide"><button type="button" data-sort="v">Value</button></th>
-                <th class="optc"><button type="button" data-sort="opt">Opt %</button></th>
-                <th class="stat"><button type="button" data-sort="rg">Range</button></th>
-                <th class="stat"><button type="button" data-sort="py">Pass yds</button></th>
-                <th class="stat"><button type="button" data-sort="ptd">Pass TD</button></th>
-                <th class="stat"><button type="button" data-sort="int">INT</button></th>
-                <th class="stat"><button type="button" data-sort="ry">Rush yds</button></th>
-                <th class="stat"><button type="button" data-sort="rtd">Rush TD</button></th>
-                <th class="stat"><button type="button" data-sort="rec">Rec</button></th>
-                <th class="stat"><button type="button" data-sort="recy">Rec yds</button></th>
-                <th class="stat"><button type="button" data-sort="rectd">Rec TD</button></th>
-              </tr></thead>
-              <tbody id="rows"><tr><td colspan="19" class="empty">Loading…</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-        <p class="count" id="count"></p>
-      </div>
-    </details>
-  </section>
-
   <section class="wrap sec" id="results" hidden>
     <details class="fold" id="fold-res" data-fold="res" open>
       <summary><h2>Lineups</h2><span class="fold-sum" id="sum-res"></span></summary>
@@ -570,8 +602,8 @@ table.exp.ls tbody tr { cursor: default; }
             <option value="act" data-rw>Sort: actual</option>
           </select>
           <div class="dl-btns">
-            <button type="button" class="btn btn-line slim" id="dlf" hidden>Download these</button>
-            <button type="button" class="btn btn-solid slim" id="dl">Download all</button>
+            <button type="button" class="btn btn-line slim" id="dlf" data-prem="Downloading lineups is a Premium feature." hidden>Download these</button>
+            <button type="button" class="btn btn-solid slim" id="dl" data-prem="Downloading lineups is a Premium feature.">Download all</button>
           </div>
         </div>
         <div class="filt" id="filt" hidden></div>
@@ -585,6 +617,7 @@ table.exp.ls tbody tr { cursor: default; }
 <section class="wrap sec" id="lswap-sec" aria-label="Late swap">
   <details class="fold" id="fold-ls" data-fold="ls">
     <summary><h2>Late swap</h2><span class="fold-sum">DraftKings Classic · swap players in games that haven't kicked off</span></summary>
+    <p class="prem-note prem-lock" hidden>Late swap is a Premium feature. <button type="button" data-upgrade>Go Premium</button></p>
     <div class="fold-body">
       <div class="panel">
         <ol class="ls-steps">
@@ -593,14 +626,14 @@ table.exp.ls tbody tr { cursor: default; }
           <li>Download the new file and upload it on the same DraftKings page. Your file never leaves this browser.</li>
         </ol>
         <div class="row2">
-          <div class="fld wide2"><label for="lsf">DKEntries.csv</label><input class="ctl" id="lsf" type="file" accept=".csv,text/csv"></div>
+          <div class="fld wide2"><label for="lsf">DKEntries.csv</label><input class="ctl" id="lsf" data-prem="Late swap is a Premium feature." type="file" accept=".csv,text/csv"></div>
           <div class="fld"><label for="lslock">Games locked</label><select class="ctl" id="lslock"><option value="now">Right now</option></select></div>
           <div class="fld"><label for="lsgain">Min. gain (pts)</label><input class="ctl num" id="lsgain" type="number" min="0" step="0.5" value="0.5"></div>
           <div class="fld"><label for="lsshare">Max share, new player %</label><input class="ctl num" id="lsshare" type="number" min="5" max="100" step="5" value="100"></div>
           <div class="fld"><label for="lsdst">Offense vs my DST</label><select class="ctl" id="lsdst"><option value="off">Allow</option><option value="pass">No QB/WR/TE vs DST</option><option value="all">No offense vs DST</option></select></div>
         </div>
         <div class="build" style="margin-top:14px">
-          <button type="button" class="btn btn-solid" id="lsgo" disabled>Late swap</button>
+          <button type="button" class="btn btn-solid" id="lsgo" data-prem="Late swap is a Premium feature." disabled>Late swap</button>
           <button type="button" class="btn btn-line" id="lsdl" hidden>Download DraftKings file</button>
         </div>
         <p class="msg" id="lsmsg" role="status" aria-live="polite"></p>
@@ -1192,12 +1225,213 @@ var T7LS = (function () {
   }
   return { SLOTS: SLOTS, LABELS: LABELS, parseCsv: parseCsv, read: read, run: run, uploadCsv: uploadCsv, etDate: etDate };
 })();
+/* Three7 accounts on the website: Supabase email sign-in (link or 6-digit code) + Premium check.
+   The Premium check runs on Three7's Cloudflare worker (/api/me), which asks Stripe with a key
+   the browser never sees. Shared by the NBA and NFL optimizer pages. */
+var T7Acct = (function () {
+  var KEY = "t7.session", PKEY = "t7.premium";
+  var cfg = null, me = { paywall: false, signedIn: false, premium: false, email: "" }, ready = false, subs = [];
+  var test = /[?&]premium-test\b/.test(location.search);          // owner testing before the paywall goes live
+  function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function jwtEmail(t) { try { var p = JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))); return { email: p.email || "", exp: p.exp || 0 }; } catch (e) { return { email: "", exp: 0 }; } }
+  function save(s) { if (!s || !s.access_token) { store(KEY, null); return null; } var j = jwtEmail(s.access_token);
+    var v = { access_token: s.access_token, refresh_token: s.refresh_token || "", exp: j.exp, email: j.email }; store(KEY, JSON.stringify(v)); return v; }
+
+  // a sign-in link lands here with the tokens after "#"; keep them and tidy the address bar
+  function fromLink() {
+    var h = location.hash.replace(/^#/, ""); if (!/access_token=|error_description=/.test(h)) return false;
+    var p = new URLSearchParams(h);
+    if (p.get("access_token")) save({ access_token: p.get("access_token"), refresh_token: p.get("refresh_token") });
+    else if (p.get("error_description")) me.linkError = p.get("error_description").replace(/\+/g, " ");
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    return true;
+  }
+  fromLink();
+  window.addEventListener("hashchange", function () { if (fromLink() && cfg) check(); });
+
+  function sb(path, body, token) {
+    return fetch(cfg.sb + "/auth/v1/" + path, { method: body ? "POST" : "GET",
+      headers: Object.assign({ apikey: cfg.anon, "Content-Type": "application/json" }, token ? { Authorization: "Bearer " + token } : {}),
+      body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok) throw new Error(j.msg || j.error_description || j.message || "Sign-in service error (" + r.status + ")"); return j; }); });
+  }
+  // a fresh access token (they last about an hour; the refresh token gets a new one)
+  function token() {
+    var s = load(KEY); if (!s) return Promise.resolve(null);
+    if (s.exp && s.exp - 60 > Date.now() / 1000) return Promise.resolve(s.access_token);
+    if (!s.refresh_token || !cfg) { save(null); return Promise.resolve(null); }
+    return sb("token?grant_type=refresh_token", { refresh_token: s.refresh_token })
+      .then(function (j) { var v = save(j); return v && v.access_token; }, function () { save(null); return null; });
+  }
+
+  function check(fresh) {
+    var sent = false;
+    return token().then(function (t) {
+      sent = !!t;
+      return fetch("/api/me" + (fresh ? "?fresh=1" : ""), { cache: "no-store", headers: t ? { Authorization: "Bearer " + t } : {} });
+    }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (j) {
+      cfg = cfg || {}; cfg.sb = j.sb || cfg.sb; cfg.anon = j.anon || cfg.anon; cfg.pay = j.pay || ""; cfg.portal = j.portal || "";
+      var keep = me.linkError;
+      me = { paywall: !!j.paywall || test, signedIn: !!j.email, email: j.email || "", premium: !!j.premium, linkError: keep };
+      if (sent && !j.signedIn) save(null);               // the saved sign-in is no longer valid
+      store(PKEY, me.premium ? JSON.stringify({ email: me.email, at: Date.now() }) : null);
+      store("t7.paywall", j.paywall ? "1" : "0");
+    }).catch(function () {
+      // the check failed (offline?): someone Premium in the last day stays Premium
+      var p = load(PKEY), s = load(KEY);
+      var pw = null; try { pw = localStorage.getItem("t7.paywall"); } catch (e) {}
+      me.paywall = pw === "1" || test; me.signedIn = !!s; me.email = s ? s.email : "";
+      me.premium = !!(p && s && p.email === s.email && Date.now() - p.at < 864e5);
+      me.offline = true;
+    }).then(function () { ready = true; draw(); subs.forEach(function (f) { f(); }); });
+  }
+
+  // ---- the account bar (and the "Go Premium" box) ----
+  var box = { open: false, sent: false, why: "" };
+  function upgradeUrl() { return cfg && cfg.pay ? cfg.pay + (me.email ? (cfg.pay.indexOf("?") < 0 ? "?" : "&") + "prefilled_email=" + encodeURIComponent(me.email) : "") : ""; }
+  function draw() {
+    var el = document.getElementById("acct"); if (!el) return;
+    el.hidden = !ready || !me.paywall;
+    if (el.hidden) return;
+    var h = "";
+    if (me.signedIn && me.premium) {
+      h = '<span class="acct-who">' + esc(me.email) + ' <b class="acct-pro">Premium</b></span>' +
+          (cfg.portal ? '<a class="acct-a" href="' + esc(cfg.portal) + '" target="_blank" rel="noopener">Manage subscription</a>' : "") +
+          '<button type="button" class="acct-a" data-acct="out">Sign out</button>';
+    } else if (me.signedIn) {
+      h = '<span class="acct-who">' + esc(me.email) + ' <b class="acct-free">Free</b></span>' +
+          '<button type="button" class="btn btn-solid slim" data-upgrade>Go Premium</button>' +
+          '<button type="button" class="acct-a" data-acct="recheck">Just subscribed? Check again</button>' +
+          '<button type="button" class="acct-a" data-acct="out">Sign out</button>';
+    } else {
+      h = '<span class="acct-who"><b class="acct-free">Free</b> 1 lineup, no stacks or downloads</span>' +
+          '<button type="button" class="btn btn-solid slim" data-upgrade>Go Premium</button>' +
+          '<button type="button" class="btn btn-line slim" data-acct="signin">Sign in</button>';
+    }
+    if (box.open) {
+      h += '<div class="acct-box">' + (box.why ? '<p class="acct-why">' + esc(box.why) + "</p>" : "") +
+        (me.signedIn ? "" :
+          '<p class="acct-lbl">' + (box.sent ? "Check your email for a sign-in link from Three7 DFS and open it on this device. Or type the 6-digit code from the email:" :
+            "Sign in with your email. Premium members: use the email you subscribed with.") + "</p>" +
+          '<div class="acct-row">' + (box.sent
+            ? '<input class="ctl" id="acct-code" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" maxlength="10"><button type="button" class="btn btn-solid slim" data-acct="code">Sign in</button><button type="button" class="acct-a" data-acct="again">Use a different email</button>'
+            : '<input class="ctl" id="acct-email" type="email" autocomplete="email" placeholder="you@email.com" value="' + esc(box.email || "") + '"><button type="button" class="btn btn-solid slim" data-acct="send">Email me a sign-in link</button>') + "</div>") +
+        (box.why || !me.signedIn ? '<p class="acct-lbl">Premium is $10/month: up to 150 lineups, game and team stacks, game scripts, lineup and projection downloads, uploading your own projections and late swap. ' +
+          (me.signedIn ? "" : "Sign in first so your subscription is linked to your email. ") +
+          (upgradeUrl() ? '<a href="' + esc(upgradeUrl()) + '" target="_blank" rel="noopener" data-acct="pay">Subscribe' + (me.signedIn ? "" : " anyway") + "</a>" : "") + "</p>" : "") +
+        '<p class="acct-msg" id="acct-msg" role="status">' + esc(me.linkError || (me.offline ? "Couldn't reach the account service. Try again in a minute." : "")) + "</p>" +
+        '<button type="button" class="acct-x" data-acct="close" aria-label="Close">✕</button></div>';
+    }
+    el.innerHTML = h;
+  }
+  function say(t) { var m = document.getElementById("acct-msg"); if (m) m.textContent = t; }
+  function open(why) {
+    box.open = true; box.why = why || "";
+    if (me.signedIn && upgradeUrl() && why) { /* signed in: the Subscribe link is right there */ }
+    draw();
+    var el = document.getElementById("acct"); if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    var i = document.getElementById("acct-email"); if (i) i.focus();
+  }
+  document.addEventListener("click", function (e) {
+    var u = e.target.closest("[data-upgrade]");
+    if (u) { e.preventDefault(); if (me.signedIn && upgradeUrl()) window.open(upgradeUrl(), "_blank", "noopener"); else open("Sign in first, then subscribe, so Premium is linked to your email."); return; }
+    // Premium-only buttons: free users get the upgrade box instead
+    var p = e.target.closest("[data-prem]");
+    if (p && ready && me.paywall && !me.premium) { e.preventDefault(); e.stopImmediatePropagation(); open(p.dataset.prem || "That's a Premium feature."); return; }
+    var a = e.target.closest("[data-acct]"); if (!a) return;
+    var act = a.dataset.acct;
+    if (act === "signin") { box.open = !box.open; box.why = ""; draw(); var i = document.getElementById("acct-email"); if (i) i.focus(); }
+    else if (act === "close") { box.open = false; me.linkError = ""; draw(); }
+    else if (act === "again") { box.sent = false; draw(); }
+    else if (act === "send") {
+      var em = (document.getElementById("acct-email").value || "").trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { say("That doesn't look like an email address."); return; }
+      box.email = em; a.disabled = true; say("Sending…");
+      fetch(cfg.sb + "/auth/v1/otp?redirect_to=" + encodeURIComponent(location.origin + location.pathname + location.search), {
+        method: "POST", headers: { apikey: cfg.anon, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: em, create_user: true }) })
+        .then(function (r) { if (!r.ok) return r.json().catch(function () { return {}; }).then(function (j) { throw new Error(j.msg || j.error_description || "Couldn't send the email (" + r.status + ")"); }); })
+        .then(function () { box.sent = true; draw(); }, function (err) { a.disabled = false; say(err.message); });
+    } else if (act === "code") {
+      var code = (document.getElementById("acct-code").value || "").replace(/\s/g, "");
+      if (!code) return; a.disabled = true; say("Checking…");
+      sb("verify", { type: "email", email: box.email, token: code })
+        .then(function (j) { save(j); box.open = false; box.sent = false; return check(true); }, function (err) { a.disabled = false; say(err.message); });
+    } else if (act === "recheck") { a.disabled = true; check(true); }
+    else if (act === "out") {
+      var s = load(KEY);
+      if (s && cfg) sb("logout", {}, s.access_token).catch(function () {});
+      save(null); store(PKEY, null); box.open = false; check();
+    }
+  }, true);
+
+  // coming back from Stripe in another tab: look again
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && ready && me.signedIn && !me.premium && me.paywall) check(true); });
+
+  return {
+    start: function () { check(); },
+    paid: function () { return !me.paywall || me.premium; },       // paywall off (beta) = everyone gets everything
+    gated: function () { return ready && me.paywall && !me.premium; },
+    onChange: function (f) { subs.push(f); },
+    upgrade: open
+  };
+})();
+/* New numbers published while the page is open: check every 3 minutes (only the file's
+   fingerprint, not the whole page) and offer a one-tap refresh. */
+var T7New = (function () {
+  function watch(url, note, onUpdate) {
+    var base = null, shown = false;
+    function tag() {
+      return fetch(url + (url.indexOf("?") < 0 ? "?" : "&") + "h=" + Date.now(), { method: "HEAD", cache: "no-store" })
+        .then(function (r) { return r.ok ? (r.headers.get("etag") || r.headers.get("last-modified") || "") : ""; }).catch(function () { return ""; });
+    }
+    function look() {
+      if (document.hidden || shown) return;
+      tag().then(function (t) {
+        if (!t) return;
+        if (base == null) { base = t; return; }
+        if (t !== base) show();
+      });
+    }
+    function show() {
+      shown = true;
+      var d = document.createElement("div"); d.className = "newproj"; d.setAttribute("role", "status");
+      d.innerHTML = '<span class="np-t">New projections are out.' + (note ? ' <span class="np-n">' + note + "</span>" : "") + "</span>" +
+        '<button type="button" class="np-go">Update</button><button type="button" class="np-x" aria-label="Dismiss">✕</button>';
+      document.body.appendChild(d);
+      d.querySelector(".np-go").addEventListener("click", function () { if (onUpdate) onUpdate(); else location.reload(); });
+      d.querySelector(".np-x").addEventListener("click", function () { d.remove(); });
+    }
+    look(); setInterval(look, 180000);
+    document.addEventListener("visibilitychange", look);
+  }
+  return { watch: watch };
+})();
 </script>
 <script>
 (function () {
   "use strict";
   var GLPK_URL = "https://cdn.jsdelivr.net/npm/glpk.js@5.0.0/dist/index.js";
   var MAX_LINEUPS = 150;
+  // [PREMIUM] free accounts (once the paywall is on): 1 lineup, no stacks or game scripts,
+  // no downloads, projection uploads or late swap. The buttons themselves carry data-prem.
+  var PREM_FIELDS = ["n", "stack", "xteam", "xsize", "script", "bringBack"];
+  function paidNow() { return !window.T7Acct || T7Acct.paid(); }
+  function viewSet() {   // the settings as a free account sees them
+    var st = SET(); if (paidNow()) return st;
+    var v = Object.assign({}, st); v.n = 1; v.stack = "none"; v.xteam = ""; v.script = ""; v.bringBack = 0;
+    return v;
+  }
+  function gateUI() {
+    var paid = paidNow();
+    document.body.classList.toggle("free", !paid);
+    ["n", "stack", "xteam", "xsize", "script", "bringBack"].forEach(function (id) { var el = $(id); if (el) el.disabled = !paid; });
+    document.querySelectorAll(".prem-lock").forEach(function (el) { el.hidden = paid; });
+    var nl = document.querySelector('label[for="n"]'); if (nl) nl.textContent = paid ? "Lineups" : "Lineups (Premium: 150)";
+  }
   var LOCK = '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align:-2px"><path fill="currentColor" d="M4 7V5a4 4 0 0 1 8 0v2h.5A1.5 1.5 0 0 1 14 8.5v5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5v-5A1.5 1.5 0 0 1 3.5 7H4zm2 0h4V5a2 2 0 0 0-4 0v2z"/></svg>';
   var D = null, glpk = null, busy = false, result = null, showAll = false, rtab = "lu";
   var F = [];                      // lineup filters from the exposure tables: {t: "pl"|"tm"|"gm", k, label}
@@ -1346,7 +1580,7 @@ var T7LS = (function () {
   // ---------- settings ----------
   var FIELDS = ["n", "exposure", "minProj", "random", "minUnique", "minSal", "maxSal", "maxTeam", "bringBack", "swr", "ste", "spc", "srb", "sdst", "pc"];
   function showSettings() {
-    var st = SET(), lim = LIM[S.site];
+    var st = viewSet(), lim = LIM[S.site];
     document.querySelectorAll("[data-c]").forEach(function (el) { el.hidden = el.dataset.c.split(" ").indexOf(S.contest) < 0; });
     if (isX()) showX(st);
     var ho = D && S.slate ? slateHasOpt() : false;
@@ -1363,10 +1597,12 @@ var T7LS = (function () {
       st.stack === "qb" ? "QB stack" : "", st.bringBack ? "bring-back " + st.bringBack : "", st.dstOpp !== "off" ? "no offense vs DST" : "",
       nk ? nk + " team" + (nk > 1 ? "s" : "") + " kept" : "", nr ? nr + " team" + (nr > 1 ? "s" : "") + " removed" : ""]).filter(Boolean).join(" \u00b7 ");
     document.querySelectorAll("[data-stack]").forEach(function (el) { el.hidden = el.dataset.stack !== st.stack; });
+    gateUI();
   }
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
   function readSettings() {
     var st = SET(), lim = LIM[S.site];
+    var keep = paidNow() ? null : PREM_FIELDS.map(function (f) { return [f, st[f]]; });   // free: the Premium settings stay as they were
     FIELDS.forEach(function (f) {
       var v = parseFloat($(f).value);
       if (isNaN(v)) v = DEF[S.site][f];
@@ -1386,6 +1622,7 @@ var T7LS = (function () {
         st.flex[q] = [clamp(isNaN(lo) ? 0 : lo, 0, 5), clamp(isNaN(hi) ? 5 : hi, 0, 5)];
       });
     }
+    if (keep) keep.forEach(function (kv) { st[kv[0]] = kv[1]; });
     saveSet();
     return st;
   }
@@ -1805,6 +2042,7 @@ var T7LS = (function () {
       if (bad.length) { msg("Flex spots: Min is above Max for " + bad.join(", ") + ".", true); return; }
       if (S.contest === "Captain" && FLEX_POS.reduce(function (a, q) { return a + st.flex[q][0]; }, 0) > 5) { msg("Flex spots: the Mins add up to more than the 5 Flex spots.", true); return; }
     }
+    if (!paidNow()) { s.n = 1; s.stack = null; s.bringBack = 0; s.script = null; }   // [PREMIUM] free plan
     var X = isX(), contest = S.contest, EE = effEdits();
     var useOpt = !!st.useOpt && slateHasOpt();
     function poolFor(cushion) {   // cushion = null: Global Exposure; else Optimal % + cushion
@@ -2069,6 +2307,8 @@ var T7LS = (function () {
   });
 
   // ---------- start ----------
+  if (window.T7Acct) { T7Acct.onChange(function () { if (D && S.slate) showSettings(); else gateUI(); }); T7Acct.start(); }
+  if (window.T7New) T7New.watch("/nfl/", "Your edits are kept.");
   getData().then(function (data) {
     D = TONIGHT = data; S.night = "";
     showMeta();
