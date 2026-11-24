@@ -169,6 +169,41 @@ document.addEventListener("click", function (e) {
 
 
 <div id="t7">
+<!-- [FREE WEEK] strip: shows only while the site's free week is on (dates in wrangler.jsonc), then hides itself -->
+<style>
+.t7free { display: none; box-sizing: border-box; max-width: 1200px; margin: 16px auto 4px; padding: 12px 14px 12px 16px; border-radius: 10px;
+          background: #7ee2b8; color: #121925; font-family: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 1rem;
+          align-items: center; flex-wrap: wrap; gap: 10px 14px; }
+.t7free.on { display: flex; }
+.t7free-t { flex: 1 1 260px; line-height: 1.35; font-weight: 500; }
+.t7free-t b { font-weight: 800; }
+.t7free-a { display: flex; flex-wrap: wrap; gap: 8px; }
+.t7free a { background: #121925; color: #fff !important; text-decoration: none !important; font-weight: 700; padding: 8px 14px; border-radius: 7px; white-space: nowrap; }
+.t7free a:hover { background: #24314a; }
+</style>
+<div class="t7free" id="t7free" role="note">
+  <span class="t7free-t"><b id="t7free-note">Free this week</b> · every optimizer feature, up to 150 lineups, no sign-up<span id="t7free-until"></span></span>
+  <span class="t7free-a"><a href="/nfl/optimizer/" data-ff="nfl">NFL optimizer</a><a href="/nba/optimizer/" data-ff="nba">NBA optimizer</a></span>
+</div>
+<script>
+(function () {
+  var el = document.getElementById("t7free"); if (!el || !window.fetch) return;
+  fetch("/api/me", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) {
+    if (!j || !j.free) return;
+    document.getElementById("t7free-note").textContent = j.free.note || "Free this week";
+    try {
+      var d = new Date(Date.parse(j.free.until) - 1);
+      document.getElementById("t7free-until").textContent = ". Free through " +
+        d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/New_York" }) + ".";
+    } catch (e) {}
+    el.classList.add("on");
+  }).catch(function () {});
+  el.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[data-ff]");
+    if (a && typeof window.gtag === "function") window.gtag("event", "free_week_banner_click", { sport: a.getAttribute("data-ff"), from_page: location.pathname });
+  });
+})();
+</script>
 <section class="hero">
   <div class="hero-copy">
     <h1>Our projections. Your build.</h1>
