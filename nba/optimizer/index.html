@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NBA Lineup Optimizer | Three7 DFS</title>
-<meta name="description" content="Build NBA DFS lineups for DraftKings and FanDuel from Three7 projections: locks, exposures, stacks and custom projections, right in your browser.">
+<meta name="description" content="Build NBA DFS lineups for DraftKings and FanDuel from Three7 projections: locks, exposures, stacks and custom projections, up to 150 lineups and late swap.">
 <meta name="robots" content="index, follow">
 <link rel="icon" href="/favicon.png">
 <style>
@@ -231,6 +231,15 @@ body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 .lu .rm { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; font-size: .8rem; line-height: 1; padding: 0; }
 .lu .rm:hover { color: var(--out); border-color: var(--out); }
 .lu tr.gone td.nm { text-decoration: line-through; color: var(--muted); }
+/* [OWNERSHIP] cash tier on lineup rows: Core = tinted row + solid bar, Likely = faint bar */
+.lu tr.t-core td { background: rgba(176, 218, 250, .12); }
+.lu tr.t-core td.sl { box-shadow: inset 3px 0 0 var(--sky); }
+.lu tr.t-likely td.sl { box-shadow: inset 3px 0 0 rgba(176, 218, 250, .45); }
+.tier-key { margin: 0 0 10px; color: var(--muted); font-size: .84rem; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; }
+.tk { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; }
+.tk-core { background: rgba(176, 218, 250, .12); box-shadow: inset 3px 0 0 var(--sky); }
+.tk-likely { box-shadow: inset 3px 0 0 rgba(176, 218, 250, .45); border: 1px solid var(--line); }
+.tk-likely { margin-left: 10px; }
 .lu tr.gone .rm { color: var(--field); background: var(--out); border-color: var(--out); }
 table.exp th { padding: 0; }
 table.exp th button { all: unset; display: block; padding: 9px 14px; cursor: pointer; }
@@ -503,7 +512,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
     <p class="eyebrow">Three7 DFS</p>
     <h1 id="page-h">NBA lineup optimizer</h1>
     <p class="head-meta" id="meta">Loading tonight's projections…</p>
-    <p class="head-lede">Our projections, your settings: lock, exclude, boost or edit any player, set exposures and stacks, and build up to 150 lineups. It all runs in your browser.</p>
+    <p class="head-lede">Our projections, your settings: lock, exclude, boost or edit any player, set exposures and stacks, and build up to 150 lineups.</p>
     <div class="acct" id="acct" hidden></div>
   </section>
 
@@ -686,7 +695,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
         <ol class="ls-steps">
           <li>On DraftKings: My Contests → Upcoming → Edit Entries (NBA Classic) → Download. That's DKEntries.csv.</li>
           <li>Choose it here and press Late swap. Players whose game has tipped stay; every other spot gets our best projection (with your edits and uploads).</li>
-          <li>Download the new file and upload it on the same DraftKings page. Your file never leaves this browser.</li>
+          <li>Download the new file and upload it on the same DraftKings page. Your file stays on your device; we never see it.</li>
         </ol>
         <div class="row2">
           <div class="fld wide2"><label for="lsf">DKEntries.csv</label><input class="ctl" id="lsf" data-prem="Late swap is a Premium feature." type="file" accept=".csv,text/csv"></div>
@@ -765,6 +774,7 @@ var T7Opt = (function () {
                  id: x.id ? x.id[slate] : null, salary: +x.sl[slate], proj: Math.round(proj * 10) / 10,
                  floor: x.f, ceil: x.c, avg: x.a, act: x.act,
                  own: x.ow && x.ow[slate] != null ? +x.ow[slate] : null,        // [OWNERSHIP] projected GPP ownership %
+                 ct: x.ct && x.ct[slate] ? x.ct[slate] : "",                    //   and cash tier (Core / Likely)
                  lock: !!e.lock, out: !!e.out, boost: Math.max(-90, Math.min(100, +e.boost || 0)),
                  exp: e.exp != null && e.exp !== "" && !isNaN(+e.exp) ? Math.max(0, Math.min(1, +e.exp / 100)) : null });
     });
@@ -888,7 +898,7 @@ var T7Opt = (function () {
       lineups.push(owner.map(function (p, j) {
         var r = pool[p];
         return { slot: LABEL[slots[j]] || slots[j], key: r.key, name: r.name, id: r.id, team: r.team, opp: r.opp,
-                 game: r.game, salary: r.salary, proj: r.proj, pos: r.pos, floor: r.floor, ceil: r.ceil, avg: r.avg, act: r.act, own: r.own };
+                 game: r.game, salary: r.salary, proj: r.proj, pos: r.pos, floor: r.floor, ceil: r.ceil, avg: r.avg, act: r.act, own: r.own, ct: r.ct };
       }));
       if (opts.onProgress) await opts.onProgress(i, L);
       // later lineups need at least minUnique players not in this one
@@ -2189,12 +2199,15 @@ var T7New = (function () {
     var own = lu.some(function (x) { return x.own != null; });
     return '<div class="card lu' + (cls ? " " + cls : "") + (nosal ? " nosal" : "") + (own ? " has-own" : "") + '"><div class="card-bar"><span class="card-title">' + title + '</span><span class="card-note num">' +
       f1(tot(lu, "proj")) + " proj" + (rw ? ' \u00b7 <span class="actv">' + (anyAct(lu) ? f1(tot(lu, "act")) : "\u2013") + " actual</span>" : "") + (nosal ? "" : " \u00b7 " + money(tot(lu, "salary"))) +
-      (own ? ' \u00b7 <span title="Total projected GPP ownership of the 8 players">' + Math.round(tot(lu, "own")) + "% own</span>" : "") + "</span>" +
+      (own ? ' \u00b7 <span title="Total projected GPP ownership of the 8 players">' + Math.round(tot(lu, "own")) + "% own</span>" : "") +
+      (own ? (function () { var c = lu.filter(function (x) { return x.ct === "Core"; }).length; return c ? ' \u00b7 <span title="Core cash plays in this lineup">' + c + " Core</span>" : ""; })() : "") + "</span>" +
       (line2 ? '<span class="tots" title="Each total adds up the players\u2019 own numbers (floor = everyone has a bad night). Best for comparing lineups.">' + line2 + "</span>" : "") +
       "</div><table>" +
       lu.map(function (x) {
         var out = E[x.key] && E[x.key].out;
-        return '<tr' + (out ? ' class="gone"' : "") + '><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) + '">' + esc(x.name) +
+        var tc = (out ? "gone" : "") + (x.ct === "Core" ? " t-core" : x.ct === "Likely" ? " t-likely" : "");   // [OWNERSHIP] cash tier highlight
+        return '<tr' + (tc ? ' class="' + tc.trim() + '"' : "") + '><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) +
+          (x.ct ? " \u00b7 " + x.ct + " cash play" : "") + '">' + esc(x.name) +
           '</td><td class="tm">' + teamTag(x.team) + '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + (rw ? (x.act == null ? "\u2013" : f1(x.act)) : f1(x.proj)) +
           '</td><td class="x"><button type="button" class="rm" data-k="' + esc(x.key) + '" aria-pressed="' + !!out + '" title="' +
           (out ? "Put back for the next build" : "Leave out of the next build") + '" aria-label="' + (out ? "Put back " : "Leave out ") + esc(x.name) + '">\u2715</button></td></tr>';
@@ -2250,7 +2263,8 @@ var T7New = (function () {
     var html = "";
     if (rtab === "lu") {
       var ord = sortIdx(idx), list = showAll ? ord : ord.slice(0, 24);
-      html = idx.length ? '<div class="lus">' + (R.best && !F.length ? card(R.best, "Best possible", "best") : "") +
+      var tiersL = R.lineups.some(function (lu) { return lu.some(function (x) { return x.ct; }); });
+      html = idx.length ? (tiersL ? '<p class="tier-key"><span class="tk tk-core"></span>Core cash play <span class="tk tk-likely"></span>Likely cash play</p>' : "") + '<div class="lus">' + (R.best && !F.length ? card(R.best, "Best possible", "best") : "") +
         list.map(function (i) { return card(L[i], "#" + (i + 1)); }).join("") + "</div>" +
         (idx.length > list.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + idx.length + " lineups</button>" : "")
         : '<p class="msg">No lineup has all of those. Remove a filter.</p>';
