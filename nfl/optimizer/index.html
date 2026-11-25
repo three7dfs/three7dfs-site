@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NFL Lineup Optimizer | Three7 DFS</title>
-<meta name="description" content="Build NFL DFS lineups for DraftKings and FanDuel from Three7 projections: QB stacks, bring-backs, locks, exposures, Showdown game scripts and custom projections, right in your browser.">
+<meta name="description" content="Build NFL DFS lineups for DraftKings and FanDuel from Three7 projections: QB stacks, bring-backs, locks, exposures, Showdown game scripts and custom projections, up to 150 lineups and late swap.">
 <meta name="robots" content="index, follow">
 <link rel="icon" href="/favicon.png">
 <style>
@@ -439,6 +439,11 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
   body.stats-on table.pool tr.srow { display: block; border-bottom: 1px solid var(--line); }
   body.stats-on table.pool tr.srow td { display: block; padding: 0 10px 10px !important; }
   body.stats-on table.pool tr[data-k] { border-bottom: 0; padding-bottom: 6px; }
+  /* [OWNERSHIP] Own % sits in the empty spot of the control row; its header takes the Player header's place */
+  body.has-own table.pool thead th.l { display: none; }
+  body.has-own table.pool thead th.ownc { grid-column: 3; grid-row: 1; }
+  body.has-own table.pool thead th.ownc button { text-align: left !important; }
+  body.has-own table.pool tr[data-k] td.ownc { grid-column: 3; grid-row: 2; text-align: left; font-size: .86rem; padding-left: 2px !important; }
   /* projections pages: narrower name column so Value fits */
   table.proj:not(.pool) td.l { min-width: 7.6rem; }
   table.proj:not(.pool) td, table.proj:not(.pool) th button { padding-left: 6px; padding-right: 6px; }
@@ -486,7 +491,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
     <p class="eyebrow">Three7 DFS</p>
     <h1 id="page-h">NFL lineup optimizer</h1>
     <p class="head-meta" id="meta">Loading this week's projections…</p>
-    <p class="head-lede">Our projections, your settings: lock, exclude, boost or edit any player, set exposures and stacks, and build up to 150 lineups. It all runs in your browser.</p>
+    <p class="head-lede">Our projections, your settings: lock, exclude, boost or edit any player, set exposures and stacks, and build up to 150 lineups.</p>
     <div class="acct" id="acct" hidden></div>
   </section>
 
@@ -679,7 +684,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
         <ol class="ls-steps">
           <li>On DraftKings: My Contests → Upcoming → Edit Entries (NFL Classic) → Download. That's DKEntries.csv.</li>
           <li>Choose it here and press Late swap. Players whose game has kicked off stay; every other spot gets our best projection (with your edits and uploads).</li>
-          <li>Download the new file and upload it on the same DraftKings page. Your file never leaves this browser.</li>
+          <li>Download the new file and upload it on the same DraftKings page. Your file stays on your device; we never see it.</li>
         </ol>
         <div class="row2">
           <div class="fld wide2"><label for="lsf">DKEntries.csv</label><input class="ctl" id="lsf" data-prem="Late swap is a Premium feature." type="file" accept=".csv,text/csv"></div>
