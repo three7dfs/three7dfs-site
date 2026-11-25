@@ -240,6 +240,24 @@ body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 .tk-core { background: rgba(176, 218, 250, .12); box-shadow: inset 3px 0 0 var(--sky); }
 .tk-likely { box-shadow: inset 3px 0 0 rgba(176, 218, 250, .45); border: 1px solid var(--line); }
 .tk-likely { margin-left: 10px; }
+/* [GROUPS] save lineups to Cash / GPP, and the suggested labels */
+.lu-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 9px 12px 11px; border-top: 1px solid var(--line); }
+.gb { font: 600 .84rem "Barlow", sans-serif; color: var(--soft); background: transparent; border: 1px solid var(--line); border-radius: 6px;
+      padding: 5px 11px; min-height: 32px; cursor: pointer; }
+.gb:hover { border-color: var(--soft); }
+.gb[aria-pressed="true"] { color: var(--field); background: var(--mint); border-color: var(--mint); }
+.gb[data-g="gpp"][aria-pressed="true"] { background: var(--sky); border-color: var(--sky); }
+.pick { margin-left: auto; font: 700 .72rem "Barlow", sans-serif; letter-spacing: .05em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
+.pick-cash { color: var(--mint); border: 1px solid var(--mint); }
+.pick-gpp { color: var(--sky); border: 1px solid var(--sky); }
+.saved { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .9rem; }
+.saved button { font: 600 .9rem "Barlow", sans-serif; color: var(--soft); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.saved button b { color: var(--chalk); margin-left: 2px; }
+.saved button[aria-pressed="true"] { color: var(--field); background: var(--soft); border-color: var(--soft); }
+.saved button[aria-pressed="true"] b { color: var(--field); }
+.gnote { margin: 0 0 12px; color: var(--muted); font-size: .88rem; }
+.gnote .clear { margin-left: 6px; background: none; border: 0; color: var(--sky); text-decoration: underline; cursor: pointer; font: inherit; padding: 4px; }
+@media (max-width: 560px) { .res-head .saved { flex: 1 1 100%; } .pick { margin-left: 0; } }
 .lu tr.gone .rm { color: var(--field); background: var(--out); border-color: var(--out); }
 table.exp th { padding: 0; }
 table.exp th button { all: unset; display: block; padding: 9px 14px; cursor: pointer; }
@@ -668,9 +686,13 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
             <button type="button" data-tab="tm" aria-pressed="false">Teams</button>
             <button type="button" data-tab="gm" aria-pressed="false">Games</button>
           </div>
+          <div class="saved" id="gtab" role="group" aria-label="Saved lineups" hidden><span>Saved:</span>
+            <button type="button" data-tab="cash" aria-pressed="false">Cash <b>0</b></button>
+            <button type="button" data-tab="gpp" aria-pressed="false">GPP <b>0</b></button>
+          </div>
           <select class="ctl lsort" id="lsort" aria-label="Sort lineups">
             <option value="build">Sort: build order</option><option value="proj">Sort: projection</option>
-            <option value="ceil">Sort: ceiling</option><option value="floor">Sort: floor</option><option value="avg">Sort: average</option><option value="own" data-own>Sort: ownership (lowest)</option>
+            <option value="ceil">Sort: ceiling</option><option value="floor">Sort: floor</option><option value="avg">Sort: average</option><option value="own" data-own>Sort: ownership (lowest)</option><option value="gpp">Sort: GPP score</option>
             <option value="act" data-rw>Sort: actual</option>
           </select>
           <div class="dl-btns">
@@ -2074,6 +2096,7 @@ var T7New = (function () {
     loadSlate(); showSettings(); drawTeams(); fillTeamFilter(); render();
     $("go").disabled = !S.slate;
     if (result && (result.site !== S.site || result.slate !== S.slate || result.contest !== S.contest)) { result = null; $("results").hidden = true; }
+    showSavedOnly();
   }
   $("site").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b || busy) return;
@@ -2150,6 +2173,7 @@ var T7New = (function () {
       return step(0);
     }).then(function (r) {
       result = { lineups: r.lineups, site: S.site, slate: S.slate, contest: contest, n: s.n, rewind: !!S.night, best: null };
+      loadGroups(result); result.picks = picks(result); rtab = "lu";
       sortOptions();                                   // "Sort: ownership" only when these lineups have it
       showAll = false; F = [];
       msg(r.stopped ? "Built " + r.lineups.length + " of " + s.n + " lineups: the settings didn't allow more (try raising exposure or loosening locks and stacks)."
@@ -2185,13 +2209,74 @@ var T7New = (function () {
   function anyAct(lu) { return lu.some(function (x) { return x.act != null && !Array.isArray(x.act); }); }
   function hasAll(lu, f) { return lu.every(function (x) { return x[f] != null && !Array.isArray(x[f]); }); }
   var LSORT = "build";
+  // [PICKS] GPP score: ceiling minus 0.1 pt per % of total projected ownership (upside the field doesn't share)
+  function gppScore(lu) { return tot(lu, "ceil") - (lu.some(function (x) { return x.own != null; }) ? 0.1 * tot(lu, "own") : 0); }
+  function cmpL(a, b) {
+    if (LSORT === "own") return tot(a, "own") - tot(b, "own");                 // lowest owned first
+    if (LSORT === "gpp") return gppScore(b) - gppScore(a);
+    return tot(b, LSORT) - tot(a, LSORT);
+  }
   function sortIdx(idx) {
     if (LSORT === "build") return idx;
     var L = result.lineups;
-    if (LSORT === "own") return idx.slice().sort(function (a, b) { return tot(L[a], "own") - tot(L[b], "own") || a - b; });   // lowest owned first
-    return idx.slice().sort(function (a, b) { return tot(L[b], LSORT) - tot(L[a], LSORT) || a - b; });
+    return idx.slice().sort(function (a, b) { return cmpL(L[a], L[b]) || a - b; });
   }
-  function card(lu, title, cls) {
+  function sortList(arr) { return LSORT === "build" ? arr.slice() : arr.slice().sort(cmpL); }
+
+  // [PICKS] suggested labels, only with 5+ lineups. Cash pick (up to 2): within 3 pts of the top
+  // projection, most Core plays (counting up to 3), then best floor. GPP pick: the top ~20% by GPP score.
+  function picks(R) {
+    var P = {}, L = R.lineups;
+    if (L.length < 5 || !L.every(function (lu) { return hasAll(lu, "floor") && hasAll(lu, "ceil"); })) return P;
+    var top = Math.max.apply(null, L.map(function (lu) { return tot(lu, "proj"); }));
+    var core = function (lu) { return Math.min(3, lu.filter(function (x) { return x.ct === "Core"; }).length); };
+    var all = L.map(function (lu, i) { return i; });
+    all.filter(function (i) { return tot(L[i], "proj") >= top - 3; })
+       .sort(function (a, b) { return core(L[b]) - core(L[a]) || tot(L[b], "floor") - tot(L[a], "floor") || a - b; })
+       .slice(0, 2).forEach(function (i) { P[i] = "cash"; });
+    all.filter(function (i) { return !P[i]; }).sort(function (a, b) { return gppScore(L[b]) - gppScore(L[a]) || a - b; })
+       .slice(0, Math.max(1, Math.round(L.length * 0.2))).forEach(function (i) { P[i] = "gpp"; });
+    return P;
+  }
+
+  // ---------- [GROUPS] lineups you save to Cash / GPP: kept on this device, per night + slate, so they
+  // survive rebuilding and reloading. Each group downloads on its own. ----------
+  var GROUPS = { cash: [], gpp: [] }, GNAME = { cash: "Cash", gpp: "GPP" };
+  function gKey(R) { return "t7nba.groups." + [D.date, R.site, R.contest || "Classic", R.slate].join("|"); }
+  function sigOf(lu) { return lu.map(function (x) { return x.key; }).sort().join(","); }      // same 8 players = same lineup
+  function loadGroups(R) { var g = load(gKey(R), null); GROUPS = { cash: (g && g.cash) || [], gpp: (g && g.gpp) || [] }; }
+  function saveGroups(R) { store(gKey(R), JSON.stringify(GROUPS)); }
+  function inGroup(g, lu) { var s = sigOf(lu); return GROUPS[g].some(function (x) { return sigOf(x) === s; }); }
+  function findLineup(sig) {
+    var pools = [result ? result.lineups : [], GROUPS.cash, GROUPS.gpp];
+    for (var p = 0; p < pools.length; p++) for (var i = 0; i < pools[p].length; i++) if (sigOf(pools[p][i]) === sig) return pools[p][i];
+    return null;
+  }
+  function toggleGroup(g, lu) {
+    var s = sigOf(lu), j = -1;
+    GROUPS[g].forEach(function (x, i) { if (sigOf(x) === s) j = i; });
+    if (j >= 0) GROUPS[g].splice(j, 1);
+    else GROUPS[g].push(lu.map(function (x) { var o = {}; for (var k in x) if (!Array.isArray(x[k])) o[k] = x[k]; return o; }));
+    saveGroups(result);
+    track("save_lineup", { sport: "nba", group: g, added: j < 0 });
+  }
+  (function pruneGroups() {          // forget saved groups from nights more than 2 weeks old
+    try {
+      var cut = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10), old = [];
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf("t7nba.groups.") === 0 && k.slice(13, 23) < cut) old.push(k); }
+      old.forEach(function (k) { localStorage.removeItem(k); });
+    } catch (e) {}
+  })();
+  // no lineups built for this slate yet, but some saved: show the saved groups
+  function showSavedOnly() {
+    if (result || !S.slate || !D) return;
+    var R = { lineups: [], site: S.site, slate: S.slate, contest: S.contest, rewind: !!S.night, best: null, picks: {}, savedOnly: true };
+    loadGroups(R);
+    if (!GROUPS.cash.length && !GROUPS.gpp.length) return;
+    result = R; rtab = GROUPS.cash.length ? "cash" : "gpp";
+    $("results").hidden = false; drawResults();
+  }
+  function card(lu, title, cls, pick) {
     var rw = !!result.rewind;
     var line2 = [hasAll(lu, "floor") ? "Floor <b>" + f1(tot(lu, "floor")) + "</b>" : "", hasAll(lu, "ceil") ? "Ceiling <b>" + f1(tot(lu, "ceil")) + "</b>" : "",
                  hasAll(lu, "avg") ? "Avg <b>" + f1(tot(lu, "avg")) + "</b>" : ""].filter(Boolean).join(" \u00b7 ");
@@ -2211,7 +2296,14 @@ var T7New = (function () {
           '</td><td class="tm">' + teamTag(x.team) + '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + (rw ? (x.act == null ? "\u2013" : f1(x.act)) : f1(x.proj)) +
           '</td><td class="x"><button type="button" class="rm" data-k="' + esc(x.key) + '" aria-pressed="' + !!out + '" title="' +
           (out ? "Put back for the next build" : "Leave out of the next build") + '" aria-label="' + (out ? "Put back " : "Leave out ") + esc(x.name) + '">\u2715</button></td></tr>';
-      }).join("") + "</table></div>";
+      }).join("") + "</table>" + (cls === "best" ? "" : (function () {
+        var sig = esc(sigOf(lu));
+        var gb = function (g) { var on = inGroup(g, lu); return '<button type="button" class="gb" data-g="' + g + '" data-sig="' + sig + '" aria-pressed="' + on + '">' +
+          (on ? "\u2713 " : "+ ") + GNAME[g] + "</button>"; };
+        return '<div class="lu-foot">' + gb("cash") + gb("gpp") +
+          (pick ? '<span class="pick pick-' + pick + '" title="' + (pick === "cash" ? "Suggested for cash: near the top projection, best floor, most Core plays" :
+                  "Suggested for GPPs: high ceiling for its ownership") + '">' + GNAME[pick] + " pick</span>" : "") + "</div>";
+      })()) + "</div>";
   }
   function hasItem(lu, f) {
     return lu.some(function (x) { return f.t === "pl" ? x.key === f.k : f.t === "tm" ? x.team === f.k : x.game === f.k; });
@@ -2241,9 +2333,18 @@ var T7New = (function () {
   }
   function drawResults() {
     var R = result; if (!R) return;
-    var L = R.lineups, idx = shownIdx();
+    var L = R.lineups, idx = R.savedOnly ? [] : shownIdx();
+    if (R.savedOnly && (rtab !== "cash" && rtab !== "gpp")) rtab = GROUPS.cash.length ? "cash" : "gpp";
+    var grp = rtab === "cash" || rtab === "gpp";
+    // saved groups row + download button follow the tab you're on
+    var nG = GROUPS.cash.length + GROUPS.gpp.length;
+    $("gtab").hidden = !nG && !grp;
+    document.querySelectorAll("#gtab button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.tab === rtab)); b.querySelector("b").textContent = GROUPS[b.dataset.tab].length; });
+    $("rtab").hidden = !!R.savedOnly;
+    $("dl").textContent = grp ? "Download " + GNAME[rtab] + " (" + GROUPS[rtab].length + ")" : "Download all";
+    $("dl").disabled = grp && !GROUPS[rtab].length;
     var pts = L.map(function (lu) { return tot(lu, "proj"); });
-    var head = L.length + " lineup" + (L.length === 1 ? "" : "s") + " \u00b7 " + (R.site === "dk" ? "DraftKings" : "FanDuel") + (R.contest && R.contest !== "Classic" ? " " + CNAME[R.site][R.contest] : "") +
+    var head = R.savedOnly ? "Saved lineups \u00b7 " + (R.site === "dk" ? "DraftKings" : "FanDuel") + " \u00b7 build to see new ones" : L.length + " lineup" + (L.length === 1 ? "" : "s") + " \u00b7 " + (R.site === "dk" ? "DraftKings" : "FanDuel") + (R.contest && R.contest !== "Classic" ? " " + CNAME[R.site][R.contest] : "") +
       " \u00b7 " + f1(Math.max.apply(null, pts)) + (L.length > 1 ? " to " + f1(Math.min.apply(null, pts)) : "") + " proj";
     if (R.rewind && !L.some(anyAct)) head += " \u00b7 no final scores saved for this contest that night";
     else if (R.rewind) { var ac = L.map(function (lu) { return tot(lu, "act"); }); head += " \u00b7 best actual " + f1(Math.max.apply(null, ac)) + (R.best ? " (best possible " + f1(tot(R.best, "act")) + ")" : ""); }
@@ -2254,18 +2355,24 @@ var T7New = (function () {
     $("filt").innerHTML = F.length ? "Showing " + idx.length + " of " + L.length + " lineups with " +
       F.map(function (f, j) { return '<button type="button" class="chip" data-j="' + j + '" aria-label="Remove filter ' + esc(f.label) + '">' + esc(f.label) + " \u2715</button>"; }).join(" ") +
       ' <button type="button" class="clear" data-j="all">Clear</button>' : "";
-    $("dlf").hidden = !F.length || !idx.length;
+    $("dlf").hidden = grp || !F.length || !idx.length;
     $("dlf").textContent = "Download these " + idx.length;
     // players removed for the next build
     var gone = removedNames();
     $("outnote").hidden = !gone.length;
     $("outnote").innerHTML = gone.length ? "Out next build: " + esc(gone.join(", ")) + ' <button type="button" class="btn btn-line slim" id="rebuild">Build again</button>' : "";
     var html = "";
-    if (rtab === "lu") {
+    if (grp) {
+      var G = sortList(GROUPS[rtab]), nm = GNAME[rtab];
+      html = G.length ? '<p class="gnote">' + G.length + " lineup" + (G.length === 1 ? "" : "s") + " saved to " + nm + " on this device \u00b7 kept when you rebuild " +
+          '<button type="button" class="clear" id="gclear">Clear ' + nm + "</button></p>" +
+          '<div class="lus">' + G.map(function (lu, i) { return card(lu, nm + " " + (i + 1)); }).join("") + "</div>"
+        : '<p class="msg">Nothing saved to ' + nm + " yet. Tap \u201c+ " + nm + "\u201d on any lineup to keep it here.</p>";
+    } else if (rtab === "lu") {
       var ord = sortIdx(idx), list = showAll ? ord : ord.slice(0, 24);
       var tiersL = R.lineups.some(function (lu) { return lu.some(function (x) { return x.ct; }); });
       html = idx.length ? (tiersL ? '<p class="tier-key"><span class="tk tk-core"></span>Core cash play <span class="tk tk-likely"></span>Likely cash play</p>' : "") + '<div class="lus">' + (R.best && !F.length ? card(R.best, "Best possible", "best") : "") +
-        list.map(function (i) { return card(L[i], "#" + (i + 1)); }).join("") + "</div>" +
+        list.map(function (i) { return card(L[i], "#" + (i + 1), "", (R.picks || {})[i]); }).join("") + "</div>" +
         (idx.length > list.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + idx.length + " lineups</button>" : "")
         : '<p class="msg">No lineup has all of those. Remove a filter.</p>';
     } else {
@@ -2292,6 +2399,16 @@ var T7New = (function () {
     $("rbody").innerHTML = html;
   }
   $("rtab").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; rtab = b.dataset.tab; drawResults(); });
+  $("gtab").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; rtab = b.dataset.tab; drawResults(); });
+  $("rbody").addEventListener("click", function (e) {
+    var b = e.target.closest(".gb");
+    if (b) { var lu = findLineup(b.dataset.sig); if (lu) { toggleGroup(b.dataset.g, lu); drawResults(); } return; }
+    if (e.target.closest("#gclear") && (rtab === "cash" || rtab === "gpp")) {
+      GROUPS[rtab] = []; saveGroups(result);
+      if (result.savedOnly && !GROUPS.cash.length && !GROUPS.gpp.length) { result = null; $("results").hidden = true; return; }
+      drawResults();
+    }
+  });
   $("rbody").addEventListener("click", function (e) {
     var rm = e.target.closest("button.rm");
     if (rm) {   // leave this player out of the next build (or put him back)
@@ -2324,7 +2441,11 @@ var T7New = (function () {
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
     track("download_lineups", { sport: "nba", site: result.site, lineups: list.length });
   }
-  $("dl").addEventListener("click", function () { if (result) download(sortIdx(result.lineups.map(function (x, i) { return i; })).map(function (i) { return result.lineups[i]; }), ""); });
+  $("dl").addEventListener("click", function () {
+    if (!result) return;
+    if (rtab === "cash" || rtab === "gpp") { if (GROUPS[rtab].length) download(sortList(GROUPS[rtab]), rtab); return; }
+    download(sortIdx(result.lineups.map(function (x, i) { return i; })).map(function (i) { return result.lineups[i]; }), "");
+  });
   $("dlf").addEventListener("click", function () { if (result) download(sortIdx(shownIdx()).map(function (i) { return result.lineups[i]; }), "filtered"); });
   $("lsort").addEventListener("change", function () { LSORT = this.value; showAll = false; drawResults(); });
   function sortOptions() {   // "Sort: actual" only when looking back at a finished night
