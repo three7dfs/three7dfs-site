@@ -231,15 +231,12 @@ body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 .lu .rm { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; font-size: .8rem; line-height: 1; padding: 0; }
 .lu .rm:hover { color: var(--out); border-color: var(--out); }
 .lu tr.gone td.nm { text-decoration: line-through; color: var(--muted); }
-/* [OWNERSHIP] cash tier on lineup rows: Core = tinted row + solid bar, Likely = faint bar */
-.lu tr.t-core td { background: rgba(176, 218, 250, .12); }
-.lu tr.t-core td.sl { box-shadow: inset 3px 0 0 var(--sky); }
-.lu tr.t-likely td.sl { box-shadow: inset 3px 0 0 rgba(176, 218, 250, .45); }
+/* [OWNERSHIP] cash chalk on lineup rows: tinted row + solid bar */
+.lu tr.t-chalk td { background: rgba(176, 218, 250, .12); }
+.lu tr.t-chalk td.sl { box-shadow: inset 3px 0 0 var(--sky); }
 .tier-key { margin: 0 0 10px; color: var(--muted); font-size: .84rem; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; }
 .tk { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; }
-.tk-core { background: rgba(176, 218, 250, .12); box-shadow: inset 3px 0 0 var(--sky); }
-.tk-likely { box-shadow: inset 3px 0 0 rgba(176, 218, 250, .45); border: 1px solid var(--line); }
-.tk-likely { margin-left: 10px; }
+.tk-chalk { background: rgba(176, 218, 250, .12); box-shadow: inset 3px 0 0 var(--sky); }
 /* [GROUPS] save lineups to Cash / GPP, and the suggested labels */
 .lu-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 9px 12px 11px; border-top: 1px solid var(--line); }
 .gb { font: 600 .84rem "Barlow", sans-serif; color: var(--soft); background: transparent; border: 1px solid var(--line); border-radius: 6px;
@@ -313,8 +310,7 @@ table.pool td.optc { color: var(--soft); }
 table.pool .ownc { display: none; }
 body.has-own table.pool .ownc { display: table-cell; }
 table.pool td.ownc { color: var(--soft); }
-.b-core { color: var(--field); background: var(--sky); border: 1px solid var(--sky); }
-.b-likely { color: var(--sky); border: 1px solid var(--sky); }
+.b-chalk { color: var(--field); background: var(--sky); border: 1px solid var(--sky); }
 table.exp td.own { color: var(--soft); }
 table.exp td.own.over { color: var(--mint); }       /* you're above the field on him */
 table.pool .ownl { display: none; }
@@ -579,7 +575,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
         </div>
         <div class="card">
           <div class="card-bar"><span class="card-title">Player pool</span><span class="card-note">Proj and Exp % are yours to change · blank = ours</span></div>
-          <p class="own-legend" id="ownleg" hidden><b>Own %</b> = projected GPP ownership · <span class="badge b-core">Core</span> top 6 projected cash-game plays · <span class="badge b-likely">Likely</span> the next 6</p>
+          <p class="own-legend" id="ownleg" hidden><b>Own %</b> = projected GPP ownership · <span class="badge b-chalk">Chalk</span> our projected top 12 cash-game plays</p>
           <div class="scroll pool-scroll">
             <table class="proj pool">
               <thead><tr>
@@ -1640,8 +1636,8 @@ var T7New = (function () {
   function tierOf(p) { if (isX()) return ""; var x = p[S.site]; return x && x.ct && x.ct[S.slate] ? x.ct[S.slate] : ""; }
   function slateHasOwn() { return players().some(function (p) { return ownOf(p) != null; }); }
   function tierTag(t) {
-    return t === "Core" ? ' <span class="badge b-core" title="Projected cash-game core play: top 6 expected cash ownership on this slate">Core</span>' :
-           t === "Likely" ? ' <span class="badge b-likely" title="Likely cash-game play: next 6 by expected cash ownership">Likely</span>' : "";
+    // Core and Likely from the model are shown as one "Chalk" tag: together they're the reliable read
+    return t === "Core" || t === "Likely" || t === "Chalk" ? ' <span class="badge b-chalk" title="Cash chalk: one of the 12 players we project as the most-owned in cash games tonight">Chalk</span>' : "";
   }
   // [UPLOAD] our number blended toward the member's: w = 1 -> theirs only
   function upProj(p, base) {
@@ -2001,10 +1997,10 @@ var T7New = (function () {
   $("dlt").addEventListener("click", function () {
     var rows = rowData().sort(function (a, b) { return b.pj - a.pj; }), tp = S.contest === "TotalPoints";
     saveCsv("three7_nba_projections_" + fileTag() + ".csv", [["ID", "Name", "Team", "Opp", "Pos", S.contest === "Tiers" ? "Tier" : "Salary", tp ? "Points" : "Proj", "Floor", "Ceiling", "Value",
-      "Opt %", "Own %", "Cash tier", "Minutes", "Pts", "Reb", "Ast", "3PM", "Stl", "Blk", "TO"]].concat(rows.map(function (r) {
+      "Opt %", "Own %", "Cash chalk", "Minutes", "Pts", "Reb", "Ast", "3PM", "Stl", "Blk", "TO"]].concat(rows.map(function (r) {
       var p = r.p;
       return [siteIdsOf(p)[0] || "", r.n, r.tm, r.opp, r.pos, S.contest === "Tiers" ? r.tier : r.sal, f1(r.pj), tp ? "" : f1(r.x.f), tp ? "" : f1(r.x.c),
-              r.v == null ? "" : r.v.toFixed(2), r.opt == null ? "" : Math.round(100 * r.opt), r.own == null ? "" : r.own.toFixed(1), r.ct || "", p.min == null ? "" : Math.round(p.min),
+              r.v == null ? "" : r.v.toFixed(2), r.opt == null ? "" : Math.round(100 * r.opt), r.own == null ? "" : r.own.toFixed(1), r.ct ? "Chalk" : "", p.min == null ? "" : Math.round(p.min),
               f1(p.pts), f1(p.reb), f1(p.ast), f1(p.tpm), f1(p.stl), f1(p.blk), f1(p.tov)];
     })));
     track("download_projections", { sport: "nba", site: S.site, contest: S.contest });
@@ -2224,12 +2220,12 @@ var T7New = (function () {
   function sortList(arr) { return LSORT === "build" ? arr.slice() : arr.slice().sort(cmpL); }
 
   // [PICKS] suggested labels, only with 5+ lineups. Cash pick (up to 2): within 3 pts of the top
-  // projection, most Core plays (counting up to 3), then best floor. GPP pick: the top ~20% by GPP score.
+  // projection, most cash chalk plays (counting up to 5), then best floor. GPP pick: the top ~20% by GPP score.
   function picks(R) {
     var P = {}, L = R.lineups;
     if (L.length < 5 || !L.every(function (lu) { return hasAll(lu, "floor") && hasAll(lu, "ceil"); })) return P;
     var top = Math.max.apply(null, L.map(function (lu) { return tot(lu, "proj"); }));
-    var core = function (lu) { return Math.min(3, lu.filter(function (x) { return x.ct === "Core"; }).length); };
+    var core = function (lu) { return Math.min(5, lu.filter(function (x) { return !!x.ct; }).length); };   // cash chalk plays, counting up to 5
     var all = L.map(function (lu, i) { return i; });
     all.filter(function (i) { return tot(L[i], "proj") >= top - 3; })
        .sort(function (a, b) { return core(L[b]) - core(L[a]) || tot(L[b], "floor") - tot(L[a], "floor") || a - b; })
@@ -2285,14 +2281,14 @@ var T7New = (function () {
     return '<div class="card lu' + (cls ? " " + cls : "") + (nosal ? " nosal" : "") + (own ? " has-own" : "") + '"><div class="card-bar"><span class="card-title">' + title + '</span><span class="card-note num">' +
       f1(tot(lu, "proj")) + " proj" + (rw ? ' \u00b7 <span class="actv">' + (anyAct(lu) ? f1(tot(lu, "act")) : "\u2013") + " actual</span>" : "") + (nosal ? "" : " \u00b7 " + money(tot(lu, "salary"))) +
       (own ? ' \u00b7 <span title="Total projected GPP ownership of the 8 players">' + Math.round(tot(lu, "own")) + "% own</span>" : "") +
-      (own ? (function () { var c = lu.filter(function (x) { return x.ct === "Core"; }).length; return c ? ' \u00b7 <span title="Core cash plays in this lineup">' + c + " Core</span>" : ""; })() : "") + "</span>" +
+      (own ? (function () { var c = lu.filter(function (x) { return !!x.ct; }).length; return c ? ' \u00b7 <span title="Cash chalk plays in this lineup">' + c + " chalk</span>" : ""; })() : "") + "</span>" +
       (line2 ? '<span class="tots" title="Each total adds up the players\u2019 own numbers (floor = everyone has a bad night). Best for comparing lineups.">' + line2 + "</span>" : "") +
       "</div><table>" +
       lu.map(function (x) {
         var out = E[x.key] && E[x.key].out;
-        var tc = (out ? "gone" : "") + (x.ct === "Core" ? " t-core" : x.ct === "Likely" ? " t-likely" : "");   // [OWNERSHIP] cash tier highlight
+        var tc = (out ? "gone" : "") + (x.ct ? " t-chalk" : "");   // [OWNERSHIP] cash chalk highlight
         return '<tr' + (tc ? ' class="' + tc.trim() + '"' : "") + '><td class="sl">' + esc(x.slot) + '</td><td class="nm" title="' + esc(x.name) +
-          (x.ct ? " \u00b7 " + x.ct + " cash play" : "") + '">' + esc(x.name) +
+          (x.ct ? " \u00b7 cash chalk play" : "") + '">' + esc(x.name) +
           '</td><td class="tm">' + teamTag(x.team) + '</td><td class="r num sa">' + money(x.salary) + '</td><td class="r num pp">' + (rw ? (x.act == null ? "\u2013" : f1(x.act)) : f1(x.proj)) +
           '</td><td class="x"><button type="button" class="rm" data-k="' + esc(x.key) + '" aria-pressed="' + !!out + '" title="' +
           (out ? "Put back for the next build" : "Leave out of the next build") + '" aria-label="' + (out ? "Put back " : "Leave out ") + esc(x.name) + '">\u2715</button></td></tr>';
@@ -2371,7 +2367,7 @@ var T7New = (function () {
     } else if (rtab === "lu") {
       var ord = sortIdx(idx), list = showAll ? ord : ord.slice(0, 24);
       var tiersL = R.lineups.some(function (lu) { return lu.some(function (x) { return x.ct; }); });
-      html = idx.length ? (tiersL ? '<p class="tier-key"><span class="tk tk-core"></span>Core cash play <span class="tk tk-likely"></span>Likely cash play</p>' : "") + '<div class="lus">' + (R.best && !F.length ? card(R.best, "Best possible", "best") : "") +
+      html = idx.length ? (tiersL ? '<p class="tier-key"><span class="tk tk-chalk"></span>Cash chalk play (our projected top 12 in cash games)</p>' : "") + '<div class="lus">' + (R.best && !F.length ? card(R.best, "Best possible", "best") : "") +
         list.map(function (i) { return card(L[i], "#" + (i + 1), "", (R.picks || {})[i]); }).join("") + "</div>" +
         (idx.length > list.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + idx.length + " lineups</button>" : "")
         : '<p class="msg">No lineup has all of those. Remove a filter.</p>';
