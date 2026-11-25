@@ -253,6 +253,10 @@ body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 .saved button[aria-pressed="true"] { color: var(--field); background: var(--soft); border-color: var(--soft); }
 .saved button[aria-pressed="true"] b { color: var(--field); }
 .gnote { margin: 0 0 12px; color: var(--muted); font-size: .88rem; }
+details.gexp { margin: 0 0 16px; }
+details.gexp > summary { cursor: pointer; color: var(--soft); font-weight: 600; padding: 6px 0 10px; list-style-position: inside; }
+details.gexp .card { margin-bottom: 6px; }
+@media (max-width: 640px) { details.gexp td.barc, details.gexp th:last-child { display: none; } details.gexp td.l .pm { margin-left: 2px; } }
 .gnote .clear { margin-left: 6px; background: none; border: 0; color: var(--sky); text-decoration: underline; cursor: pointer; font: inherit; padding: 4px; }
 @media (max-width: 560px) { .res-head .saved { flex: 1 1 100%; } .pick { margin-left: 0; } }
 .lu tr.gone .rm { color: var(--field); background: var(--out); border-color: var(--out); }
@@ -2317,6 +2321,29 @@ var T7New = (function () {
     result.lineups.forEach(function (lu) { lu.forEach(function (x) { if (!seen[x.key] && E[x.key] && E[x.key].out) { seen[x.key] = 1; names.push(x.name); } }); });
     return names;
   }
+  // [GROUPS] player exposure inside a saved group - for checking "my best 20 out of 150" before downloading
+  var GEXP_OPEN = true;
+  function groupExpHtml(G) {
+    var by = {}, n = G.length;
+    G.forEach(function (lu) { lu.forEach(function (x) {
+      if (!by[x.key]) by[x.key] = { name: x.name, team: x.team, c: 0, own: x.own, ct: x.ct };
+      by[x.key].c++;
+    }); });
+    var rows = Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return b.c - a.c || a.name.localeCompare(b.name); });
+    var ownT = rows.some(function (r) { return r.own != null; });
+    return '<details class="gexp"' + (GEXP_OPEN ? " open" : "") + '><summary>Player exposure in these ' + n + " lineup" + (n === 1 ? "" : "s") + "</summary>" +
+      '<div class="card"><div class="scroll"><table class="exp"><thead><tr><th class="l">Player</th><th>Lineups</th><th>Exposure</th>' +
+      (ownT ? "<th>Proj. own</th>" : "") + '<th class="l"></th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        var share = r.c / n;
+        return '<tr><td class="l">' + esc(r.name) + ' <span class="pm" style="display:inline">' + esc(r.team) + "</span>" + tierTag(r.ct) + '</td><td class="num">' + r.c +
+          '</td><td class="num">' + Math.round(100 * share) + "%</td>" +
+          (ownT ? '<td class="num own' + (r.own != null && 100 * share > r.own ? " over" : "") + '">' + (r.own == null ? "-" : r.own.toFixed(1) + "%") + "</td>" : "") +
+          '<td class="barc"><div class="xb"><i style="width:' + (100 * share) + '%"></i></div></td></tr>';
+      }).join("") + "</tbody></table></div></div>" +
+      (ownT ? '<p class="hint">Proj. own is the field\u2019s projected GPP ownership; green = your exposure in this group is above it.</p>' : "") + "</details>";
+  }
+
   function expRows(L) {   // exposure counts for the current tab
     var by = {};
     L.forEach(function (lu) {
@@ -2364,7 +2391,7 @@ var T7New = (function () {
     if (grp) {
       var G = sortList(GROUPS[rtab]), nm = GNAME[rtab];
       html = G.length ? '<p class="gnote">' + G.length + " lineup" + (G.length === 1 ? "" : "s") + " saved to " + nm + " on this device \u00b7 kept when you rebuild " +
-          '<button type="button" class="clear" id="gclear">Clear ' + nm + "</button></p>" +
+          '<button type="button" class="clear" id="gclear">Clear ' + nm + "</button></p>" + groupExpHtml(G) +
           '<div class="lus">' + G.map(function (lu, i) { return card(lu, nm + " " + (i + 1)); }).join("") + "</div>"
         : '<p class="msg">Nothing saved to ' + nm + " yet. Tap \u201c+ " + nm + "\u201d on any lineup to keep it here.</p>";
     } else if (rtab === "lu") {
@@ -2399,6 +2426,7 @@ var T7New = (function () {
   }
   $("rtab").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; rtab = b.dataset.tab; drawResults(); });
   $("gtab").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; rtab = b.dataset.tab; drawResults(); });
+  $("rbody").addEventListener("toggle", function (e) { if (e.target.classList && e.target.classList.contains("gexp")) GEXP_OPEN = e.target.open; }, true);
   $("rbody").addEventListener("click", function (e) {
     var b = e.target.closest(".gb");
     if (b) { var lu = findLineup(b.dataset.sig); if (lu) { toggleGroup(b.dataset.g, lu); drawResults(); } return; }
