@@ -688,7 +688,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
           </div>
           <select class="ctl lsort" id="lsort" aria-label="Sort lineups">
             <option value="build">Sort: build order</option><option value="proj">Sort: projection</option>
-            <option value="ceil">Sort: ceiling</option><option value="floor">Sort: floor</option><option value="avg">Sort: average</option><option value="own" data-own>Sort: ownership (lowest)</option><option value="gpp">Sort: GPP score</option>
+            <option value="ceil">Sort: ceiling</option><option value="floor">Sort: floor</option><option value="avg">Sort: average</option><option value="own" data-own>Sort: ownership (lowest)</option><option value="cash">Sort: cash score</option><option value="gpp">Sort: GPP score</option>
             <option value="act" data-rw>Sort: actual</option>
           </select>
           <div class="dl-btns">
@@ -2207,9 +2207,13 @@ var T7New = (function () {
   var LSORT = "build";
   // [PICKS] GPP score: ceiling minus 0.1 pt per % of total projected ownership (upside the field doesn't share)
   function gppScore(lu) { return tot(lu, "ceil") - (lu.some(function (x) { return x.own != null; }) ? 0.1 * tot(lu, "own") : 0); }
+  // [PICKS] cash score: floor plus 2 pts per cash chalk player (counting up to 5) - safe, and with the field
+  function chalkN(lu) { return Math.min(5, lu.filter(function (x) { return !!x.ct; }).length); }
+  function cashScore(lu) { return tot(lu, "floor") + 2 * chalkN(lu); }
   function cmpL(a, b) {
     if (LSORT === "own") return tot(a, "own") - tot(b, "own");                 // lowest owned first
     if (LSORT === "gpp") return gppScore(b) - gppScore(a);
+    if (LSORT === "cash") return cashScore(b) - cashScore(a);
     return tot(b, LSORT) - tot(a, LSORT);
   }
   function sortIdx(idx) {
@@ -2220,15 +2224,14 @@ var T7New = (function () {
   function sortList(arr) { return LSORT === "build" ? arr.slice() : arr.slice().sort(cmpL); }
 
   // [PICKS] suggested labels, only with 5+ lineups. Cash pick (up to 2): within 3 pts of the top
-  // projection, most cash chalk plays (counting up to 5), then best floor. GPP pick: the top ~20% by GPP score.
+  // projection, highest cash score. GPP pick: the top ~20% by GPP score.
   function picks(R) {
     var P = {}, L = R.lineups;
     if (L.length < 5 || !L.every(function (lu) { return hasAll(lu, "floor") && hasAll(lu, "ceil"); })) return P;
     var top = Math.max.apply(null, L.map(function (lu) { return tot(lu, "proj"); }));
-    var core = function (lu) { return Math.min(5, lu.filter(function (x) { return !!x.ct; }).length); };   // cash chalk plays, counting up to 5
     var all = L.map(function (lu, i) { return i; });
     all.filter(function (i) { return tot(L[i], "proj") >= top - 3; })
-       .sort(function (a, b) { return core(L[b]) - core(L[a]) || tot(L[b], "floor") - tot(L[a], "floor") || a - b; })
+       .sort(function (a, b) { return cashScore(L[b]) - cashScore(L[a]) || a - b; })
        .slice(0, 2).forEach(function (i) { P[i] = "cash"; });
     all.filter(function (i) { return !P[i]; }).sort(function (a, b) { return gppScore(L[b]) - gppScore(L[a]) || a - b; })
        .slice(0, Math.max(1, Math.round(L.length * 0.2))).forEach(function (i) { P[i] = "gpp"; });
