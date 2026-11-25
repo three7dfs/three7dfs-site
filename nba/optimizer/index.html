@@ -282,6 +282,18 @@ body.rewind #lsort option[data-rw] { display: block; }
 table.pool .optc { display: none; }
 body.has-opt table.pool .optc { display: table-cell; }
 table.pool td.optc { color: var(--soft); }
+/* [OWNERSHIP] projected GPP ownership + cash-game tier tags (DraftKings Classic) */
+table.pool .ownc { display: none; }
+body.has-own table.pool .ownc { display: table-cell; }
+table.pool td.ownc { color: var(--soft); }
+.b-core { color: var(--field); background: var(--sky); border: 1px solid var(--sky); }
+.b-likely { color: var(--sky); border: 1px solid var(--sky); }
+table.exp td.own { color: var(--soft); }
+table.exp td.own.over { color: var(--mint); }       /* you're above the field on him */
+table.pool .ownl { display: none; }
+.own-legend { margin: 0; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .84rem; line-height: 1.6; }
+.own-legend b { color: var(--soft); font-weight: 600; }
+.own-legend .badge { margin-left: 2px; }
 .mopt { display: none; }
 .tool-more { display: inline-flex; flex-wrap: wrap; gap: 8px; }
 .upbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 0 0 12px; padding: 10px 14px; border: 1px dashed var(--sky); border-radius: 8px; color: var(--soft); font-size: .92rem; }
@@ -439,6 +451,11 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
   body.stats-on table.pool tr.srow { display: block; border-bottom: 1px solid var(--line); }
   body.stats-on table.pool tr.srow td { display: block; padding: 0 10px 10px !important; }
   body.stats-on table.pool tr[data-k] { border-bottom: 0; padding-bottom: 6px; }
+  /* [OWNERSHIP] Own % sits in the empty spot of the control row; its header takes the Player header's place */
+  body.has-own table.pool thead th.l { display: none; }
+  body.has-own table.pool thead th.ownc { grid-column: 3; grid-row: 1; }
+  body.has-own table.pool thead th.ownc button { text-align: left !important; }
+  body.has-own table.pool tr[data-k] td.ownc { grid-column: 3; grid-row: 2; text-align: left; font-size: .86rem; padding-left: 2px !important; }
   /* projections pages: narrower name column so Value fits */
   table.proj:not(.pool) td.l { min-width: 7.6rem; }
   table.proj:not(.pool) td, table.proj:not(.pool) th button { padding-left: 6px; padding-right: 6px; }
@@ -535,6 +552,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
         </div>
         <div class="card">
           <div class="card-bar"><span class="card-title">Player pool</span><span class="card-note">Proj and Exp % are yours to change · blank = ours</span></div>
+          <p class="own-legend" id="ownleg" hidden><b>Own %</b> = projected GPP ownership · <span class="badge b-core">Core</span> top 6 projected cash-game plays · <span class="badge b-likely">Likely</span> the next 6</p>
           <div class="scroll pool-scroll">
             <table class="proj pool">
               <thead><tr>
@@ -548,6 +566,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
                 <th title="Boost or suppress our projection"><button type="button" data-sort="boost">Boost</button></th>
                 <th class="wide"><button type="button" data-sort="v">Value</button></th>
                 <th class="optc"><button type="button" data-sort="opt">Opt %</button></th>
+                <th class="ownc" title="Projected GPP ownership (DraftKings Classic)"><button type="button" data-sort="own">Own %</button></th>
                 <th class="stat"><button type="button" data-sort="rg">Range</button></th>
                 <th class="stat"><button type="button" data-sort="min">Min</button></th>
                 <th class="stat"><button type="button" data-sort="pts">Pts</button></th>
@@ -642,7 +661,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
           </div>
           <select class="ctl lsort" id="lsort" aria-label="Sort lineups">
             <option value="build">Sort: build order</option><option value="proj">Sort: projection</option>
-            <option value="ceil">Sort: ceiling</option><option value="floor">Sort: floor</option><option value="avg">Sort: average</option>
+            <option value="ceil">Sort: ceiling</option><option value="floor">Sort: floor</option><option value="avg">Sort: average</option><option value="own" data-own>Sort: ownership (lowest)</option>
             <option value="act" data-rw>Sort: actual</option>
           </select>
           <div class="dl-btns">
@@ -745,6 +764,7 @@ var T7Opt = (function () {
       all.push({ key: key, name: p.n, team: p.tm, opp: p.opp, game: gameKey(p.tm, p.opp), pos: x.pos,
                  id: x.id ? x.id[slate] : null, salary: +x.sl[slate], proj: Math.round(proj * 10) / 10,
                  floor: x.f, ceil: x.c, avg: x.a, act: x.act,
+                 own: x.ow && x.ow[slate] != null ? +x.ow[slate] : null,        // [OWNERSHIP] projected GPP ownership %
                  lock: !!e.lock, out: !!e.out, boost: Math.max(-90, Math.min(100, +e.boost || 0)),
                  exp: e.exp != null && e.exp !== "" && !isNaN(+e.exp) ? Math.max(0, Math.min(1, +e.exp / 100)) : null });
     });
@@ -868,7 +888,7 @@ var T7Opt = (function () {
       lineups.push(owner.map(function (p, j) {
         var r = pool[p];
         return { slot: LABEL[slots[j]] || slots[j], key: r.key, name: r.name, id: r.id, team: r.team, opp: r.opp,
-                 game: r.game, salary: r.salary, proj: r.proj, pos: r.pos, floor: r.floor, ceil: r.ceil, avg: r.avg, act: r.act };
+                 game: r.game, salary: r.salary, proj: r.proj, pos: r.pos, floor: r.floor, ceil: r.ceil, avg: r.avg, act: r.act, own: r.own };
       }));
       if (opts.onProgress) await opts.onProgress(i, L);
       // later lineups need at least minUnique players not in this one
@@ -1583,6 +1603,14 @@ var T7New = (function () {
     return z.ALL == null ? null : z.ALL;
   }
   function slateHasOpt() { return players().some(function (p) { return optOf(p) != null; }); }
+  // [OWNERSHIP] projected GPP ownership % and cash tier, DraftKings Classic slates (once the ownership model has run)
+  function ownOf(p) { if (isX()) return null; var x = p[S.site]; return x && x.ow && x.ow[S.slate] != null ? +x.ow[S.slate] : null; }
+  function tierOf(p) { if (isX()) return ""; var x = p[S.site]; return x && x.ct && x.ct[S.slate] ? x.ct[S.slate] : ""; }
+  function slateHasOwn() { return players().some(function (p) { return ownOf(p) != null; }); }
+  function tierTag(t) {
+    return t === "Core" ? ' <span class="badge b-core" title="Projected cash-game core play: top 6 expected cash ownership on this slate">Core</span>' :
+           t === "Likely" ? ' <span class="badge b-likely" title="Likely cash-game play: next 6 by expected cash ownership">Likely</span>' : "";
+  }
   // [UPLOAD] our number blended toward the member's: w = 1 -> theirs only
   function upProj(p, base) {
     if (!U || !U.rows) return base;
@@ -1769,14 +1797,14 @@ var T7New = (function () {
       var x = p[S.site], e = E[keyOf(p)] || {}, en = entry(p), sal = en.sal, base = upProj(p, baseProj(p));
       var pj = e.proj != null && e.proj !== "" ? +e.proj : base;
       return { p: p, x: x, key: keyOf(p), n: p.n, pos: x.pos, tm: p.tm, opp: p.opp, home: p.home, inj: p.inj, sal: sal, csal: en.csal, tier: en.tier,
-               base: base, up: !!(U && U.rows && U.rows[keyOf(p)] != null), opt: optOf(p), pj: pj, e: e, act: actOf(p), v: sal ? pj / (sal / 1000) : null };
+               base: base, up: !!(U && U.rows && U.rows[keyOf(p)] != null), opt: optOf(p), own: ownOf(p), ct: tierOf(p), pj: pj, e: e, act: actOf(p), v: sal ? pj / (sal / 1000) : null };
     });
   }
   function sortVal(r, k) {
     switch (k) {
       case "lock": return r.e.lock ? 1 : 0; case "out": return r.e.out ? 1 : 0; case "n": return r.n;
       case "sal": return S.contest === "Tiers" ? -(+String(r.tier || "T9").slice(1)) : r.sal; case "p": return r.pj; case "exp": return r.e.exp == null || r.e.exp === "" ? -1 : +r.e.exp;
-      case "boost": return +r.e.boost || 0; case "v": return r.v; case "opt": return r.opt;
+      case "boost": return +r.e.boost || 0; case "v": return r.v; case "opt": return r.opt; case "own": return r.own;
       case "rg": return r.x.c; case "act": return r.act; case "min": case "pts": case "reb": case "ast": case "tpm": case "stl": case "blk": case "tov": return r.p[k];
     }
   }
@@ -1795,6 +1823,9 @@ var T7New = (function () {
     });
     var gx = SET().exposure;
     document.body.classList.toggle("has-opt", slateHasOpt());
+    var hasOwn = slateHasOwn(); document.body.classList.toggle("has-own", hasOwn);
+    $("ownleg").hidden = !hasOwn;
+    if (S.sort === "own" && !hasOwn) S.sort = "p";
     showUpbar();
     var hs = document.querySelector('table.pool th button[data-sort="sal"]'), hp = document.querySelector('table.pool th button[data-sort="p"]');
     hs.textContent = S.contest === "Tiers" ? "Tier" : "Salary"; hp.textContent = S.contest === "TotalPoints" ? "Points" : "Proj";
@@ -1803,7 +1834,7 @@ var T7New = (function () {
       var inj = String(r.inj || "").toLowerCase();
       var badge = (/^out|^o$/.test(inj) ? ' <span class="badge b-out">OUT</span>' :
                    /quest|doubt|gtd|game.time|probable|^q$|^d$/.test(inj) ? ' <span class="badge b-q">' + esc(String(r.inj).replace("Game Time Decision", "GTD")) + "</span>" : "") +
-                  (r.p.st ? ' <span class="badge b-st' + (r.p.cf ? ' cf" title="Confirmed starter' : '" title="Expected starter (lineup not confirmed yet)') + '">Starter</span>' : "");
+                  (r.p.st ? ' <span class="badge b-st' + (r.p.cf ? ' cf" title="Confirmed starter' : '" title="Expected starter (lineup not confirmed yet)') + '">Starter</span>' : "") + tierTag(r.ct);
       return '<tr data-k="' + esc(r.key) + '"' + (e.out ? ' class="is-out"' : "") + ">" +
         '<td><button type="button" class="tg lk" data-a="lock" aria-pressed="' + !!e.lock + '" aria-label="Lock ' + esc(r.n) + '">' + LOCK + '</button></td>' +
         '<td><button type="button" class="tg ex" data-a="out" aria-pressed="' + !!e.out + '" aria-label="Leave out ' + esc(r.n) + '">\u2715</button></td>' +
@@ -1817,12 +1848,13 @@ var T7New = (function () {
           BOOSTS.map(function (v) { return '<option value="' + v + '"' + (v === b ? " selected" : "") + ">" + (v > 0 ? "+" + v + "%" : v < 0 ? "\u2212" + (-v) + "%" : "\u2013") + "</option>"; }).join("") + "</select></td>" +
         '<td class="wide num">' + (r.v == null ? "" : r.v.toFixed(2) + "x") + "</td>" +
         '<td class="optc num">' + (r.opt == null ? "\u2013" : Math.round(100 * r.opt) + "%") + "</td>" +
+        '<td class="ownc num">' + (r.own == null ? "-" : r.own.toFixed(1) + '%<span class="ownl"> own</span>') + "</td>" +
         '<td class="stat">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + "</td>" +
         ["min", "pts", "reb", "ast", "tpm", "stl", "blk", "tov"].map(function (c) { return '<td class="stat num">' + (c === "min" ? (p.min == null ? "" : Math.round(p.min)) : f1(p[c])) + "</td>"; }).join("") +
         "</tr>" +
-        '<tr class="srow"><td colspan="19">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + " range \u00b7 " + (p.min == null ? "" : Math.round(p.min) + " min \u00b7 ") +
+        '<tr class="srow"><td colspan="20">' + f1(r.x.f) + "\u2013" + f1(r.x.c) + " range \u00b7 " + (p.min == null ? "" : Math.round(p.min) + " min \u00b7 ") +
           f1(p.pts) + " pts \u00b7 " + f1(p.reb) + " reb \u00b7 " + f1(p.ast) + " ast \u00b7 " + f1(p.tpm) + " 3pm \u00b7 " + f1(p.stl) + " stl \u00b7 " + f1(p.blk) + " blk \u00b7 " + f1(p.tov) + " to</td></tr>";
-    }).join("") : '<tr><td colspan="19" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
+    }).join("") : '<tr><td colspan="20" class="empty">' + (S.pos === "*" ? "No changes yet." : "No players match.") + "</td></tr>";
     var all = rowData(), nE = all.filter(function (r) { return edited(r.e); }).length;
     $("count").textContent = rows.length + " of " + all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "");
     $("sum-pool").textContent = all.length + " players" + (nE ? " \u00b7 " + nE + " changed" : "") + (ago() ? " \u00b7 " + ago() : "");
@@ -1937,10 +1969,10 @@ var T7New = (function () {
   $("dlt").addEventListener("click", function () {
     var rows = rowData().sort(function (a, b) { return b.pj - a.pj; }), tp = S.contest === "TotalPoints";
     saveCsv("three7_nba_projections_" + fileTag() + ".csv", [["ID", "Name", "Team", "Opp", "Pos", S.contest === "Tiers" ? "Tier" : "Salary", tp ? "Points" : "Proj", "Floor", "Ceiling", "Value",
-      "Opt %", "Minutes", "Pts", "Reb", "Ast", "3PM", "Stl", "Blk", "TO"]].concat(rows.map(function (r) {
+      "Opt %", "Own %", "Cash tier", "Minutes", "Pts", "Reb", "Ast", "3PM", "Stl", "Blk", "TO"]].concat(rows.map(function (r) {
       var p = r.p;
       return [siteIdsOf(p)[0] || "", r.n, r.tm, r.opp, r.pos, S.contest === "Tiers" ? r.tier : r.sal, f1(r.pj), tp ? "" : f1(r.x.f), tp ? "" : f1(r.x.c),
-              r.v == null ? "" : r.v.toFixed(2), r.opt == null ? "" : Math.round(100 * r.opt), p.min == null ? "" : Math.round(p.min),
+              r.v == null ? "" : r.v.toFixed(2), r.opt == null ? "" : Math.round(100 * r.opt), r.own == null ? "" : r.own.toFixed(1), r.ct || "", p.min == null ? "" : Math.round(p.min),
               f1(p.pts), f1(p.reb), f1(p.ast), f1(p.tpm), f1(p.stl), f1(p.blk), f1(p.tov)];
     })));
     track("download_projections", { sport: "nba", site: S.site, contest: S.contest });
@@ -2108,6 +2140,7 @@ var T7New = (function () {
       return step(0);
     }).then(function (r) {
       result = { lineups: r.lineups, site: S.site, slate: S.slate, contest: contest, n: s.n, rewind: !!S.night, best: null };
+      sortOptions();                                   // "Sort: ownership" only when these lineups have it
       showAll = false; F = [];
       msg(r.stopped ? "Built " + r.lineups.length + " of " + s.n + " lineups: the settings didn't allow more (try raising exposure or loosening locks and stacks)."
                     : "Built " + r.lineups.length + " lineup" + (r.lineups.length === 1 ? "" : "s") + " in " + ((Date.now() - t0) / 1000).toFixed(1) + "s." + (note ? " " + note : ""));
@@ -2145,6 +2178,7 @@ var T7New = (function () {
   function sortIdx(idx) {
     if (LSORT === "build") return idx;
     var L = result.lineups;
+    if (LSORT === "own") return idx.slice().sort(function (a, b) { return tot(L[a], "own") - tot(L[b], "own") || a - b; });   // lowest owned first
     return idx.slice().sort(function (a, b) { return tot(L[b], LSORT) - tot(L[a], LSORT) || a - b; });
   }
   function card(lu, title, cls) {
@@ -2152,8 +2186,10 @@ var T7New = (function () {
     var line2 = [hasAll(lu, "floor") ? "Floor <b>" + f1(tot(lu, "floor")) + "</b>" : "", hasAll(lu, "ceil") ? "Ceiling <b>" + f1(tot(lu, "ceil")) + "</b>" : "",
                  hasAll(lu, "avg") ? "Avg <b>" + f1(tot(lu, "avg")) + "</b>" : ""].filter(Boolean).join(" \u00b7 ");
     var nosal = result.contest === "Tiers" || result.contest === "TotalPoints";
-    return '<div class="card lu' + (cls ? " " + cls : "") + (nosal ? " nosal" : "") + '"><div class="card-bar"><span class="card-title">' + title + '</span><span class="card-note num">' +
-      f1(tot(lu, "proj")) + " proj" + (rw ? ' \u00b7 <span class="actv">' + (anyAct(lu) ? f1(tot(lu, "act")) : "\u2013") + " actual</span>" : "") + (nosal ? "" : " \u00b7 " + money(tot(lu, "salary"))) + "</span>" +
+    var own = lu.some(function (x) { return x.own != null; });
+    return '<div class="card lu' + (cls ? " " + cls : "") + (nosal ? " nosal" : "") + (own ? " has-own" : "") + '"><div class="card-bar"><span class="card-title">' + title + '</span><span class="card-note num">' +
+      f1(tot(lu, "proj")) + " proj" + (rw ? ' \u00b7 <span class="actv">' + (anyAct(lu) ? f1(tot(lu, "act")) : "\u2013") + " actual</span>" : "") + (nosal ? "" : " \u00b7 " + money(tot(lu, "salary"))) +
+      (own ? ' \u00b7 <span title="Total projected GPP ownership of the 8 players">' + Math.round(tot(lu, "own")) + "% own</span>" : "") + "</span>" +
       (line2 ? '<span class="tots" title="Each total adds up the players\u2019 own numbers (floor = everyone has a bad night). Best for comparing lineups.">' + line2 + "</span>" : "") +
       "</div><table>" +
       lu.map(function (x) {
@@ -2183,7 +2219,7 @@ var T7New = (function () {
       var seen = {};
       lu.forEach(function (x) {
         var k = rtab === "pl" ? x.key : rtab === "tm" ? x.team : x.game;
-        if (!by[k]) by[k] = { k: k, c: 0, n: 0, name: rtab === "pl" ? x.name : rtab === "tm" ? x.team : x.game.replace("@", " / "), team: x.team };
+        if (!by[k]) by[k] = { k: k, c: 0, n: 0, name: rtab === "pl" ? x.name : rtab === "tm" ? x.team : x.game.replace("@", " / "), team: x.team, own: rtab === "pl" ? x.own : null };
         by[k].n++;
         if (!seen[k]) { seen[k] = 1; by[k].c++; }
       });
@@ -2221,20 +2257,23 @@ var T7New = (function () {
     } else {
       var rows = expRows(idx.map(function (i) { return L[i]; })), xs = XS[rtab], n = idx.length || 1;
       rows.sort(function (a, b) {
-        var x = xs.k === "name" ? a.name.localeCompare(b.name) : (a[xs.k] - b[xs.k]);
+        var x = xs.k === "name" ? a.name.localeCompare(b.name) : ((a[xs.k] == null ? -1 : a[xs.k]) - (b[xs.k] == null ? -1 : b[xs.k]));
         return xs.dir * x || b.c - a.c;
       });
       var what = rtab === "pl" ? "Player" : rtab === "tm" ? "Team" : "Game";
+      var ownT = rtab === "pl" && rows.some(function (r) { return r.own != null; });   // [OWNERSHIP] your exposure vs the field's projected ownership
       var th = function (k, label, cls) { return '<th' + (cls ? ' class="' + cls + '"' : "") + (xs.k === k ? ' aria-sort="' + (xs.dir < 0 ? "descending" : "ascending") + '"' : "") +
         '><button type="button" data-xs="' + k + '">' + label + "</button></th>"; };
       html = '<div class="card"><div class="scroll"><table class="exp"><thead><tr>' + th("name", what, "l") +
-        (rtab === "pl" ? th("c", "Lineups") + th("c", "Exposure") : th("c", "Lineups") + th("n", "Players")) + '<th class="l"></th></tr></thead><tbody>' +
+        (rtab === "pl" ? th("c", "Lineups") + th("c", "Exposure") + (ownT ? th("own", "Proj. own") : "") : th("c", "Lineups") + th("n", "Players")) + '<th class="l"></th></tr></thead><tbody>' +
         rows.map(function (r) {
           var sel = F.some(function (f) { return f.t === rtab && f.k === r.k; }), share = r.c / n;
           return '<tr data-k="' + esc(r.k) + '" data-label="' + esc(r.name) + '"' + (sel ? ' class="sel" aria-selected="true"' : "") + '><td class="l">' + esc(r.name) +
             (rtab === "pl" ? ' <span class="pm" style="display:inline">' + esc(r.team) + "</span>" : "") + '</td><td class="num">' + r.c + "</td>" +
-            '<td class="num">' + (rtab === "pl" ? Math.round(100 * share) + "%" : r.n) + '</td><td class="barc"><div class="xb"><i style="width:' + (100 * share) + '%"></i></div></td></tr>';
-        }).join("") + '</tbody></table></div></div><p class="hint">Tap a row to show only lineups with it; tap more to narrow down.</p>';
+            '<td class="num">' + (rtab === "pl" ? Math.round(100 * share) + "%" : r.n) + "</td>" +
+            (ownT ? '<td class="num own' + (r.own != null && 100 * share > r.own ? " over" : "") + '">' + (r.own == null ? "-" : r.own.toFixed(1) + "%") + "</td>" : "") + '<td class="barc"><div class="xb"><i style="width:' + (100 * share) + '%"></i></div></td></tr>';
+        }).join("") + '</tbody></table></div></div><p class="hint">Tap a row to show only lineups with it; tap more to narrow down.' +
+        (ownT ? " Proj. own is the field\u2019s projected GPP ownership; green = your exposure is above it." : "") + "</p>";
     }
     $("rbody").innerHTML = html;
   }
@@ -2275,6 +2314,8 @@ var T7New = (function () {
   $("dlf").addEventListener("click", function () { if (result) download(sortIdx(shownIdx()).map(function (i) { return result.lineups[i]; }), "filtered"); });
   $("lsort").addEventListener("change", function () { LSORT = this.value; showAll = false; drawResults(); });
   function sortOptions() {   // "Sort: actual" only when looking back at a finished night
+    var ow = $("lsort").querySelector("option[data-own]"), hasOwnL = !!(result && result.lineups.some(function (lu) { return lu.some(function (x) { return x.own != null; }); }));
+    if (ow) { ow.hidden = !hasOwnL; ow.disabled = !hasOwnL; if (!hasOwnL && LSORT === "own") { LSORT = "build"; $("lsort").value = "build"; } }
     var o = $("lsort").querySelector("option[data-rw]");
     if (S.night) { if (!o) { o = document.createElement("option"); o.value = "act"; o.textContent = "Sort: actual"; o.setAttribute("data-rw", ""); $("lsort").appendChild(o); } }
     else if (o) { o.remove(); if (LSORT === "act") { LSORT = "build"; $("lsort").value = "build"; } }
@@ -2343,7 +2384,7 @@ var T7New = (function () {
     });
   }).catch(function () {
     $("meta").textContent = "Couldn't load tonight's projections. Refresh to try again.";
-    $("rows").innerHTML = '<tr><td colspan="19" class="empty">No projections loaded.</td></tr>';
+    $("rows").innerHTML = '<tr><td colspan="20" class="empty">No projections loaded.</td></tr>';
   });
 })();
 </script>
