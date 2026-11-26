@@ -2246,7 +2246,7 @@ var T7New = (function () {
   // survive rebuilding and reloading. Each group downloads on its own. ----------
   var GROUPS = { cash: [], gpp: [] }, GNAME = { cash: "Cash", gpp: "GPP" };
   function gKey(R) { return "t7nba.groups." + [D.date, R.site, R.contest || "Classic", R.slate].join("|"); }
-  function sigOf(lu) { return lu.map(function (x) { return x.key; }).sort().join(","); }      // same 8 players = same lineup
+  function sigOf(lu) { return lu.map(function (x) { return (/^(CPT|MVP)$/.test(x.slot) ? x.slot + ":" : "") + x.key; }).sort().join(","); }   // same players (and captain) = same lineup
   function loadGroups(R) { var g = load(gKey(R), null); GROUPS = { cash: (g && g.cash) || [], gpp: (g && g.gpp) || [] }; }
   function saveGroups(R) { store(gKey(R), JSON.stringify(GROUPS)); }
   function inGroup(g, lu) { var s = sigOf(lu); return GROUPS[g].some(function (x) { return sigOf(x) === s; }); }
