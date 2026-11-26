@@ -383,6 +383,14 @@ table.exp.ls tbody tr { cursor: default; }
   .dl-btns .btn { flex: 1; }
 }
 
+/* team tags in exposure tables */
+table.exp td.l .tt { margin-right: 4px; vertical-align: 1px; }
+.lu .tots.stk .tt { font-size: .66rem; min-width: 2.1rem; padding: 1px 4px; vertical-align: 1px; }
+@media (max-width: 640px) { table.exp td.barc, table.exp thead th:last-child { display: none; } table.exp td.l { white-space: nowrap; } table.exp td.l .tt { min-width: 2.1rem; font-size: .62rem; padding: 1px 3px; } }
+@media (max-width: 640px) { table.exp td.l { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; } table.exp th button { padding: 9px 8px; } table.exp td.num { padding-left: 6px; padding-right: 8px; } }
+.nms { display: none; }
+@media (max-width: 640px) { table.exp .nmf { display: none; } table.exp .nms { display: inline; } table.exp td.l { max-width: 58vw; } }
+
 /* ---------- [PREMIUM] account bar, upgrade box, locked features ---------- */
 .acct { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 16px 0 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--navy); position: relative; }
 .acct-who { color: var(--muted); font-size: .95rem; overflow-wrap: anywhere; }
@@ -2336,7 +2344,7 @@ var T7New = (function () {
       (ownT ? "<th>Proj. own</th>" : "") + '<th class="l"></th></tr></thead><tbody>' +
       rows.map(function (r) {
         var share = r.c / n;
-        return '<tr><td class="l">' + esc(r.name) + ' <span class="pm" style="display:inline">' + esc(r.team) + "</span>" + tierTag(r.ct) + '</td><td class="num">' + r.c +
+        return '<tr><td class="l">' + teamTag(r.team) + " " + nameBoth(r.name) + tierTag(r.ct) + '</td><td class="num">' + r.c +
           '</td><td class="num">' + Math.round(100 * share) + "%</td>" +
           (ownT ? '<td class="num own' + (r.own != null && 100 * share > r.own ? " over" : "") + '">' + (r.own == null ? "-" : r.own.toFixed(1) + "%") + "</td>" : "") +
           '<td class="barc"><div class="xb"><i style="width:' + (100 * share) + '%"></i></div></td></tr>';
@@ -2344,6 +2352,16 @@ var T7New = (function () {
       (ownT ? '<p class="hint">Proj. own is the field\u2019s projected GPP ownership; green = your exposure in this group is above it.</p>' : "") + "</details>";
   }
 
+  // team tags in the exposure tables, same colors as the lineup cards
+  function rowName(r, t) {
+    if (t === "tm") return teamTag(r.k);
+    if (t === "gm") return String(r.k).split("@").map(function (t) { return teamTag(t); }).join(' <span class="pm" style="display:inline">/</span> ');
+    return teamTag(r.team) + " " + nameBoth(r.name);
+  }
+  function nameBoth(n) {   // full name; "D. Prescott" on phones
+    var w = String(n).split(" "), sh = w.length > 1 && !/^(Jr\.?|Sr\.?|II|III|IV)$/i.test(w[1]) ? w[0].charAt(0) + ". " + w.slice(1).join(" ") : n;
+    return '<span class="nmf">' + esc(n) + '</span><span class="nms">' + esc(sh) + "</span>";
+  }
   function expRows(L) {   // exposure counts for the current tab
     var by = {};
     L.forEach(function (lu) {
@@ -2415,8 +2433,7 @@ var T7New = (function () {
         (rtab === "pl" ? th("c", "Lineups") + th("c", "Exposure") + (ownT ? th("own", "Proj. own") : "") : th("c", "Lineups") + th("n", "Players")) + '<th class="l"></th></tr></thead><tbody>' +
         rows.map(function (r) {
           var sel = F.some(function (f) { return f.t === rtab && f.k === r.k; }), share = r.c / n;
-          return '<tr data-k="' + esc(r.k) + '" data-label="' + esc(r.name) + '"' + (sel ? ' class="sel" aria-selected="true"' : "") + '><td class="l">' + esc(r.name) +
-            (rtab === "pl" ? ' <span class="pm" style="display:inline">' + esc(r.team) + "</span>" : "") + '</td><td class="num">' + r.c + "</td>" +
+          return '<tr data-k="' + esc(r.k) + '" data-label="' + esc(r.name) + '"' + (sel ? ' class="sel" aria-selected="true"' : "") + '><td class="l">' + rowName(r, rtab) + '</td><td class="num">' + r.c + "</td>" +
             '<td class="num">' + (rtab === "pl" ? Math.round(100 * share) + "%" : r.n) + "</td>" +
             (ownT ? '<td class="num own' + (r.own != null && 100 * share > r.own ? " over" : "") + '">' + (r.own == null ? "-" : r.own.toFixed(1) + "%") + "</td>" : "") + '<td class="barc"><div class="xb"><i style="width:' + (100 * share) + '%"></i></div></td></tr>';
         }).join("") + '</tbody></table></div></div><p class="hint">Tap a row to show only lineups with it; tap more to narrow down.' +
