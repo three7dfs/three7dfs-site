@@ -368,6 +368,26 @@ details.gexp .card { margin-bottom: 6px; }
 @media (max-width: 560px) { .res-head .saved { flex: 1 1 100%; } .pick { margin-left: 0; } }
 .badge.b-chalk { font-size: .7rem; padding: 1px 6px; border-radius: 4px; background: rgba(176,218,250,.15); color: var(--sky); }
 
+/* [STACKS] */
+.lu .tots.stk { color: var(--muted); }
+.lu .tots.stk b { color: var(--chalk); }
+.lu .stk-who { color: var(--muted); }
+.pchips { margin: 0 0 10px; }
+.pchips button { padding: 6px 12px; }
+table.stk-t tr.stq td { border-top: 1px solid var(--line); }
+table.stk-t tr.stq td.l { color: var(--chalk); }
+table.stk-t tr.sts td.l { padding-left: 34px; color: var(--soft); font-size: .9rem; }
+table.stk-t tr.sts .xb i { opacity: .6; }
+@media (max-width: 640px) { table.stk-t td.barc, table.stk-t th:last-child { display: none; } table.stk-t tr.sts td.l { padding-left: 22px; } }
+
+/* team tags in exposure tables */
+table.exp td.l .tt { margin-right: 4px; vertical-align: 1px; }
+.lu .tots.stk .tt { font-size: .66rem; min-width: 2.1rem; padding: 1px 4px; vertical-align: 1px; }
+@media (max-width: 640px) { table.exp td.barc, table.exp thead th:last-child { display: none; } table.exp td.l { white-space: nowrap; } table.exp td.l .tt { min-width: 2.1rem; font-size: .62rem; padding: 1px 3px; } }
+@media (max-width: 640px) { table.exp td.l { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; } table.exp th button { padding: 9px 8px; } table.exp td.num { padding-left: 6px; padding-right: 8px; } }
+.nms { display: none; }
+@media (max-width: 640px) { table.exp .nmf { display: none; } table.exp .nms { display: inline; } table.exp td.l { max-width: 58vw; } }
+
 /* ---------- [PREMIUM] account bar, upgrade box, locked features ---------- */
 .acct { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 16px 0 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--navy); position: relative; }
 .acct-who { color: var(--muted); font-size: .95rem; overflow-wrap: anywhere; }
@@ -678,6 +698,7 @@ body.free .prem-off { opacity: .45; pointer-events: none; }
           <div class="seg" id="rtab" role="group" aria-label="Show">
             <button type="button" data-tab="lu" aria-pressed="true">Lineups</button>
             <button type="button" data-tab="pl" aria-pressed="false">Players</button>
+            <button type="button" data-tab="st" aria-pressed="false">Stacks</button>
             <button type="button" data-tab="tm" aria-pressed="false">Teams</button>
             <button type="button" data-tab="gm" aria-pressed="false">Games</button>
           </div>
@@ -1563,7 +1584,8 @@ var T7New = (function () {
   var LOCK = '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align:-2px"><path fill="currentColor" d="M4 7V5a4 4 0 0 1 8 0v2h.5A1.5 1.5 0 0 1 14 8.5v5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5v-5A1.5 1.5 0 0 1 3.5 7H4zm2 0h4V5a2 2 0 0 0-4 0v2z"/></svg>';
   var D = null, glpk = null, busy = false, result = null, showAll = false, rtab = "lu";
   var F = [];                      // lineup filters from the exposure tables: {t: "pl"|"tm"|"gm", k, label}
-  var XS = { pl: { k: "c", dir: -1 }, tm: { k: "c", dir: -1 }, gm: { k: "c", dir: -1 } };   // exposure table sorts
+  var XS = { pl: { k: "c", dir: -1 }, tm: { k: "c", dir: -1 }, gm: { k: "c", dir: -1 }, st: { k: "c", dir: -1 } };
+  var PPOS = "";                   // [STACKS] Players tab position filter ("" = all)   // exposure table sorts
   var BOOSTS = [45, 30, 15, 0, -15, -30, -45];
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -2346,6 +2368,7 @@ var T7New = (function () {
     return '<div class="card lu' + (cls ? " " + cls : "") + (nosal ? " nosal" : "") + '"><div class="card-bar"><span class="card-title">' + title + '</span><span class="card-note num">' +
       fp(tot(lu, "proj")) + (result.contest === "TotalYards" ? " yds" : td ? " TDs" : " proj") + (rw ? ' \u00b7 <span class="actv">' + (anyAct(lu) ? f1(tot(lu, "act")) : "\u2013") + " actual</span>" : "") + (nosal ? "" : " \u00b7 " + money(tot(lu, "salary"))) + "</span>" +
       (line2 ? '<span class="tots" title="Each total adds up the players\u2019 own numbers (floor = everyone has a bad night). Best for comparing lineups.">' + line2 + "</span>" : "") +
+      (stackLine(lu) ? '<span class="tots stk" title="QB stack: the QB with his own team\u2019s RB / WR / TE, and bring-back players from the other team">Stack ' + stackLine(lu) + "</span>" : "") +
       "</div><table>" +
       lu.map(function (x) {
         var out = E[x.key] && E[x.key].out;
@@ -2362,7 +2385,28 @@ var T7New = (function () {
                   "Suggested for GPPs: highest ceiling") + '">' + GNAME[pick] + " pick</span>" : "") + "</div>";
       })()) + "</div>";
   }
+  // [STACKS] each QB in a lineup with his pass catchers / backs (same team) and the bring-back (his opponent's)
+  var STK_OFF = { RB: 1, WR: 1, TE: 1 }, STK_ORD = { WR: 1, TE: 2, RB: 3 };
+  function stacksOf(lu) {
+    return lu.filter(function (x) { return x.pos === "QB"; }).map(function (q) {
+      var mates = lu.filter(function (x) { return x !== q && STK_OFF[x.pos] && x.team === q.team; })
+                    .sort(function (a, b) { return STK_ORD[a.pos] - STK_ORD[b.pos] || a.name.localeCompare(b.name); });
+      var back = lu.filter(function (x) { return STK_OFF[x.pos] && q.opp && x.team === q.opp; });
+      var shape = mates.length ? "QB + " + mates.map(function (x) { return x.pos; }).join(" + ") : "QB alone";
+      return { q: q, team: q.team, opp: q.opp, mates: mates, back: back, shape: shape, n: mates.length,
+               k: q.key + "|" + shape + "|" + back.length };
+    });
+  }
+  function stackLine(lu) {   // one line on each lineup card
+    var st = stacksOf(lu); if (!st.length) return "";
+    return st.map(function (s) {
+      return teamTag(s.team) + " " + (s.n ? esc(s.shape) + ' <span class="stk-who">(' + esc(s.mates.map(function (x) { return x.name.split(" ").slice(-1)[0]; }).join(", ")) + ")</span>" : "QB alone") +
+        (s.back.length ? " \u00b7 bring-back " + s.back.length + " " + teamTag(s.opp) : "");
+    }).join(" \u00b7 ");
+  }
   function hasItem(lu, f) {
+    if (f.t === "st") return stacksOf(lu).some(function (s) { return s.k === f.k; });
+    if (f.t === "stq") return stacksOf(lu).some(function (s) { return s.q.key === f.k && s.n >= 1; });
     return lu.some(function (x) { return f.t === "pl" ? x.key === f.k : f.t === "tm" ? x.team === f.k : x.game === f.k; });
   }
   function shownIdx() {   // lineups that pass every filter (all of them must be in the lineup)
@@ -2390,21 +2434,65 @@ var T7New = (function () {
       (ownT ? "<th>Proj. own</th>" : "") + '<th class="l"></th></tr></thead><tbody>' +
       rows.map(function (r) {
         var share = r.c / n;
-        return '<tr><td class="l">' + esc(r.name) + ' <span class="pm" style="display:inline">' + esc(r.team) + "</span>" + tierTag(r.ct) + '</td><td class="num">' + r.c +
+        return '<tr><td class="l">' + teamTag(r.team) + " " + nameBoth(r.name) + tierTag(r.ct) + '</td><td class="num">' + r.c +
           '</td><td class="num">' + Math.round(100 * share) + "%</td>" +
           (ownT ? '<td class="num own' + (r.own != null && 100 * share > r.own ? " over" : "") + '">' + (r.own == null ? "-" : r.own.toFixed(1) + "%") + "</td>" : "") +
           '<td class="barc"><div class="xb"><i style="width:' + (100 * share) + '%"></i></div></td></tr>';
       }).join("") + "</tbody></table></div></div>" +
-      (ownT ? '<p class="hint">Proj. own is the field\u2019s projected GPP ownership; green = your exposure in this group is above it.</p>' : "") + "</details>";
+      (ownT ? '<p class="hint">Proj. own is the field\u2019s projected GPP ownership; green = your exposure in this group is above it.</p>' : "") + "</details>" +
+      (G.some(function (lu) { return stacksOf(lu).length; }) ? '<details class="gexp"' + (GEXP_OPEN ? " open" : "") + "><summary>QB stacks in these " + n + " lineup" + (n === 1 ? "" : "s") + "</summary>" + stackTable(G, false) + "</details>" : "");
   }
 
+  // [STACKS] stacks table: one row per QB (all his lineups with a teammate), then each exact shape under him
+  var STK_OPEN = {};
+  function stackTable(Ls, clickable) {
+    var n = Ls.length || 1, byQ = {};
+    Ls.forEach(function (lu) { stacksOf(lu).forEach(function (s) {
+      var q = byQ[s.q.key] || (byQ[s.q.key] = { q: s.q, team: s.team, opp: s.opp, c: 0, stacked: 0, shapes: {} });
+      q.c++; if (s.n) q.stacked++;
+      var sh = q.shapes[s.k] || (q.shapes[s.k] = { k: s.k, shape: s.shape, back: s.back.length, c: 0 });
+      sh.c++;
+    }); });
+    var qs = Object.keys(byQ).map(function (k) { return byQ[k]; }).sort(function (a, b) { return b.c - a.c; });
+    if (!qs.length) return '<p class="msg">No QBs in these lineups.</p>';
+    var bar = function (c) { return '<td class="barc"><div class="xb"><i style="width:' + (100 * c / n) + '%"></i></div></td>'; };
+    var pct = function (c) { return Math.round(100 * c / n) + "%"; };
+    var row = function (attrs, cls, a, b, c) { return "<tr" + attrs + (cls ? ' class="' + cls + '"' : "") + ">" + a + b + c + "</tr>"; };
+    var body = qs.map(function (q) {
+      var sel = F.some(function (f) { return f.t === "stq" && f.k === q.q.key; });
+      var head = row(clickable ? ' data-k="' + esc(q.q.key) + '" data-ft="stq" data-label="' + esc(q.team + " " + q.q.name + " stacked") + '"' : "", "stq" + (sel ? " sel" : ""),
+        '<td class="l">' + teamTag(q.team) + " " + esc(q.q.name) + (q.opp ? ' <span class="pm" style="display:inline">vs</span> ' + teamTag(q.opp) : "") + "</td>",
+        '<td class="num">' + q.c + '</td><td class="num">' + pct(q.c) + '</td><td class="num">' + (q.c ? Math.round(100 * q.stacked / q.c) : 0) + "%</td>", bar(q.c));
+      var subs = Object.keys(q.shapes).map(function (k) { return q.shapes[k]; }).sort(function (a, b) { return b.c - a.c; }).map(function (s) {
+        var sel2 = F.some(function (f) { return f.t === "st" && f.k === s.k; });
+        var lab = s.shape + (s.back ? " \u00b7 bring-back " + s.back : "");
+        return row(clickable ? ' data-k="' + esc(s.k) + '" data-ft="st" data-label="' + esc(q.team + " " + lab) + '"' : "", "sts" + (sel2 ? " sel" : ""),
+          '<td class="l">' + esc(lab) + "</td>", '<td class="num">' + s.c + '</td><td class="num">' + pct(s.c) + "</td><td></td>", bar(s.c));
+      }).join("");
+      return head + subs;
+    }).join("");
+    return '<div class="card"><div class="scroll"><table class="exp stk-t"><thead><tr><th class="l">QB stack</th><th>Lineups</th><th>Exposure</th>' +
+      '<th title="Share of this QB\u2019s lineups that pair him with at least one teammate">Stacked</th><th class="l"></th></tr></thead><tbody>' + body + "</tbody></table></div></div>" +
+      (clickable ? '<p class="hint">Bold rows are each QB (Stacked = how often he has a teammate with him); the rows under him are the exact builds. Tap any row to see those lineups.</p>' : "");
+  }
+
+  // team tags in the exposure tables, same colors as the lineup cards
+  function rowName(r, t) {
+    if (t === "tm") return teamTag(r.k);
+    if (t === "gm") return String(r.k).split("@").map(function (t) { return teamTag(t); }).join(' <span class="pm" style="display:inline">/</span> ');
+    return teamTag(r.team) + " " + nameBoth(r.name);
+  }
+  function nameBoth(n) {   // full name; "D. Prescott" on phones
+    var w = String(n).split(" "), sh = w.length > 1 && !/^(Jr\.?|Sr\.?|II|III|IV)$/i.test(w[1]) ? w[0].charAt(0) + ". " + w.slice(1).join(" ") : n;
+    return '<span class="nmf">' + esc(n) + '</span><span class="nms">' + esc(sh) + "</span>";
+  }
   function expRows(L) {   // exposure counts for the current tab
     var by = {};
     L.forEach(function (lu) {
       var seen = {};
       lu.forEach(function (x) {
         var k = rtab === "pl" ? x.key : rtab === "tm" ? x.team : x.game;
-        if (!by[k]) by[k] = { k: k, c: 0, n: 0, name: rtab === "pl" ? x.name : rtab === "tm" ? x.team : x.game.replace("@", " / "), team: x.team };
+        if (!by[k]) by[k] = { k: k, c: 0, n: 0, name: rtab === "pl" ? x.name : rtab === "tm" ? x.team : x.game.replace("@", " / "), team: x.team, pos: x.pos };
         by[k].n++;
         if (!seen[k]) { seen[k] = 1; by[k].c++; }
       });
@@ -2454,8 +2542,19 @@ var T7New = (function () {
         list.map(function (i) { return card(L[i], "#" + (i + 1), "", (R.picks || {})[i]); }).join("") + "</div>" +
         (idx.length > list.length ? '<button type="button" class="btn btn-line more" id="more">Show all ' + idx.length + " lineups</button>" : "")
         : '<p class="msg">No lineup has all of those. Remove a filter.</p>';
+    } else if (rtab === "st") {
+      html = stackTable(idx.map(function (i) { return L[i]; }), true);
     } else {
       var rows = expRows(idx.map(function (i) { return L[i]; })), xs = XS[rtab], n = idx.length || 1;
+      var posChips = "";
+      if (rtab === "pl") {      // [STACKS] position filter for the Players table
+        var have = {}; rows.forEach(function (r) { if (r.pos) have[r.pos] = 1; });
+        var ps = ["QB", "RB", "WR", "TE", "K", "DST"].filter(function (p) { return have[p]; });
+        if (PPOS && !have[PPOS]) PPOS = "";
+        if (ps.length > 1) posChips = '<div class="seg pchips" role="group" aria-label="Position">' + [""].concat(ps).map(function (p) {
+          return '<button type="button" data-ppos="' + p + '" aria-pressed="' + (PPOS === p) + '">' + (p || "All") + "</button>"; }).join("") + "</div>";
+        if (PPOS) rows = rows.filter(function (r) { return r.pos === PPOS; });
+      }
       rows.sort(function (a, b) {
         var x = xs.k === "name" ? a.name.localeCompare(b.name) : (a[xs.k] - b[xs.k]);
         return xs.dir * x || b.c - a.c;
@@ -2463,12 +2562,12 @@ var T7New = (function () {
       var what = rtab === "pl" ? "Player" : rtab === "tm" ? "Team" : "Game";
       var th = function (k, label, cls) { return '<th' + (cls ? ' class="' + cls + '"' : "") + (xs.k === k ? ' aria-sort="' + (xs.dir < 0 ? "descending" : "ascending") + '"' : "") +
         '><button type="button" data-xs="' + k + '">' + label + "</button></th>"; };
-      html = '<div class="card"><div class="scroll"><table class="exp"><thead><tr>' + th("name", what, "l") +
+      html = posChips + '<div class="card"><div class="scroll"><table class="exp"><thead><tr>' + th("name", what, "l") +
         (rtab === "pl" ? th("c", "Lineups") + th("c", "Exposure") : th("c", "Lineups") + th("n", "Players")) + '<th class="l"></th></tr></thead><tbody>' +
         rows.map(function (r) {
           var sel = F.some(function (f) { return f.t === rtab && f.k === r.k; }), share = r.c / n;
-          return '<tr data-k="' + esc(r.k) + '" data-label="' + esc(r.name) + '"' + (sel ? ' class="sel" aria-selected="true"' : "") + '><td class="l">' + esc(r.name) +
-            (rtab === "pl" ? ' <span class="pm" style="display:inline">' + esc(r.team) + "</span>" : "") + '</td><td class="num">' + r.c + "</td>" +
+          return '<tr data-k="' + esc(r.k) + '" data-label="' + esc(r.name) + '"' + (sel ? ' class="sel" aria-selected="true"' : "") + '><td class="l">' + rowName(r, rtab) +
+            (rtab === "pl" && r.pos ? ' <span class="pm" style="display:inline">' + esc(r.pos) + "</span>" : "") + '</td><td class="num">' + r.c + "</td>" +
             '<td class="num">' + (rtab === "pl" ? Math.round(100 * share) + "%" : r.n) + '</td><td class="barc"><div class="xb"><i style="width:' + (100 * share) + '%"></i></div></td></tr>';
         }).join("") + '</tbody></table></div></div><p class="hint">Tap a row to show only lineups with it; tap more to narrow down.</p>';
     }
@@ -2496,10 +2595,14 @@ var T7New = (function () {
     if (e.target.closest("#more")) { showAll = true; drawResults(); return; }
     var sb = e.target.closest("button[data-xs]");
     if (sb) { var xs = XS[rtab], k2 = sb.dataset.xs; if (xs.k === k2) xs.dir = -xs.dir; else { xs.k = k2; xs.dir = k2 === "name" ? 1 : -1; } drawResults(); return; }
-    var tr = e.target.closest("table.exp tbody tr");
-    if (tr) {
-      var j = -1; F.forEach(function (f, i) { if (f.t === rtab && f.k === tr.dataset.k) j = i; });
-      if (j >= 0) F.splice(j, 1); else F.push({ t: rtab, k: tr.dataset.k, label: tr.dataset.label });
+    var pc = e.target.closest("button[data-ppos]");
+    if (pc) { PPOS = pc.dataset.ppos; drawResults(); return; }
+    var tr = e.target.closest("table.exp tbody tr[data-k]");
+    if (tr && !tr.closest(".gexp")) {
+      var ft = tr.dataset.ft || rtab, j = -1;
+      F.forEach(function (f, i) { if (f.t === ft && f.k === tr.dataset.k) j = i; });
+      if (j >= 0) F.splice(j, 1); else F.push({ t: ft, k: tr.dataset.k, label: tr.dataset.label });
+      if (tr.dataset.ft) rtab = "lu";          // a stack row: jump to the lineups that have it
       showAll = false; drawResults();
     }
   });
